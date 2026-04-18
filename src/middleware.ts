@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken, COOKIE_NAME } from "@/lib/auth";
+import { jwtVerify } from "jose";
 
-const PROTECTED = ["/perfil"];
-const AUTH_ONLY = ["/login", "/cadastro"];
+const COOKIE_NAME = "shopmotor_token";
+const PROTECTED   = ["/perfil"];
+const AUTH_ONLY   = ["/login", "/cadastro"];
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const token        = req.cookies.get(COOKIE_NAME)?.value;
-  const payload      = token ? verifyToken(token) : null;
-  const isLoggedIn   = !!payload;
+  const token = req.cookies.get(COOKIE_NAME)?.value;
 
-  // Rotas privadas → redireciona para login se não autenticado
-  const isProtected = PROTECTED.some((path) => pathname.startsWith(path));
+  let isLoggedIn = false;
+  if (token) {
+    try {
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+      await jwtVerify(token, secret);
+      isLoggedIn = true;
+    } catch {
+      isLoggedIn = false;
+    }
+  }
+
+  const isProtected = PROTECTED.some((p) => pathname.startsWith(p));
   if (isProtected && !isLoggedIn) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
@@ -19,8 +28,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Login/cadastro → redireciona para perfil se já autenticado
-  const isAuthOnly = AUTH_ONLY.some((path) => pathname.startsWith(path));
+  const isAuthOnly = AUTH_ONLY.some((p) => pathname.startsWith(p));
   if (isAuthOnly && isLoggedIn) {
     const url = req.nextUrl.clone();
     url.pathname = "/perfil";
