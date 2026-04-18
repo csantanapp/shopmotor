@@ -1,0 +1,89 @@
+"use client";
+
+import Link from "next/link";
+import Icon from "@/components/ui/Icon";
+import { useAuth } from "@/context/AuthContext";
+
+export default function Navbar() {
+  const { user, loading, logout } = useAuth();
+
+  return (
+    <header className="bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 shadow-2xl">
+      <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto">
+        <Link href="/" className="text-2xl font-black tracking-tighter text-white uppercase font-headline">
+          KINETIC
+        </Link>
+
+        <nav className="hidden md:flex items-center space-x-8">
+          <Link href="/busca" className="text-yellow-500 border-b-2 border-yellow-500 pb-1 tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">
+            Comprar
+          </Link>
+          <Link href="/perfil/cadastrar" className="text-zinc-400 hover:text-white transition-colors tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">
+            Vender
+          </Link>
+          <Link href="/perfil/ajuda" className="text-zinc-400 hover:text-white transition-colors tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">
+            Serviços
+          </Link>
+          <Link href="/perfil/ajuda" className="text-zinc-400 hover:text-white transition-colors tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">
+            Financiamento
+          </Link>
+        </nav>
+
+        <div className="flex items-center gap-3">
+          <Link
+            href="/perfil/favoritos"
+            aria-label="Favoritos"
+            className="text-white hover:bg-white/5 p-2 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-primary-container focus-visible:outline-none"
+          >
+            <Icon name="favorite" />
+          </Link>
+
+          {!loading && !user && (
+            <>
+              <Link
+                href="/cadastro"
+                className="hidden md:block text-white text-sm font-semibold hover:text-yellow-400 transition-colors"
+              >
+                Cadastrar
+              </Link>
+              <Link
+                href="/login"
+                className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full hover:bg-white/20 transition-colors"
+              >
+                <Icon name="person" fill className="text-white" />
+                <span className="text-white text-sm font-medium">Login</span>
+              </Link>
+            </>
+          )}
+
+          {!loading && user && (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/perfil"
+                className="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-full hover:bg-white/20 transition-colors max-w-[160px]"
+              >
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <span className="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container text-xs font-bold flex-shrink-0">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span className="text-white text-sm font-medium truncate hidden md:block">
+                  {user.name.split(" ")[0]}
+                </span>
+              </Link>
+              <button
+                onClick={logout}
+                aria-label="Sair"
+                className="text-zinc-400 hover:text-white p-2 rounded-full hover:bg-white/5 transition-colors"
+              >
+                <Icon name="logout" className="text-lg" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
