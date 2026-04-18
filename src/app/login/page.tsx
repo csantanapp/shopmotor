@@ -1,14 +1,13 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 
-export default function LoginPage() {
+function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -61,7 +60,6 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
 
-            {/* Erro */}
             {error && (
               <div className="flex items-center gap-2 bg-error/10 text-error rounded-xl px-4 py-3 text-sm font-medium">
                 <Icon name="error" className="text-lg flex-shrink-0" />
@@ -69,7 +67,6 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* E-mail */}
             <div>
               <label htmlFor="email" className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">
                 E-mail
@@ -91,7 +88,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Senha */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="senha" className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant">
@@ -126,7 +122,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Botão */}
             <button
               type="submit"
               disabled={loading}
@@ -144,14 +139,12 @@ export default function LoginPage() {
 
           </form>
 
-          {/* Divider */}
           <div className="flex items-center gap-4 my-6">
             <div className="flex-1 h-px bg-outline-variant" />
             <span className="text-xs text-outline uppercase tracking-widest">ou continue com</span>
             <div className="flex-1 h-px bg-outline-variant" />
           </div>
 
-          {/* Google */}
           <button
             type="button"
             className="w-full flex items-center justify-center gap-3 border border-outline-variant rounded-full py-3.5 hover:bg-surface-container transition-colors font-semibold text-sm text-on-surface"
@@ -167,7 +160,6 @@ export default function LoginPage() {
 
         </div>
 
-        {/* Cadastro link */}
         <p className="text-center text-sm text-on-surface-variant mt-6">
           Não tem uma conta?{" "}
           <Link href="/cadastro" className="text-primary font-bold hover:underline">
@@ -177,5 +169,13 @@ export default function LoginPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
