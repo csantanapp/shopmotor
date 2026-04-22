@@ -5,6 +5,8 @@ import Icon from "@/components/ui/Icon";
 import { vehicles } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
 
+export const revalidate = 60; // revalida a cada 60 segundos
+
 /* ── Static data ─────────────────────────────────────── */
 
 const BASE = "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized";
