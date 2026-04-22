@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
   const shuffle = <T,>(arr: T[]) => arr.map(v => ({ v, r: Math.random() })).sort((a, b) => a.r - b.r).map(x => x.v);
 
   const boosted = [...shuffle(boostedElite), ...shuffle(boostedDestaque)];
-  const boostedIds = new Set(boosted.map(v => v.id));
+  const boostedIds = new Set(boosted.map((v: { id: string }) => v.id));
   const regularFiltered = regular.filter(v => !boostedIds.has(v.id));
 
   // On page 1 show boosted at top; on subsequent pages skip them
