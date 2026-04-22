@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     });
 
     const avg = reviews.length
-      ? reviews.reduce((s: number, r) => s + r.rating, 0) / reviews.length
+      ? reviews.reduce((s: number, r: { rating: number }) => s + r.rating, 0) / reviews.length
       : null;
 
     return NextResponse.json({ reviews, avg, total: reviews.length });
