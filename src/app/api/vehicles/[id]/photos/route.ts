@@ -70,6 +70,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ photos }, { status: 201 });
 }
 
+/* ── PATCH /api/vehicles/[id]/photos — reordenar ── */
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
+  const { id } = await params;
+  const vehicle = await prisma.vehicle.findUnique({ where: { id } });
+  if (!vehicle) return NextResponse.json({ error: "Veículo não encontrado." }, { status: 404 });
+  if (vehicle.userId !== user.id) return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
+
+  const body = await req.json();
+  const orders: { id: string; order: number; isCover: boolean }[] = body.orders ?? [];
+
+  await prisma.$transaction(
+    orders.map(p =>
+      prisma.vehiclePhoto.update({ where: { id: p.id }, data: { order: p.order, isCover: p.isCover } })
+    )
+  );
+
+  return NextResponse.json({ ok: true });
+}
+
 /* ── DELETE /api/vehicles/[id]/photos?photoId=xxx ── */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();

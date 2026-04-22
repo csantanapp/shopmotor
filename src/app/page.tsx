@@ -3,20 +3,27 @@ import Link from "next/link";
 import VehicleCard from "@/components/ui/VehicleCard";
 import Icon from "@/components/ui/Icon";
 import { vehicles } from "@/lib/data";
+import { prisma } from "@/lib/prisma";
 
 /* ── Static data ─────────────────────────────────────── */
 
+const BASE = "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized";
 const brands = [
-  { name: "Chevrolet", src: "https://lh3.googleusercontent.com/aida-public/AB6AXuANwT_9IHH4fqjRBUYSjj0u4sm3HZ-PLH5gIqUwkFETofITT9GbTyxRmJBrBeGBmL-A9HaGl33CvNemRN09p0zyfmuSUiy1kCqq0FCYTpdVlp2T7x0ziK7Yc8glLNA-DravIxCGhdiqSLhc4Iz0oVL_s8e01oJ53fV3CQegBPNhwiuXWIjfvjsY-2W3THVEOk8gJuhwGbf9ofpnF_frOKNx5ESn7P1ZxpTxMEkTD_ZC0hlWXbqf9wOjtnHhdMsG0l6yjnvscyB0VRs" },
-  { name: "Hyundai",   src: "https://lh3.googleusercontent.com/aida-public/AB6AXuCg7ghe9E_wtYzk4YRrMS22aIV6RFexXYD8K-IZcFUQDTWpHZsmySxVtdjd_cpe98ueGCzHuS4mcIMkNOZsDnqmb0j1T6fIJUserWig6XaOOqQrZM3WbcvCQpWrhUk3KGz78q04ZhkvYNKGLC6rMfwI0MMj50zrka1W47GHo8VkghdYS1XKn6WCKujvlMsC_5EvVeisGv1FmPy2mTGFuIhtQL9r7qg8jQQL1Kh-7njVHMoTx_WyrLHamOjQnVqa5BGKBuP_r-WaBkg" },
-  { name: "Fiat",      src: "https://lh3.googleusercontent.com/aida-public/AB6AXuCE0bfcbyYrkaaTjHO-LomfiHF7nxbb57HGuk8MJ5yt4TE7sjDCjJzwMHIgdPDbsItln36dWKGod0qIcafqHFFgagC3O7a0t2T2zuiu9DFQcCA1sg5yWXmPU7CKJhUVB0bCCW2oLgpueNARIgFPBhgOqL9p3drcB4u_ojxezS1wKpWqSUz4xyiTG7_2B11JCLP0hLBWv8m_49DPXnYL4Zep1_hJ84jnjYbQTeuWJhkMtw8IJa3t5uoerZe7zX-xobJCOXSAoLJbieY" },
-  { name: "Ford",      src: "https://lh3.googleusercontent.com/aida-public/AB6AXuC6nSKExLYWuS_jIJqf-NBPpEvmruAeRuKI0_Fag8DD1FcB7GiFGYyhSFXDzvjIDfEsBqKJYXt7-pFhmb_JmJE1Eu4WE-pZBSvofaYXh-AuFZPfvXlzMm4BazogyfLfezX7xJukvsnb2YvwN5lGpCl0zuJn19VJlOXgASFXhd6jGZJTO7caLHu7Ui3Sxnyw54T6sR9L2m_6oNTLaGVg_eWx0156v6cB-AUkWzJq0HhsGpfHeOomvBIGSKZuvw52H-tMrXtzFVlKNyY" },
-  { name: "Nissan",    src: "https://lh3.googleusercontent.com/aida-public/AB6AXuD8w4H7GsLjdbn8WCm5rV6R5ss1Wvn4DrGhtijIhs3LWiESvAber2mGc1PfwcOEGs7PAI80EavuDz7-pIdEdCnpdEHzYUjCWgaQdMUgWilmRchn1_3M3rrWRx36HVbuVdIi_9E0U6CRmBMyIc5y15DVms3wFAyP9wjzqQOGCIZ1c0FLkS_RYKcNOhE5g5cnZxxlYb3vrRoDX24tQywt3mgVX5mnu223X5Zj3_v8MnNPLc8a6OOxCfqH4T4YkHK0" },
-  { name: "BMW",       src: "https://lh3.googleusercontent.com/aida-public/AB6AXuDnwyCjchIG-cdoH_J97R9P69ZK1VRoQBY5YEPbUENh8pRRFzmM870YQERLIQvaAY5H3sCuXTAQBP9l_t-7P_uRqhvtAW8DukPIm3uafbL-0jvajPGQYTXBsvYO_eslidyg2Rk6hdPknZDZRxCoc2VMhCKGHZjNHT_0tM0c46zcQqvKyV1jT3H36eCPRL4DHIBS-s6rjUDTLKcp1MhTE5NEZSXWM5nKaAcQGxcE1knP7xQyBc_lUPI3zX3MPTs6iXpxVQpVJRdiLIM" },
-  { name: "Toyota",    src: "https://lh3.googleusercontent.com/aida-public/AB6AXuAxokegQvDzHCFk_GgV5uS1TAMuRo4PMR6dnddP2U-ONiM3btS_qM0VIQEm827C1U87waF33eyxklt_QZucCg4AQhNStZzg44iw-NzX6dyvtCqm6iq9WVtxWMILN0JdANgf3ohfcDpegd4duoD1wGK8xcpoKZmZr6E4b26wx6u95FdBpszvE1AEtWnDAc9hReVZZTXVK07yyCJGfPmdUBOEfxfR2ku_D4xiPY_cDYLXyZFUxxeu8W0FLpUvXx4LEpA6upAp5vI9pVY" },
-  { name: "Jeep",      src: "https://lh3.googleusercontent.com/aida-public/AB6AXuAhKZ22i1qajTM-cNak1hBR5NjAFrrU-dbM3WMBYw1pqh3T3Bm-oLd6ARh3_XqOrl67Ot0ju0nYeM3SdzrHXUulqMU7koZZYYjRRBGdSH9aCma_kSMrVcFbUmtN9JxSC4mInxOH1ncKyOToGNRffBbRfZiW6ijow6df-0czXC3Gs0_H8YNreiU4y_DGT2RZBIb70d173wpXd6TKCsoo7YVT6FgTsSrm11TvRuVpOwcxRUOh8dRaC5YAdMx6VhbSl5mIdlHXrRDd-Dw" },
-  { name: "Volkswagen", src: "https://lh3.googleusercontent.com/aida-public/AB6AXuAU12xyGzXvOpk7TqFcrpglST2tEiHpcK_Y7SKEctOSYTjAqYM0ZHdA9vYLBh0c8M5idrTaWdJujrlUjGbBuOgNSqNLvkdAVFbq4ztvrweJlyKUDQ6tJSQ6vinCYGpbdRfM0bPf7WAjhAHXBS5cJaQfbG3_jQ5IZZ0ezAjlchWZfkS3Zv4_BCXgvJUeOdM7uq-8MCdbTCf6RoGcpBv9NcKYC81Pqbnl5OVaRwbe31hbxe0f4IfSKT-Y-Lf-jZTstJC3BmB5xrbvcrw" },
-  { name: "Honda",     src: "https://lh3.googleusercontent.com/aida-public/AB6AXuAnvLqtu9j8ckf3Vt8-hvnglhnw3nIeOZ7MtZfSxyeEm5So6FDCSz0mcpU1qAaFwGcMh35xEpT3AUCLalvMHKzuJOWm4zs3jxrJbkHuDbqBYpISBjDG9JbcI1goqhQAiPbF87DOPGgk4MfT4X32G9Be44OnBcHzOQE2cHC8H1dzyj3W9h9IMbzfduNTm98HL4HDopqwdcN4LTNiXENjAg4CWbs1UqeigFBDIXijKJSIbeEGHtBTZj9rzFq8uva_soOaIcrNmb63j3M" },
+  { name: "Chevrolet",  src: `${BASE}/chevrolet.png` },
+  { name: "Volkswagen", src: `${BASE}/volkswagen.png` },
+  { name: "Fiat",       src: `${BASE}/fiat.png` },
+  { name: "Ford",       src: `${BASE}/ford.png` },
+  { name: "Toyota",     src: `${BASE}/toyota.png` },
+  { name: "Honda",      src: `${BASE}/honda.png` },
+  { name: "Hyundai",    src: `${BASE}/hyundai.png` },
+  { name: "BMW",        src: `${BASE}/bmw.png` },
+  { name: "Jeep",       src: `${BASE}/jeep.png` },
+  { name: "Nissan",     src: `${BASE}/nissan.png` },
+  { name: "Renault",    src: `${BASE}/renault.png` },
+  { name: "Peugeot",    src: `${BASE}/peugeot.png` },
+  { name: "Kia",        src: `${BASE}/kia.png` },
+  { name: "Mitsubishi", src: `${BASE}/mitsubishi.png` },
+  { name: "Audi",       src: `${BASE}/audi.png` },
 ];
 
 const bodyCategories = [
@@ -44,7 +51,71 @@ const stats = [
 
 /* ── Page ─────────────────────────────────────────────── */
 
-export default function Home() {
+type BoostedVehicle = {
+  id: string; brand: string; model: string; version: string | null;
+  yearFab: number; yearModel: number; km: number; price: number;
+  city: string; state: string;
+  photos: { url: string }[];
+};
+
+function BoostedCard({ v }: { v: BoostedVehicle }) {
+  const price = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+  const km = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
+  const cover = v.photos[0]?.url ?? null;
+  return (
+    <Link href={`/carro/${v.id}`} className="bg-surface-container-lowest rounded-xl overflow-hidden hover:scale-[1.02] transition-transform group shadow-sm block">
+      <div className="h-48 overflow-hidden relative bg-surface-container">
+        {cover
+          ? <img src={cover} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+          : <div className="w-full h-full flex items-center justify-center"><Icon name="directions_car" className="text-5xl text-outline" /></div>
+        }
+      </div>
+      <div className="p-4">
+        <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-0.5">{v.brand}</p>
+        <p className="font-bold text-sm text-on-surface truncate">{v.model}{v.version ? ` ${v.version}` : ""}</p>
+        <p className="text-xs text-on-surface-variant mt-0.5">{v.yearFab} · {km}</p>
+        <div className="flex items-end justify-between mt-3">
+          <p className="text-lg font-black text-on-surface">{price}</p>
+          <span className="text-[10px] text-on-surface-variant">{v.city}, {v.state}</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+const vehicleSelect = {
+  id: true, brand: true, model: true, version: true,
+  yearFab: true, yearModel: true, km: true, price: true,
+  city: true, state: true,
+  photos: { where: { isCover: true }, take: 1, select: { url: true } },
+} as const;
+
+export default async function Home() {
+  const now = new Date();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = prisma as any;
+  const [destaques, elite, recentes]: [BoostedVehicle[], BoostedVehicle[], BoostedVehicle[]] = await Promise.all([
+    db.vehicle.findMany({
+      where: { status: "ACTIVE", boostLevel: "DESTAQUE", boostGalleryUntil: { gte: now } },
+      orderBy: { boostGalleryUntil: "desc" },
+      take: 8,
+      select: vehicleSelect,
+    }),
+    db.vehicle.findMany({
+      where: { status: "ACTIVE", boostLevel: "ELITE", boostGalleryUntil: { gte: now } },
+      orderBy: { boostGalleryUntil: "desc" },
+      take: 8,
+      select: vehicleSelect,
+    }),
+    prisma.vehicle.findMany({
+      where: { status: "ACTIVE", boostLevel: "NONE" },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      select: vehicleSelect,
+    }),
+  ]);
+
   return (
     <>
       {/* ── HERO ── */}
@@ -172,10 +243,58 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── MARCAS POPULARES ── */}
-      <section className="bg-surface-container-low py-16">
-        <div className="max-w-screen-2xl mx-auto px-6">
-          <div className="flex items-end justify-between mb-10">
+      {/* ── ANÚNCIOS DESTAQUE ── */}
+      {destaques.length > 0 && (
+        <section className="max-w-screen-2xl mx-auto px-6 pb-16">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Selecionados para você</p>
+              <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">
+                Anúncios Destaques
+              </h2>
+              <div className="h-1 w-16 bg-primary-container mt-2" />
+            </div>
+            <Link href="/busca" className="text-primary font-bold flex items-center gap-1 hover:underline text-sm">
+              Ver todos <Icon name="arrow_forward" className="text-base" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {destaques.map((v) => (
+              <BoostedCard key={v.id} v={v} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── ANÚNCIOS ELITE ── */}
+      {elite.length > 0 && (
+        <section className="bg-inverse-surface/5 py-16">
+          <div className="max-w-screen-2xl mx-auto px-6">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Selecionados para você</p>
+                <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">
+                  Anúncios Elite
+                </h2>
+                <div className="h-1 w-16 bg-inverse-surface mt-2" />
+              </div>
+              <Link href="/busca" className="text-primary font-bold flex items-center gap-1 hover:underline text-sm">
+                Ver todos <Icon name="arrow_forward" className="text-base" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {elite.map((v) => (
+                <BoostedCard key={v.id} v={v} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── MARCAS POPULARES — carrossel marquee ── */}
+      <section className="bg-surface-container-low py-14 overflow-hidden">
+        <div className="max-w-screen-2xl mx-auto px-6 mb-10">
+          <div className="flex items-end justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Navegue por marca</p>
               <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Marcas populares</h2>
@@ -184,24 +303,50 @@ export default function Home() {
               Ver todas <Icon name="arrow_forward" className="text-base" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {brands.map((brand) => (
+        </div>
+
+        {/* fade edges */}
+        <div className="relative">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-surface-container-low to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-surface-container-low to-transparent z-10 pointer-events-none" />
+
+          <div className="flex animate-marquee gap-4 w-max">
+            {[...brands, ...brands].map((brand, i) => (
               <Link
-                key={brand.name}
-                href="/busca"
-                className="group bg-surface-container-lowest rounded-2xl px-6 py-5 flex flex-col items-center gap-3 hover:bg-primary-container transition-all shadow-sm"
+                key={`${brand.name}-${i}`}
+                href={`/busca?brand=${brand.name}`}
+                className="group flex-shrink-0 bg-surface-container-lowest rounded-2xl px-10 py-7 flex items-center justify-center hover:bg-primary-container transition-colors shadow-sm w-48 h-28"
               >
-                <div className="h-10 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all opacity-60 group-hover:opacity-100">
-                  <Image src={brand.src} alt={brand.name} width={80} height={40} className="h-8 w-auto object-contain" />
-                </div>
-                <span className="text-xs font-bold text-on-surface-variant group-hover:text-on-primary-container transition-colors uppercase tracking-wide">
-                  {brand.name}
-                </span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={brand.src}
+                  alt={brand.name}
+                  className="h-16 w-auto max-w-[140px] object-contain grayscale group-hover:grayscale-0 opacity-60 group-hover:opacity-100 transition-all"
+                />
               </Link>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ── ANÚNCIOS RECENTES ── */}
+      {recentes.length > 0 && (
+        <section className="max-w-screen-2xl mx-auto px-6 py-16">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Recém adicionados</p>
+              <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Novos anúncios</h2>
+              <div className="h-1 w-16 bg-primary-container mt-2" />
+            </div>
+            <Link href="/busca" className="text-primary font-bold flex items-center gap-1 hover:underline text-sm">
+              Ver todos <Icon name="arrow_forward" className="text-base" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {recentes.map((v) => <BoostedCard key={v.id} v={v} />)}
+          </div>
+        </section>
+      )}
 
       {/* ── EDITORIAL BANNER ── */}
       <section className="max-w-screen-2xl mx-auto px-6 py-20">

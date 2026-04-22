@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 
@@ -19,25 +20,39 @@ interface ProfileData {
   address: string | null;
   city: string | null;
   state: string | null;
+  gender: string | null;
+  birthDate: string | null;
   createdAt: string;
+  accountType: string;
+  cnpj: string | null;
+  companyName: string | null;
+  tradeName: string | null;
 }
 
 export default function ContaPage() {
   const { refresh } = useAuth();
+  const router = useRouter();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(true);
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetch("/api/user/profile")
-      .then(r => r.json())
-      .then(d => { setProfile(d.user); setLoading(false); });
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(d => { setProfile(d.user); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
   async function handleSaveProfile(e: React.FormEvent<HTMLFormElement>) {
@@ -59,10 +74,41 @@ export default function ContaPage() {
     setSaving(false);
 
     if (!res.ok) { setError(data.error ?? "Erro ao salvar."); return; }
-    setProfile(prev => prev ? { ...prev, ...data.user } : data.user);
     await refresh();
     setSuccess("Alterações salvas com sucesso!");
     setTimeout(() => setSuccess(""), 4000);
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    const fd = new FormData();
+    fd.append("avatar", file);
+    const res = await fetch("/api/user/avatar", { method: "POST", body: fd });
+    const data = await res.json();
+    setUploadingAvatar(false);
+    if (res.ok) {
+      setProfile(prev => prev ? { ...prev, avatarUrl: data.avatarUrl } : prev);
+      await refresh();
+    } else {
+      setError(data.error ?? "Erro ao enviar foto.");
+    }
+  }
+
+  async function handleDeleteAccount(e: React.FormEvent) {
+    e.preventDefault();
+    setDeleteError("");
+    setDeleting(true);
+    const res = await fetch("/api/user/profile", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: deletePassword }),
+    });
+    const data = await res.json();
+    setDeleting(false);
+    if (!res.ok) { setDeleteError(data.error ?? "Erro ao excluir conta."); return; }
+    router.push("/");
   }
 
   async function handleChangePassword(e: React.FormEvent) {
@@ -136,10 +182,23 @@ export default function ContaPage() {
                   {profile.name.charAt(0).toUpperCase()}
                 </span>
               )}
+              {uploadingAvatar && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                </div>
+              )}
             </div>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
             <button
               type="button"
               aria-label="Trocar foto"
+              onClick={() => avatarInputRef.current?.click()}
               className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-container rounded-full flex items-center justify-center shadow hover:scale-110 transition-transform"
             >
               <Icon name="photo_camera" className="text-sm text-on-primary-container" />
@@ -156,12 +215,56 @@ export default function ContaPage() {
       {/* Dados pessoais */}
       <form onSubmit={handleSaveProfile} className="space-y-8">
         <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm space-y-6">
-          <h2 className="text-base font-bold border-b border-neutral-100 pb-4">Dados Pessoais</h2>
+          <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+            <h2 className="text-base font-bold">Dados Pessoais</h2>
+            {profile.accountType === "PJ" && (
+              <span className="text-[10px] font-black uppercase tracking-widest bg-primary-container text-on-primary-container px-3 py-1 rounded-full">
+                Conta Loja (PJ)
+              </span>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Field label="Nome completo" name="name" defaultValue={profile.name ?? ""} />
             <Field label="E-mail" name="email" type="email" defaultValue={profile.email} disabled />
             <Field label="Telefone / WhatsApp" name="phone" type="tel" defaultValue={profile.phone ?? ""} />
-            <Field label="CPF" name="cpf" defaultValue={profile.cpf ?? ""} disabled />
+            {profile.accountType === "PJ" ? (
+              <Field label="CNPJ" name="cnpj" defaultValue={profile.cnpj ? profile.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5") : ""} disabled />
+            ) : (
+              <Field label="CPF" name="cpf" defaultValue={profile.cpf ?? ""} disabled />
+            )}
+            {profile.accountType === "PJ" && (
+              <>
+                <Field label="Razão Social" name="companyName" defaultValue={profile.companyName ?? ""} disabled />
+                <Field label="Nome Fantasia" name="tradeName" defaultValue={profile.tradeName ?? ""} />
+              </>
+            )}
+
+            {/* Sexo */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Sexo</label>
+              <select
+                name="gender"
+                defaultValue={profile.gender ?? ""}
+                className="bg-surface-container-low border-0 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-container outline-none"
+              >
+                <option value="">Prefiro não informar</option>
+                <option value="M">Masculino</option>
+                <option value="F">Feminino</option>
+                <option value="O">Outro</option>
+              </select>
+            </div>
+
+            {/* Data de nascimento */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Data de nascimento</label>
+              <input
+                type="date"
+                name="birthDate"
+                defaultValue={profile.birthDate ? profile.birthDate.slice(0, 10) : ""}
+                max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().slice(0, 10)}
+                className="bg-surface-container-low border-0 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-container outline-none"
+              />
+            </div>
           </div>
         </div>
 
@@ -257,11 +360,61 @@ export default function ContaPage() {
             <p className="font-semibold text-sm text-on-surface">Excluir conta</p>
             <p className="text-xs text-on-surface-variant">Esta ação é irreversível. Todos os seus dados serão removidos.</p>
           </div>
-          <button type="button" className="px-6 py-2 border border-error text-error font-bold text-sm rounded-full hover:bg-error hover:text-white transition-colors">
+          <button
+            type="button"
+            onClick={() => { setShowDeleteModal(true); setDeleteError(""); setDeletePassword(""); }}
+            className="px-6 py-2 border border-error text-error font-bold text-sm rounded-full hover:bg-error hover:text-white transition-colors"
+          >
             Excluir conta
           </button>
         </div>
       </div>
+
+      {/* Modal confirmar exclusão */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-md p-8 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center flex-shrink-0">
+                <Icon name="warning" className="text-error text-xl" />
+              </div>
+              <div>
+                <h3 className="font-black text-on-surface">Excluir conta</h3>
+                <p className="text-xs text-on-surface-variant">Esta ação não pode ser desfeita.</p>
+              </div>
+            </div>
+            <p className="text-sm text-on-surface-variant">
+              Todos os seus anúncios, mensagens e dados pessoais serão permanentemente removidos.
+              Digite sua senha para confirmar.
+            </p>
+            {deleteError && (
+              <div className="flex items-center gap-2 bg-error/10 text-error rounded-xl px-4 py-3 text-sm font-medium">
+                <Icon name="error" className="text-lg flex-shrink-0" />{deleteError}
+              </div>
+            )}
+            <form onSubmit={handleDeleteAccount} className="space-y-4">
+              <PasswordField label="Sua senha" value={deletePassword} onChange={setDeletePassword} />
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-6 py-3 rounded-full font-bold text-sm text-on-surface-variant border border-outline-variant hover:bg-surface-container transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={deleting || !deletePassword}
+                  className="flex-1 px-6 py-3 rounded-full font-black text-sm bg-error text-white hover:bg-error/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {deleting && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  Excluir permanentemente
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

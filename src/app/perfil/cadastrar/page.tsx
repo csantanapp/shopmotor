@@ -1,23 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 
 const steps = ["Dados básicos", "Especificações", "Preço", "Fotos"];
 
-const brands = ["Aston Martin","Audi","Bentley","BMW","BYD","Cadillac","Caoa Changan","Caoa Chery","Chevrolet","Chrysler","Citroën","Denza","Dodge","Effa","Ferrari","Fiat","Ford","Foton","GAC","Geely","GMC","GWM","Honda","Hyundai","Iveco","JAC","Jaecoo","Jaguar","Jeep","Jetour","Kia","Lamborghini","Land Rover","Leapmotor","Lexus","McLaren","Mercedes-Benz","MG","Mini","Mitsubishi","Nissan","Omoda","Peugeot","Porsche","RAM","Renault","Riddara","Rolls-Royce","Shineray","Tesla","Toyota","Volkswagen","Volvo","Zeekr","Outros"];
-const fuelOptions = ["Flex","Gasolina","Diesel","Elétrico","Híbrido","GNV"];
-const transmissionOptions = ["Automático","Manual","CVT","Automatizado"];
-const bodyOptions = ["Hatch","Sedã","SUV/Crossover","Picape","Minivan","Esportivo","Conversível"];
+const fuelOptions        = ["Flex","Gasolina","Etanol","Diesel","Elétrico","Híbrido","GNV"];
+const motoFuelOptions    = ["Gasolina","Etanol","Flex","Elétrico"];
+const transmissionOptions     = ["Automático","Manual","CVT","Automatizado"];
+const motoTransmissionOptions = ["Manual","Automático","Semiautomático"];
+const bodyOptions  = ["Hatch","Sedã","SUV/Crossover","Picape","Minivan","Esportivo","Conversível"];
+const motoTypeOptions = ["Street","Naked","Esportiva","Trail/Adventure","Custom/Cruiser","Scooter","Enduro/Motocross","Touring"];
 const colorOptions = ["Branco","Prata","Preto","Cinza","Vermelho","Azul","Verde","Amarelo","Laranja","Marrom","Bege","Dourado","Vinho","Outro"];
+
+function toTitleCase(str: string) {
+  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function fuelFromFipe(yearName: string): string {
+  const n = yearName.toLowerCase();
+  if (n.includes("gasolina")) return "Gasolina";
+  if (n.includes("álcool") || n.includes("alcool") || n.includes("etanol")) return "Etanol";
+  if (n.includes("diesel")) return "Diesel";
+  if (n.includes("elétrico") || n.includes("eletrico")) return "Elétrico";
+  if (n.includes("flex")) return "Flex";
+  if (n.includes("gnv")) return "GNV";
+  return "";
+}
+
+interface FipeItem { code: string; name: string; }
 
 export default function CadastrarPage() {
   const router = useRouter();
+  const [vehicleType, setVehicleType] = useState<"CAR" | "MOTO" | null>(null);
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [vehicleId, setVehicleId] = useState<string | null>(null);
+
+  // FIPE cascading state
+  const [fipeBrands, setFipeBrands] = useState<FipeItem[]>([]);
+  const [fipeModels, setFipeModels] = useState<FipeItem[]>([]);
+  const [fipeYears, setFipeYears]   = useState<FipeItem[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(false);
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [loadingYears, setLoadingYears]   = useState(false);
 
   // Form state
   const [form, setForm] = useState({
@@ -25,9 +53,51 @@ export default function CadastrarPage() {
     condition: "Usado",
     yearFab: "", yearModel: "", km: "",
     fuel: "", transmission: "", color: "", doors: "",
+    cylindercc: "", motoType: "",
     price: "", acceptTrade: false, financing: false, armored: false, auction: false,
     description: "",
+    fipeBrandCode: "", fipeModelCode: "", fipeYearCode: "",
   });
+
+  // Carregar marcas FIPE ao escolher tipo
+  useEffect(() => {
+    if (!vehicleType) return;
+    setLoadingBrands(true);
+    fetch(`/api/fipe/brands?vehicleType=${vehicleType}`)
+      .then(r => r.json())
+      .then(data => setFipeBrands(Array.isArray(data) ? data : []))
+      .finally(() => setLoadingBrands(false));
+  }, [vehicleType]);
+
+  async function onBrandChange(code: string, name: string) {
+    setForm(f => ({ ...f, fipeBrandCode: code, brand: toTitleCase(name), fipeModelCode: "", model: "", fipeYearCode: "", yearFab: "", yearModel: "", fuel: "" }));
+    setFipeModels([]);
+    setFipeYears([]);
+    if (!code) return;
+    setLoadingModels(true);
+    const res = await fetch(`/api/fipe/brands/${code}/models?vehicleType=${vehicleType}`);
+    const data = await res.json();
+    const models = Array.isArray(data) ? data : (data.models ?? []);
+    setFipeModels(models.map((m: FipeItem) => ({ ...m, code: String(m.code) })));
+    setLoadingModels(false);
+  }
+
+  async function onModelChange(code: string, name: string) {
+    setForm(f => ({ ...f, fipeModelCode: code, model: toTitleCase(name), fipeYearCode: "", yearFab: "", yearModel: "", fuel: "" }));
+    setFipeYears([]);
+    if (!code || !form.fipeBrandCode) return;
+    setLoadingYears(true);
+    const res = await fetch(`/api/fipe/brands/${form.fipeBrandCode}/models/${code}/years?vehicleType=${vehicleType}`);
+    const data = await res.json();
+    setFipeYears((Array.isArray(data) ? data : []).map((y: FipeItem) => ({ ...y, code: String(y.code) })));
+    setLoadingYears(false);
+  }
+
+  function onYearChange(code: string, name: string) {
+    const year = parseInt(name);
+    const fuel = fuelFromFipe(name);
+    setForm(f => ({ ...f, fipeYearCode: code, yearFab: String(year), yearModel: String(year), fuel }));
+  }
 
   // Photos
   const [photos, setPhotos] = useState<File[]>([]);
@@ -39,8 +109,8 @@ export default function CadastrarPage() {
 
   async function submitBasicData() {
     setError("");
-    if (!form.brand || !form.model || !form.yearFab || !form.yearModel || !form.km) {
-      setError("Preencha todos os campos obrigatórios."); return false;
+    if (!form.fipeBrandCode || !form.fipeModelCode || !form.fipeYearCode || !form.km) {
+      setError("Selecione a marca, modelo, ano e informe a quilometragem."); return false;
     }
     return true;
   }
@@ -54,9 +124,10 @@ export default function CadastrarPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
-        yearFab: Number(form.yearFab),
-        yearModel: Number(form.yearModel),
-        km: Number(form.km),
+        vehicleType,
+        yearFab:  Number(form.yearFab),
+        yearModel: Number(form.yearFab),
+        km:    Number(form.km),
         price: Number(String(form.price).replace(/\D/g, "")),
         doors: form.doors ? Number(form.doors) : null,
       }),
@@ -95,13 +166,63 @@ export default function CadastrarPage() {
     setStep(s => s + 1);
   }
 
+  // ── Type selection screen ──
+  if (!vehicleType) {
+    return (
+      <div className="max-w-3xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Cadastrar Veículo</h1>
+          <p className="text-on-surface-variant text-sm mt-1">Escolha o tipo de veículo que deseja anunciar.</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <button
+            onClick={() => setVehicleType("CAR")}
+            className="group flex flex-col items-center justify-center gap-4 bg-surface-container-lowest rounded-2xl p-10 shadow-sm border-2 border-transparent hover:border-primary-container hover:bg-primary-container/5 transition-all"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-surface-container-high group-hover:bg-primary-container/20 flex items-center justify-center transition-colors">
+              <Icon name="directions_car" className="text-4xl text-on-surface" />
+            </div>
+            <div className="text-center">
+              <p className="font-black text-on-surface uppercase tracking-tight text-lg">Carro</p>
+              <p className="text-xs text-on-surface-variant mt-1">Carros, SUVs, Pickups e mais</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setVehicleType("MOTO")}
+            className="group flex flex-col items-center justify-center gap-4 bg-surface-container-lowest rounded-2xl p-10 shadow-sm border-2 border-transparent hover:border-primary-container hover:bg-primary-container/5 transition-all"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-surface-container-high group-hover:bg-primary-container/20 flex items-center justify-center transition-colors">
+              <Icon name="two_wheeler" className="text-4xl text-on-surface" />
+            </div>
+            <div className="text-center">
+              <p className="font-black text-on-surface uppercase tracking-tight text-lg">Moto</p>
+              <p className="text-xs text-on-surface-variant mt-1">Motos, scooters e esportivas</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isMoto = vehicleType === "MOTO";
+
   return (
     <div className="max-w-3xl mx-auto space-y-8">
 
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Cadastrar Veículo</h1>
-        <p className="text-on-surface-variant text-sm mt-1">Preencha os dados do veículo para publicar seu anúncio.</p>
+      <div className="flex items-center gap-3">
+        <button onClick={() => setVehicleType(null)} className="p-2 rounded-full hover:bg-surface-container transition-colors">
+          <Icon name="arrow_back" className="text-on-surface" />
+        </button>
+        <div>
+          <h1 className="text-3xl font-black tracking-tighter text-on-surface uppercase flex items-center gap-2">
+            <Icon name={isMoto ? "two_wheeler" : "directions_car"} className="text-2xl" />
+            Cadastrar {isMoto ? "Moto" : "Carro"}
+          </h1>
+          <p className="text-on-surface-variant text-sm mt-1">Preencha os dados do veículo para publicar seu anúncio.</p>
+        </div>
       </div>
 
       {/* Steps */}
@@ -133,16 +254,58 @@ export default function CadastrarPage() {
           <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm space-y-6">
             <h2 className="text-base font-bold text-on-surface border-b border-neutral-100 pb-4">Identificação</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormSelect label="Marca *" value={form.brand} onChange={v => set("brand", v)}>
-                <option value="">Selecione a marca</option>
-                {brands.map(b => <option key={b}>{b}</option>)}
-              </FormSelect>
-              <FormInput label="Modelo *" value={form.model} onChange={v => set("model", v)} placeholder="Ex: Onix, Civic, HB20..." />
-              <FormInput label="Versão" value={form.version} onChange={v => set("version", v)} placeholder="Ex: LTZ 1.0 Turbo Premier" />
-              <FormSelect label="Carroceria" value={form.bodyType} onChange={v => set("bodyType", v)}>
-                <option value="">Selecione</option>
-                {bodyOptions.map(b => <option key={b}>{b}</option>)}
-              </FormSelect>
+
+              {/* Marca — FIPE */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                  Marca * {loadingBrands && <span className="text-outline normal-case font-normal">(carregando...)</span>}
+                </label>
+                <select
+                  value={form.fipeBrandCode}
+                  onChange={e => {
+                    const opt = fipeBrands.find(b => b.code === e.target.value);
+                    onBrandChange(e.target.value, opt?.name ?? "");
+                  }}
+                  disabled={loadingBrands}
+                  className="bg-surface-container-low border-0 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-container outline-none disabled:opacity-50"
+                >
+                  <option value="">Selecione a marca</option>
+                  {fipeBrands.map(b => <option key={b.code} value={b.code}>{toTitleCase(b.name)}</option>)}
+                </select>
+              </div>
+
+              {/* Modelo — FIPE */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                  Modelo * {loadingModels && <span className="text-outline normal-case font-normal">(carregando...)</span>}
+                </label>
+                <select
+                  value={form.fipeModelCode}
+                  onChange={e => {
+                    const opt = fipeModels.find(m => m.code === e.target.value);
+                    onModelChange(e.target.value, opt?.name ?? "");
+                  }}
+                  disabled={!form.fipeBrandCode || loadingModels}
+                  className="bg-surface-container-low border-0 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-container outline-none disabled:opacity-50"
+                >
+                  <option value="">Selecione o modelo</option>
+                  {fipeModels.map(m => <option key={m.code} value={m.code}>{toTitleCase(m.name)}</option>)}
+                </select>
+              </div>
+
+              <FormInput label="Versão" value={form.version} onChange={v => set("version", v)} placeholder={isMoto ? "Ex: CB 500F ABS" : "Ex: LTZ 1.0 Turbo Premier"} />
+
+              {isMoto ? (
+                <FormSelect label="Tipo de moto" value={form.motoType} onChange={v => set("motoType", v)}>
+                  <option value="">Selecione</option>
+                  {motoTypeOptions.map(b => <option key={b}>{b}</option>)}
+                </FormSelect>
+              ) : (
+                <FormSelect label="Carroceria" value={form.bodyType} onChange={v => set("bodyType", v)}>
+                  <option value="">Selecione</option>
+                  {bodyOptions.map(b => <option key={b}>{b}</option>)}
+                </FormSelect>
+              )}
             </div>
           </div>
 
@@ -153,7 +316,7 @@ export default function CadastrarPage() {
                 <label key={c} className="flex-1 cursor-pointer">
                   <input type="radio" name="condition" value={c} checked={form.condition === c} onChange={() => set("condition", c)} className="sr-only peer" />
                   <div className="flex items-center justify-center gap-2 border-2 border-outline-variant peer-checked:border-primary-container peer-checked:bg-primary-container/10 rounded-xl p-4 transition-all">
-                    <Icon name={c === "Novo" ? "new_releases" : "directions_car"} className="text-xl text-on-surface" />
+                    <Icon name={c === "Novo" ? "new_releases" : isMoto ? "two_wheeler" : "directions_car"} className="text-xl text-on-surface" />
                     <span className="font-bold text-sm text-on-surface">{c}</span>
                   </div>
                 </label>
@@ -164,8 +327,31 @@ export default function CadastrarPage() {
           <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm space-y-6">
             <h2 className="text-base font-bold text-on-surface border-b border-neutral-100 pb-4">Ano & Quilometragem</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <FormInput label="Ano fabricação *" type="number" value={form.yearFab} onChange={v => set("yearFab", v)} placeholder="2022" />
-              <FormInput label="Ano modelo *" type="number" value={form.yearModel} onChange={v => set("yearModel", v)} placeholder="2023" />
+
+              {/* Ano — FIPE */}
+              <div className="flex flex-col gap-1.5 md:col-span-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                  Ano * {loadingYears && <span className="text-outline normal-case font-normal">(carregando...)</span>}
+                </label>
+                <select
+                  value={form.fipeYearCode}
+                  onChange={e => {
+                    const opt = fipeYears.find(y => y.code === e.target.value);
+                    onYearChange(e.target.value, opt?.name ?? "");
+                  }}
+                  disabled={!form.fipeModelCode || loadingYears}
+                  className="bg-surface-container-low border-0 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-container outline-none disabled:opacity-50"
+                >
+                  <option value="">Selecione o ano</option>
+                  {fipeYears.map(y => <option key={y.code} value={y.code}>{y.name}</option>)}
+                </select>
+                {form.fuel && (
+                  <p className="text-xs text-on-surface-variant flex items-center gap-1">
+                    <Icon name="local_gas_station" className="text-sm" />Combustível detectado: <strong>{form.fuel}</strong>
+                  </p>
+                )}
+              </div>
+
               <FormInput label="Quilometragem *" type="number" value={form.km} onChange={v => set("km", v)} placeholder="0" />
             </div>
           </div>
@@ -179,26 +365,30 @@ export default function CadastrarPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormSelect label="Combustível *" value={form.fuel} onChange={v => set("fuel", v)}>
               <option value="">Selecione</option>
-              {fuelOptions.map(f => <option key={f}>{f}</option>)}
+              {(isMoto ? motoFuelOptions : fuelOptions).map(opt => <option key={opt}>{opt}</option>)}
             </FormSelect>
             <FormSelect label="Câmbio *" value={form.transmission} onChange={v => set("transmission", v)}>
               <option value="">Selecione</option>
-              {transmissionOptions.map(t => <option key={t}>{t}</option>)}
+              {(isMoto ? motoTransmissionOptions : transmissionOptions).map(t => <option key={t}>{t}</option>)}
             </FormSelect>
             <FormSelect label="Cor" value={form.color} onChange={v => set("color", v)}>
               <option value="">Selecione</option>
               {colorOptions.map(c => <option key={c}>{c}</option>)}
             </FormSelect>
-            <FormSelect label="Portas" value={form.doors} onChange={v => set("doors", v)}>
-              <option value="">Selecione</option>
-              {["2","3","4","5"].map(n => <option key={n} value={n}>{n} portas</option>)}
-            </FormSelect>
+            {isMoto ? (
+              <FormInput label="Cilindrada (cc)" type="number" value={form.cylindercc} onChange={v => set("cylindercc", v)} placeholder="Ex: 500" />
+            ) : (
+              <FormSelect label="Portas" value={form.doors} onChange={v => set("doors", v)}>
+                <option value="">Selecione</option>
+                {["2","3","4","5"].map(n => <option key={n} value={n}>{n} portas</option>)}
+              </FormSelect>
+            )}
           </div>
 
           <div className="space-y-3 pt-2">
             {[
-              { field: "armored", label: "Veículo blindado" },
-              { field: "auction", label: "Veículo de leilão" },
+              { field: "armored", label: isMoto ? "Moto blindada" : "Veículo blindado" },
+              { field: "auction", label: isMoto ? "Moto de leilão" : "Veículo de leilão" },
             ].map(({ field, label }) => (
               <label key={field} className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -218,7 +408,7 @@ export default function CadastrarPage() {
               rows={5}
               value={form.description}
               onChange={e => set("description", e.target.value)}
-              placeholder="Descreva o estado do veículo, histórico de manutenção, opcionais..."
+              placeholder={isMoto ? "Descreva o estado da moto, histórico de manutenção, opcionais..." : "Descreva o estado do veículo, histórico de manutenção, opcionais..."}
               className="w-full bg-surface-container-low border-0 rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary-container outline-none resize-none"
             />
           </div>

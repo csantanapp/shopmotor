@@ -15,10 +15,11 @@ export async function GET() {
       email:     user.email,
       phone:     user.phone,
       avatarUrl: user.avatarUrl,
-      role:      user.role,
-      plan:      user.plan,
-      city:      user.city,
-      state:     user.state,
+      role:        user.role,
+      plan:        user.plan,
+      city:        user.city,
+      state:       user.state,
+      accountType: (user as any).accountType ?? "PF",
     },
   });
 }

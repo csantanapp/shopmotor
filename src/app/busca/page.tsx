@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
+import { useAuth } from "@/context/AuthContext";
 
 /* ── Types ── */
 interface ApiVehicle {
@@ -22,7 +23,10 @@ interface ApiVehicle {
   armored: boolean;
   auction: boolean;
   condition: "NEW" | "USED";
+  boostLevel: "NONE" | "DESTAQUE" | "ELITE";
   photos: { url: string }[];
+  previousPrice: number | null;
+  fipePrice: number | null;
 }
 
 /* ── Static options ── */
@@ -36,6 +40,7 @@ const brandOptions = [
 ];
 const fuelOptions         = ["Todos","Flex","Gasolina","Diesel","Elétrico","Híbrido","GNV"];
 const bodyOptions         = ["Todos","Hatch","Sedã","SUV","Picape","Minivan","Esportivo","Conversível"];
+const motoTypeOptions     = ["Todos","Street","Naked","Esportiva","Trail/Adventure","Custom/Cruiser","Scooter","Enduro/Motocross","Touring"];
 const transmissionOptions = ["Todos","Automático","Manual","CVT","Automatizado"];
 const colorOptions        = ["Todas","Branco","Preto","Prata","Cinza","Vermelho","Azul","Verde","Amarelo","Laranja","Marrom","Bege","Dourado","Outro"];
 const stateOptions = [
@@ -76,6 +81,10 @@ export default function BuscaPage() {
   const [yearMin, setYearMin]           = useState("");
   const [yearMax, setYearMax]           = useState("");
   const [condition, setCondition]       = useState("Todos");
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState("Todos");
+  const [motoType, setMotoType]         = useState("Todos");
+  const [cylinderccMin, setCylinderccMin] = useState("");
+  const [cylinderccMax, setCylinderccMax] = useState("");
   const [armored, setArmored]           = useState(false);
   const [auction, setAuction]           = useState(false);
   const [sort, setSort]                 = useState("createdAt_desc");
@@ -88,11 +97,35 @@ export default function BuscaPage() {
   const [total, setTotal]       = useState(0);
   const [pages, setPages]       = useState(0);
   const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
-  // Favorites (local, will integrate later)
+  const { user, loading: authLoading } = useAuth();
   const [favorites, setFavorites] = useState<string[]>([]);
-  const toggleFav = (id: string) =>
-    setFavorites(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    fetch("/api/favorites/mine")
+      .then(r => r.json())
+      .then(d => setFavorites((d.favorites ?? []).map((f: { vehicleId: string }) => f.vehicleId)));
+  }, [authLoading, user]);
+
+  const toggleFav = async (id: string) => {
+    if (!user) return;
+    const isFav = favorites.includes(id);
+    setFavorites(prev => isFav ? prev.filter(f => f !== id) : [...prev, id]);
+    try {
+      const res = isFav
+        ? await fetch(`/api/favorites?vehicleId=${id}`, { method: "DELETE" })
+        : await fetch("/api/favorites", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ vehicleId: id }),
+          });
+      if (!res.ok) setFavorites(prev => isFav ? [...prev, id] : prev.filter(f => f !== id));
+    } catch {
+      setFavorites(prev => isFav ? [...prev, id] : prev.filter(f => f !== id));
+    }
+  };
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -111,6 +144,11 @@ export default function BuscaPage() {
     if (state !== "Todos") params.set("state", state);
     if (condition === "Novo")  params.set("condition", "Novo");
     if (condition === "Usado") params.set("condition", "Usado");
+    if (vehicleTypeFilter === "CAR")  params.set("vehicleType", "CAR");
+    if (vehicleTypeFilter === "MOTO") params.set("vehicleType", "MOTO");
+    if (vehicleTypeFilter === "MOTO" && motoType !== "Todos") params.set("motoType", motoType);
+    if (vehicleTypeFilter === "MOTO" && cylinderccMin) params.set("cylinderccMin", cylinderccMin);
+    if (vehicleTypeFilter === "MOTO" && cylinderccMax) params.set("cylinderccMax", cylinderccMax);
     if (armored)  params.set("armored", "true");
     if (auction)  params.set("auction", "true");
     if (priceMin) params.set("priceMin", priceMin.replace(/\D/g, ""));
@@ -120,15 +158,22 @@ export default function BuscaPage() {
     if (yearMin)  params.set("yearMin", yearMin);
     if (yearMax)  params.set("yearMax", yearMax);
 
-    const res = await fetch(`/api/vehicles?${params}`);
-    if (res.ok) {
-      const data = await res.json();
-      setVehicles(data.vehicles);
-      setTotal(data.total);
-      setPages(data.pages);
+    try {
+      const res = await fetch(`/api/vehicles?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setVehicles(data.vehicles);
+        setTotal(data.total);
+        setPages(data.pages);
+        setFetchError(false);
+      } else {
+        setFetchError(true);
+      }
+    } catch {
+      setFetchError(true);
     }
     setFetching(false);
-  }, [search, brand, fuel, body, transmission, color, state, condition, armored, auction, priceMin, priceMax, kmMin, kmMax, yearMin, yearMax, sort]);
+  }, [search, brand, fuel, body, transmission, color, state, condition, vehicleTypeFilter, motoType, cylinderccMin, cylinderccMax, armored, auction, priceMin, priceMax, kmMin, kmMax, yearMin, yearMax, sort]);
 
   // Reset page and debounce fetch when filters change
   useEffect(() => {
@@ -148,13 +193,15 @@ export default function BuscaPage() {
     setBrand("Todas"); setFuel("Todos"); setBody("Todos"); setTransmission("Todos");
     setColor("Todas"); setState("Todos"); setCondition("Todos"); setPriceMin(""); setPriceMax("");
     setKmMin(""); setKmMax(""); setYearMin(""); setYearMax("");
-    setArmored(false); setAuction(false); setSearch("");
+    setArmored(false); setAuction(false); setSearch(""); setVehicleTypeFilter("Todos");
+    setMotoType("Todos"); setCylinderccMin(""); setCylinderccMax("");
   };
 
   const activeFiltersCount = [
     brand !== "Todas", fuel !== "Todos", body !== "Todos", transmission !== "Todos",
     color !== "Todas", state !== "Todos", condition !== "Todos", !!priceMin, !!priceMax,
     !!kmMin, !!kmMax, !!yearMin, !!yearMax, armored, auction,
+    motoType !== "Todos", !!cylinderccMin, !!cylinderccMax,
   ].filter(Boolean).length;
 
   /* ── Filter panel ── */
@@ -215,11 +262,30 @@ export default function BuscaPage() {
           </div>
         </FilterSection>
 
-        <FilterSection label="Carroceria">
-          <div className="flex flex-wrap gap-1.5">
-            {bodyOptions.map(b => <ChipBtn key={b} label={b} active={body === b} onClick={() => setBody(b)} />)}
-          </div>
-        </FilterSection>
+        {vehicleTypeFilter !== "MOTO" && (
+          <FilterSection label="Carroceria">
+            <div className="flex flex-wrap gap-1.5">
+              {bodyOptions.map(b => <ChipBtn key={b} label={b} active={body === b} onClick={() => setBody(b)} />)}
+            </div>
+          </FilterSection>
+        )}
+
+        {vehicleTypeFilter === "MOTO" && (
+          <>
+            <FilterSection label="Tipo de moto">
+              <div className="flex flex-wrap gap-1.5">
+                {motoTypeOptions.map(t => <ChipBtn key={t} label={t} active={motoType === t} onClick={() => setMotoType(t)} />)}
+              </div>
+            </FilterSection>
+
+            <FilterSection label="Cilindrada (cc)">
+              <div className="grid grid-cols-2 gap-2">
+                <input type="number" value={cylinderccMin} onChange={e => setCylinderccMin(e.target.value)} placeholder="Mín." className={inputCls} />
+                <input type="number" value={cylinderccMax} onChange={e => setCylinderccMax(e.target.value)} placeholder="Máx." className={inputCls} />
+              </div>
+            </FilterSection>
+          </>
+        )}
 
         <FilterSection label="Combustível">
           <div className="flex flex-wrap gap-1.5">
@@ -273,6 +339,24 @@ export default function BuscaPage() {
           </p>
         </div>
 
+        {/* Carro / Moto toggle */}
+        <div className="flex bg-surface-container-lowest rounded-xl shadow-sm p-1 gap-1">
+          {[
+            { value: "Todos", label: "Todos",  icon: "apps" },
+            { value: "CAR",   label: "Carros", icon: "directions_car" },
+            { value: "MOTO",  label: "Motos",  icon: "two_wheeler" },
+          ].map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setVehicleTypeFilter(opt.value)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold transition-colors ${vehicleTypeFilter === opt.value ? "bg-primary-container text-on-primary-container" : "text-outline hover:text-on-surface"}`}
+            >
+              <Icon name={opt.icon} className="text-base" />
+              <span className="hidden sm:inline">{opt.label}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center gap-3">
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
@@ -317,6 +401,9 @@ export default function BuscaPage() {
           {yearMax                   && <Chip label={`Ano ≤ ${yearMax}`}      onRemove={() => setYearMax("")} />}
           {armored                   && <Chip label="Blindado"                onRemove={() => setArmored(false)} />}
           {auction                   && <Chip label="Leilão"                  onRemove={() => setAuction(false)} />}
+          {motoType !== "Todos"      && <Chip label={motoType}               onRemove={() => setMotoType("Todos")} />}
+          {cylinderccMin             && <Chip label={`Cilindrada ≥ ${cylinderccMin}cc`} onRemove={() => setCylinderccMin("")} />}
+          {cylinderccMax             && <Chip label={`Cilindrada ≤ ${cylinderccMax}cc`} onRemove={() => setCylinderccMax("")} />}
         </div>
       )}
 
@@ -347,6 +434,15 @@ export default function BuscaPage() {
             <div className="flex items-center justify-center py-24">
               <span className="w-10 h-10 border-2 border-primary-container/30 border-t-primary-container rounded-full animate-spin" />
             </div>
+          ) : fetchError ? (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <Icon name="wifi_off" className="text-6xl text-outline mb-4" />
+              <h3 className="font-bold text-lg text-on-surface mb-2">Erro ao carregar anúncios</h3>
+              <p className="text-on-surface-variant text-sm mb-6">Verifique sua conexão e tente novamente.</p>
+              <button onClick={() => fetchVehicles(page)} className="bg-primary-container text-on-primary-container font-black px-8 py-3 rounded-full text-sm uppercase tracking-widest">
+                Tentar novamente
+              </button>
+            </div>
           ) : vehicles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <Icon name="search_off" className="text-6xl text-outline mb-4" />
@@ -357,12 +453,16 @@ export default function BuscaPage() {
               </button>
             </div>
           ) : view === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {vehicles.map(v => <GridCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {vehicles.slice(0, 8).map(v => <GridCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
+              {vehicles.length > 8 && <AdBanner className="col-span-full" />}
+              {vehicles.slice(8).map(v => <GridCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
             </div>
           ) : (
             <div className="space-y-4">
-              {vehicles.map(v => <ListCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
+              {vehicles.slice(0, 8).map(v => <ListCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
+              {vehicles.length > 8 && <AdBanner />}
+              {vehicles.slice(8).map(v => <ListCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
             </div>
           )}
 
@@ -444,13 +544,83 @@ function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
 
 type CardProps = { v: ApiVehicle; fav: boolean; onFav: () => void };
 
+function BoostBadge({ level }: { level: ApiVehicle["boostLevel"] }) {
+  if (level === "DESTAQUE") return (
+    <span className="absolute top-3 right-10 z-10 text-[10px] font-black uppercase tracking-widest bg-primary-container text-on-primary-container px-2 py-0.5 rounded-full">
+      Destaque
+    </span>
+  );
+  if (level === "ELITE") return (
+    <span className="absolute top-3 right-10 z-10 text-[10px] font-black uppercase tracking-widest bg-inverse-surface text-inverse-on-surface px-2 py-0.5 rounded-full flex items-center gap-1">
+      <Icon name="stars" className="text-yellow-400 text-[10px]" />Elite
+    </span>
+  );
+  return null;
+}
+
+function boostBorder(level: ApiVehicle["boostLevel"]) {
+  if (level === "DESTAQUE") return "border-2 border-primary-container";
+  if (level === "ELITE")    return "border-2 border-inverse-surface";
+  return "";
+}
+
+function AdBanner({ className = "" }: { className?: string }) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl flex items-stretch min-h-[120px] shadow-lg ${className}`}>
+      {/* Left — dark panel */}
+      <div className="bg-neutral-950 flex items-center px-8 py-6 flex-1 z-10 relative">
+        <div>
+          <p className="text-primary-container font-black text-2xl md:text-3xl uppercase italic leading-tight tracking-tight">
+            PARA QUEM É<br />APAIXONADO<br />POR CARRO
+          </p>
+        </div>
+      </div>
+
+      {/* Center — logo + diagonal divider */}
+      <div className="bg-neutral-950 flex items-center justify-center px-8 z-10 relative">
+        {/* diagonal right edge */}
+        <div className="absolute right-0 top-0 bottom-0 w-12 bg-white" style={{ clipPath: "polygon(40% 0, 100% 0, 100% 100%, 0% 100%)" }} />
+        <div className="flex flex-col items-center gap-1">
+          {/* SVG logo-style icon */}
+          <svg width="56" height="32" viewBox="0 0 56 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 22 C10 8, 20 6, 28 8 C36 10, 46 8, 52 22" stroke="#C9A84C" strokeWidth="3" strokeLinecap="round" fill="none"/>
+            <path d="M1 22 L55 22 L52 28 L4 28 Z" fill="#C9A84C"/>
+            <circle cx="12" cy="27" r="4" fill="#1a1a1a" stroke="#C9A84C" strokeWidth="2"/>
+            <circle cx="44" cy="27" r="4" fill="#1a1a1a" stroke="#C9A84C" strokeWidth="2"/>
+          </svg>
+          <p className="text-white font-black text-sm tracking-widest uppercase whitespace-nowrap">
+            <span className="text-primary-container">SHOP</span>MOTORS
+          </p>
+        </div>
+      </div>
+
+      {/* Right — car image placeholder with gradient */}
+      <div className="relative w-64 flex-shrink-0 bg-white overflow-hidden hidden md:block">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/0 to-white/0" />
+        <div className="w-full h-full flex items-center justify-center">
+          <svg viewBox="0 0 200 100" className="w-full h-full opacity-20" fill="none">
+            <path d="M20 65 C40 35, 70 30, 100 35 C130 40, 160 35, 180 65" stroke="#888" strokeWidth="4" strokeLinecap="round"/>
+            <path d="M10 65 L190 65 L180 80 L20 80 Z" fill="#888"/>
+            <circle cx="50" cy="78" r="10" fill="#ddd" stroke="#888" strokeWidth="3"/>
+            <circle cx="150" cy="78" r="10" fill="#ddd" stroke="#888" strokeWidth="3"/>
+          </svg>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-xs text-neutral-400 font-bold uppercase tracking-widest rotate-[-15deg]">Seu anúncio aqui</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GridCard({ v, fav, onFav }: CardProps) {
   const price    = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
   const km       = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
   const coverUrl = v.photos[0]?.url ?? null;
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm group relative flex flex-col">
+    <div className={`bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm group relative flex flex-col ${boostBorder(v.boostLevel)}`}>
+      <BoostBadge level={v.boostLevel} />
       <button onClick={onFav} aria-label={fav ? "Remover dos favoritos" : "Favoritar"} className="absolute top-3 right-3 z-10 w-8 h-8 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/60 transition-colors">
         <Icon name="favorite" fill={fav} className={`text-sm ${fav ? "text-red-400" : "text-white"}`} />
       </button>
@@ -480,6 +650,18 @@ function GridCard({ v, fav, onFav }: CardProps) {
           <h3 className="font-bold text-base leading-tight text-on-surface mb-1">{v.model}{v.version ? ` ${v.version}` : ""}</h3>
           <p className="text-xs text-on-surface-variant mb-3">{v.yearFab}/{v.yearModel} · {km}</p>
           <p className="text-xl font-black text-on-surface">{price}</p>
+          <div className="flex flex-wrap gap-1.5 mt-1.5">
+            {v.previousPrice && v.previousPrice > v.price && (
+              <span className="flex items-center gap-1 text-[10px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                <Icon name="trending_down" className="text-xs" />Baixou o preço
+              </span>
+            )}
+            {v.fipePrice && v.fipePrice > 0 && v.price < v.fipePrice && (
+              <span className="flex items-center gap-1 text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                <Icon name="verified" className="text-xs" />Abaixo da FIPE
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-1 text-[10px] text-on-surface-variant mt-2">
             <Icon name="location_on" className="text-sm" />{v.city}, {v.state}
           </div>
@@ -500,7 +682,13 @@ function ListCard({ v, fav, onFav }: CardProps) {
   const coverUrl = v.photos[0]?.url ?? null;
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm flex group">
+    <div className={`bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm flex group relative ${boostBorder(v.boostLevel)}`}>
+      {v.boostLevel !== "NONE" && (
+        <span className={`absolute top-3 left-3 z-10 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full flex items-center gap-1 ${v.boostLevel === "ELITE" ? "bg-inverse-surface text-inverse-on-surface" : "bg-primary-container text-on-primary-container"}`}>
+          {v.boostLevel === "ELITE" && <Icon name="stars" className="text-yellow-400 text-[10px]" />}
+          {v.boostLevel === "ELITE" ? "Elite" : "Destaque"}
+        </span>
+      )}
       <Link href={`/carro/${v.id}`} className="w-56 flex-shrink-0 relative overflow-hidden bg-surface-container">
         {coverUrl ? (
           <img src={coverUrl} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -530,7 +718,21 @@ function ListCard({ v, fav, onFav }: CardProps) {
           </div>
         </div>
         <div className="flex items-center justify-between mt-4 flex-wrap gap-3">
-          <p className="text-2xl font-black text-on-surface">{price}</p>
+          <div className="flex flex-col gap-1">
+            <p className="text-2xl font-black text-on-surface">{price}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {v.previousPrice && v.previousPrice > v.price && (
+                <span className="flex items-center gap-1 text-[10px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+                  <Icon name="trending_down" className="text-xs" />Baixou o preço
+                </span>
+              )}
+              {v.fipePrice && v.fipePrice > 0 && v.price < v.fipePrice && (
+                <span className="flex items-center gap-1 text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                  <Icon name="verified" className="text-xs" />Abaixo da FIPE
+                </span>
+              )}
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <button onClick={onFav} aria-label={fav ? "Remover dos favoritos" : "Favoritar"} className="p-2 rounded-full border border-outline-variant hover:bg-surface-container-high transition-colors">
               <Icon name="favorite" fill={fav} className={`text-lg ${fav ? "text-red-400" : "text-outline"}`} />

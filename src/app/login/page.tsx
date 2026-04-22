@@ -92,7 +92,7 @@ function LoginForm() {
                 <label htmlFor="senha" className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant">
                   Senha
                 </label>
-                <Link href="/recuperar-senha" className="text-xs text-primary font-semibold hover:underline">
+                <Link href="/esqueci-senha" className="text-xs text-primary font-semibold hover:underline">
                   Esqueci minha senha
                 </Link>
               </div>
@@ -165,6 +165,16 @@ function LoginForm() {
             Criar conta grátis
           </Link>
         </p>
+
+        <div className="flex items-center justify-center gap-4 mt-6 pt-6 border-t border-outline-variant">
+          <Link href="/termos" target="_blank" className="text-xs text-on-surface-variant hover:text-primary transition-colors">
+            Termos de Uso
+          </Link>
+          <span className="text-outline-variant text-xs">·</span>
+          <Link href="/privacidade" target="_blank" className="text-xs text-on-surface-variant hover:text-primary transition-colors">
+            Política de Privacidade
+          </Link>
+        </div>
 
       </div>
     </div>

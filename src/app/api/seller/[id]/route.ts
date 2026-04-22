@@ -9,7 +9,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     select: {
       id: true, name: true, avatarUrl: true, phone: true,
       plan: true, city: true, state: true, createdAt: true,
-      _count: { select: { vehicles: { where: { status: "ACTIVE" } } } },
+      _count: {
+        select: {
+          vehicles: { where: { status: "ACTIVE" } },
+        },
+      },
     },
   });
 
@@ -22,5 +26,27 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: { photos: { where: { isCover: true }, take: 1 } },
   });
 
-  return NextResponse.json({ seller, vehicles });
+  const soldCount = await prisma.vehicle.count({
+    where: { userId: id, status: "SOLD" },
+  });
+
+  const reviews = await prisma.review.findMany({
+    where: { toUserId: id },
+    select: { rating: true },
+  });
+
+  const avgRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : null;
+
+  return NextResponse.json({
+    seller,
+    vehicles,
+    stats: {
+      activeListings: seller._count.vehicles,
+      soldCount,
+      avgRating,
+      reviewCount: reviews.length,
+    },
+  });
 }

@@ -11,16 +11,32 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: {
       photos:   { orderBy: { order: "asc" } },
       features: true,
-      user:     { select: { id: true, name: true, avatarUrl: true, phone: true, plan: true, city: true, state: true, createdAt: true } },
+      user:     { select: { id: true, name: true, avatarUrl: true, phone: true, plan: true, city: true, state: true, createdAt: true, accountType: true, storeSlug: true } },
     },
   });
 
   if (!vehicle) return NextResponse.json({ error: "Veículo não encontrado." }, { status: 404 });
 
-  // Incrementar views
-  await prisma.vehicle.update({ where: { id }, data: { views: { increment: 1 } } });
+  // Incrementar views (fire-and-forget, não bloqueia a resposta)
+  prisma.vehicle.update({ where: { id }, data: { views: { increment: 1 } } }).catch(() => null);
 
-  return NextResponse.json({ vehicle });
+  try {
+    const similar = await prisma.vehicle.aggregate({
+      where: { brand: vehicle.brand, model: vehicle.model, status: "ACTIVE" },
+      _avg: { price: true },
+      _count: true,
+    });
+
+    return NextResponse.json({
+      vehicle,
+      priceComparison: {
+        shopMotorAvg: similar._avg.price,
+        shopMotorCount: similar._count,
+      },
+    });
+  } catch {
+    return NextResponse.json({ vehicle, priceComparison: null });
+  }
 }
 
 /* ── PATCH /api/vehicles/[id] ── */
@@ -38,25 +54,58 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const body = await req.json();
 
-  const updated = await prisma.vehicle.update({
-    where: { id },
-    data: {
-      ...(body.brand        !== undefined && { brand:        body.brand }),
-      ...(body.model        !== undefined && { model:        body.model }),
-      ...(body.version      !== undefined && { version:      body.version }),
-      ...(body.price        !== undefined && { price:        Number(body.price) }),
-      ...(body.km           !== undefined && { km:           Number(body.km) }),
-      ...(body.description  !== undefined && { description:  body.description }),
-      ...(body.status       !== undefined && { status:       body.status }),
-      ...(body.color        !== undefined && { color:        body.color }),
-      ...(body.fuel         !== undefined && { fuel:         body.fuel }),
-      ...(body.transmission !== undefined && { transmission: body.transmission }),
-      ...(body.acceptTrade  !== undefined && { acceptTrade:  Boolean(body.acceptTrade) }),
-      ...(body.financing    !== undefined && { financing:    Boolean(body.financing) }),
-    },
-  });
+  // Calcular expiresAt ao ativar o anúncio
+  let expiresAt: Date | undefined;
+  if (body.status === "ACTIVE" && vehicle.status !== "ACTIVE") {
+    const u = user as any;
+    const days = u.accountType === "PJ" ? 60 : 30;
+    expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  }
 
-  return NextResponse.json({ vehicle: updated });
+  try {
+    const updated = await (prisma.vehicle.update as any)({
+      where: { id },
+      data: {
+        ...(expiresAt !== undefined && { expiresAt }),
+        ...(body.brand        !== undefined && { brand:        body.brand }),
+        ...(body.model        !== undefined && { model:        body.model }),
+        ...(body.version      !== undefined && { version:      body.version }),
+        ...(body.price !== undefined && (() => {
+          const newPrice = Number(body.price);
+          const priceData: Record<string, number> = { price: newPrice };
+          if (newPrice < vehicle.price) priceData.previousPrice = vehicle.price;
+          return priceData;
+        })()),
+        ...(body.km           !== undefined && { km:           Number(body.km) }),
+        ...(body.description  !== undefined && { description:  body.description }),
+        ...(body.status       !== undefined && { status:       body.status }),
+        ...(body.color        !== undefined && { color:        body.color }),
+        ...(body.fuel         !== undefined && { fuel:         body.fuel }),
+        ...(body.transmission !== undefined && { transmission: body.transmission }),
+        ...(body.acceptTrade  !== undefined && { acceptTrade:  Boolean(body.acceptTrade) }),
+        ...(body.financing    !== undefined && { financing:    Boolean(body.financing) }),
+        ...(body.armored      !== undefined && { armored:      Boolean(body.armored) }),
+        ...(body.auction      !== undefined && { auction:      Boolean(body.auction) }),
+        ...(body.yearFab      !== undefined && { yearFab:      Number(body.yearFab) }),
+        ...(body.yearModel    !== undefined && { yearModel:    Number(body.yearModel) }),
+        ...(body.bodyType     !== undefined && { bodyType:     body.bodyType }),
+        ...(body.doors        !== undefined && { doors:        body.doors ? Number(body.doors) : null }),
+        ...(body.condition    !== undefined && { condition:    body.condition }),
+        ...(body.city          !== undefined && { city:          body.city }),
+        ...(body.state         !== undefined && { state:         body.state }),
+        ...(body.fipeBrandCode !== undefined && { fipeBrandCode: body.fipeBrandCode }),
+        ...(body.fipeModelCode !== undefined && { fipeModelCode: body.fipeModelCode }),
+        ...(body.fipeYearCode  !== undefined && { fipeYearCode:  body.fipeYearCode }),
+        ...(body.motoType      !== undefined && { motoType:      body.motoType || null }),
+        ...(body.cylindercc    !== undefined && { cylindercc:    body.cylindercc ? Number(body.cylindercc) : null }),
+      },
+    });
+    return NextResponse.json({ vehicle: updated });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("PATCH vehicle error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
 
 /* ── DELETE /api/vehicles/[id] ── */

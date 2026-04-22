@@ -6,38 +6,204 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─────────────────────────────────────────────
-// USUÁRIOS
-// ─────────────────────────────────────────────
-
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  phone         String?
-  passwordHash  String
-  avatarUrl     String?
-  role          UserRole  @default(BUYER)
-  plan          UserPlan  @default(FREE)
-  cpf           String?   @unique
-  zipCode       String?
-  address       String?
-  city          String?
-  state         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  vehicles      Vehicle[]
-  favorites     Favorite[]
-  sentMessages     Message[]      @relation("SentMessages")
-  conversations    Conversation[] @relation("BuyerConversations")
+  id                  String         @id @default(cuid())
+  name                String
+  email               String         @unique
+  emailVerified       Boolean        @default(false)
+  phone               String?
+  passwordHash        String
+  avatarUrl           String?
+  role                UserRole       @default(BUYER)
+  plan                UserPlan       @default(FREE)
+  cpf                 String?        @unique
+  zipCode             String?
+  address             String?
+  city                String?
+  state               String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  sharePhone          Boolean        @default(false)
+  gender              String?
+  birthDate           DateTime?
+  accountType         String         @default("PF")
+  cnpj                String?        @unique
+  companyName         String?
+  tradeName           String?
+  storeSlug           String?        @unique
+  storeBannerUrl      String?
+  storeDescription    String?
+  conversations       Conversation[] @relation("BuyerConversations")
   sellerConversations Conversation[] @relation("SellerConversations")
-  reviews       Review[]       @relation("ReviewsGiven")
-  reviewsReceived Review[]     @relation("ReviewsReceived")
-  sessions      Session[]
+  favorites           Favorite[]
+  sentMessages        Message[]      @relation("SentMessages")
+  reviews             Review[]       @relation("ReviewsGiven")
+  reviewsReceived     Review[]       @relation("ReviewsReceived")
+  sessions            Session[]
+  vehicles            Vehicle[]
+  passwordResets      PasswordReset[]
+  payments            Payment[]
 
   @@map("users")
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Vehicle {
+  id                String           @id @default(cuid())
+  userId            String
+  status            VehicleStatus    @default(DRAFT)
+  brand             String
+  model             String
+  version           String?
+  bodyType          String?
+  yearFab           Int
+  yearModel         Int
+  km                Int
+  fuel              String
+  transmission      String
+  color             String?
+  doors             Int?
+  price             Int
+  acceptTrade       Boolean          @default(false)
+  financing         Boolean          @default(false)
+  armored           Boolean          @default(false)
+  auction           Boolean          @default(false)
+  condition         VehicleCondition @default(USED)
+  description       String?
+  city              String
+  state             String
+  zipCode           String?
+  fipeCode          String?
+  fipePrice         Int?
+  previousPrice     Int?
+  views             Int              @default(0)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  fipeBrandCode     String?
+  fipeModelCode     String?
+  fipeYearCode      String?
+  vehicleType       String           @default("CAR")
+  motoType          String?
+  cylindercc        Int?
+  boostLevel        BoostLevel       @default(NONE)
+  boostUntil        DateTime?
+  boostGalleryUntil DateTime?
+  boostPlan         BoostPlan        @default(NONE)
+  boostTopUntil     DateTime?
+  expiresAt         DateTime?
+  conversations     Conversation[]
+  favorites         Favorite[]
+  payments          Payment[]
+  features          VehicleFeature[]
+  photos            VehiclePhoto[]
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([brand, model])
+  @@index([state, city])
+  @@index([price])
+  @@index([status])
+  @@map("vehicles")
+}
+
+model VehiclePhoto {
+  id        String   @id @default(cuid())
+  vehicleId String
+  url       String
+  filename  String
+  order     Int      @default(0)
+  isCover   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("vehicle_photos")
+}
+
+model VehicleFeature {
+  id        String  @id @default(cuid())
+  vehicleId String
+  name      String
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, name])
+  @@map("vehicle_features")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  vehicleId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vehicleId])
+  @@map("favorites")
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  vehicleId String
+  buyerId   String
+  sellerId  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  buyer     User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller    User      @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@unique([vehicleId, buyerId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  text           String
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  fromUser   User     @relation("ReviewsGiven", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User     @relation("ReviewsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([fromUserId, toUserId])
+  @@map("reviews")
 }
 
 enum UserRole {
@@ -49,70 +215,6 @@ enum UserRole {
 enum UserPlan {
   FREE
   PREMIUM
-}
-
-// ─────────────────────────────────────────────
-// SESSÕES (auth manual com JWT)
-// ─────────────────────────────────────────────
-
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
-}
-
-// ─────────────────────────────────────────────
-// VEÍCULOS
-// ─────────────────────────────────────────────
-
-model Vehicle {
-  id             String          @id @default(cuid())
-  userId         String
-  status         VehicleStatus   @default(DRAFT)
-  brand          String
-  model          String
-  version        String?
-  bodyType       String?
-  yearFab        Int
-  yearModel      Int
-  km             Int
-  fuel           String
-  transmission   String
-  color          String?
-  doors          Int?
-  price          Int
-  acceptTrade    Boolean         @default(false)
-  financing      Boolean         @default(false)
-  armored        Boolean         @default(false)
-  auction        Boolean         @default(false)
-  condition      VehicleCondition @default(USED)
-  description    String?
-  city           String
-  state          String
-  zipCode        String?
-  fipeCode       String?
-  fipePrice      Int?
-  views          Int             @default(0)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  photos         VehiclePhoto[]
-  features       VehicleFeature[]
-  favorites      Favorite[]
-  conversations  Conversation[]
-
-  @@index([brand, model])
-  @@index([state, city])
-  @@index([price])
-  @@index([status])
-  @@map("vehicles")
 }
 
 enum VehicleStatus {
@@ -128,107 +230,36 @@ enum VehicleCondition {
   USED
 }
 
-// ─────────────────────────────────────────────
-// FOTOS DOS VEÍCULOS
-// ─────────────────────────────────────────────
-
-model VehiclePhoto {
-  id         String   @id @default(cuid())
-  vehicleId  String
-  url        String
-  filename   String
-  order      Int      @default(0)
-  isCover    Boolean  @default(false)
-  createdAt  DateTime @default(now())
-
-  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
-  @@map("vehicle_photos")
+enum BoostLevel {
+  NONE
+  DESTAQUE
+  ELITE
 }
 
-// ─────────────────────────────────────────────
-// ITENS / OPCIONAIS DO VEÍCULO
-// ─────────────────────────────────────────────
-
-model VehicleFeature {
-  id        String  @id @default(cuid())
-  vehicleId String
-  name      String
-
-  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
-  @@unique([vehicleId, name])
-  @@map("vehicle_features")
+enum BoostPlan {
+  NONE
+  TURBO
+  DESTAQUE
+  SUPER_DESTAQUE
 }
 
-// ─────────────────────────────────────────────
-// FAVORITOS
-// ─────────────────────────────────────────────
+model Payment {
+  id            String   @id @default(cuid())
+  userId        String
+  vehicleId     String?
+  mpPreferenceId String?
+  mpPaymentId   String?  @unique
+  plan          String
+  amount        Float
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-model Favorite {
-  id        String   @id @default(cuid())
-  userId    String
-  vehicleId String
-  createdAt DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, vehicleId])
-  @@map("favorites")
-}
-
-// ─────────────────────────────────────────────
-// MENSAGENS / CHAT
-// ─────────────────────────────────────────────
-
-model Conversation {
-  id         String    @id @default(cuid())
-  vehicleId  String
-  buyerId    String
-  sellerId   String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  vehicle    Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  buyer      User      @relation("BuyerConversations",  fields: [buyerId],  references: [id], onDelete: Cascade)
-  seller     User      @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
-  messages   Message[]
-
-  @@unique([vehicleId, buyerId])
-  @@map("conversations")
-}
-
-model Message {
-  id             String       @id @default(cuid())
-  conversationId String
-  senderId       String
-  text           String
-  readAt         DateTime?
-  createdAt      DateTime     @default(now())
-
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId, createdAt])
-  @@map("messages")
-}
-
-// ─────────────────────────────────────────────
-// AVALIAÇÕES DE VENDEDORES
-// ─────────────────────────────────────────────
-
-model Review {
-  id         String   @id @default(cuid())
-  fromUserId String
-  toUserId   String
-  rating     Int
-  comment    String?
-  createdAt  DateTime @default(now())
-
-  fromUser   User     @relation("ReviewsGiven",    fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUser     User     @relation("ReviewsReceived", fields: [toUserId],   references: [id], onDelete: Cascade)
-
-  @@unique([fromUserId, toUserId])
-  @@map("reviews")
+  @@index([userId])
+  @@index([vehicleId])
+  @@index([mpPaymentId])
+  @@map("payments")
 }

@@ -1,164 +1,267 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Icon from "@/components/ui/Icon";
+import { useAuth } from "@/context/AuthContext";
 
-const conversations = [
-  {
-    id: 1,
-    name: "Carlos Mendes",
-    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuB8MctoC3_yr1sIy4oQnQjN2hUH5ym3YHFIJZbjJ0NpxTxjojNjzAlCnwU8bKfBtihNKvC3qdY4b9iOv0_tp13b78AcRFjYWf12Nv75wxd2e_sorGTZTmArEl-pW11ne4wlrtpF5dVWd4oIE9jAU1VN99Vf4VTwe8jxGJVOMtNXtIaremJLgf8iGmfVo-ssutzUOXSiwJ1ipVYk8VdL6JHjOZ7AUGZREGSIKY9kbig6bsq-0PsX1AYamBl74iiSK5V-f-AlM-zRBTo",
-    car: "Porsche Taycan Turbo S",
-    lastMessage: "Posso visitar o carro amanhã às 10h?",
-    time: "10:42",
-    unread: 2,
-    online: true,
-  },
-  {
-    id: 2,
-    name: "Ana Paula Lima",
-    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuCicR0o1OoMNSfiloBULRm43rCrNwg8xBuJtfZFCRUS_QJE1TEpFG_LVitFOm6Ms4T2zH86euZh_7KK-QVCJwam6tM0kl_FqSC4wdFcAcdd5TYDI4ankfBjTpvmb_O9lt-WJsqaITR2FTbEpTe9vuxd1f9GKp9RdqGPsjncoud1No3-_OLjHAELky3N7D2hEB5eDMwpQnXyFg6MoN-NzCVeQNuAP44nLSA68DSUoHdfetMiJTfh_wOOHI0RWiBLtG3Ug0v3e04MrJ8",
-    car: "Porsche Taycan Turbo S",
-    lastMessage: "Qual a revisão mais recente?",
-    time: "Ontem",
-    unread: 0,
-    online: false,
-  },
-  {
-    id: 3,
-    name: "Roberto Souza",
-    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuB8MctoC3_yr1sIy4oQnQjN2hUH5ym3YHFIJZbjJ0NpxTxjojNjzAlCnwU8bKfBtihNKvC3qdY4b9iOv0_tp13b78AcRFjYWf12Nv75wxd2e_sorGTZTmArEl-pW11ne4wlrtpF5dVWd4oIE9jAU1VN99Vf4VTwe8jxGJVOMtNXtIaremJLgf8iGmfVo-ssutzUOXSiwJ1ipVYk8VdL6JHjOZ7AUGZREGSIKY9kbig6bsq-0PsX1AYamBl74iiSK5V-f-AlM-zRBTo",
-    car: "Porsche Taycan Turbo S",
-    lastMessage: "Aceita proposta de R$ 1.100.000?",
-    time: "Seg",
-    unread: 0,
-    online: false,
-  },
-];
+interface ConvUser { id: string; name: string; avatarUrl: string | null; email: string; phone: string | null; sharePhone: boolean; }
+interface Vehicle { id: string; brand: string; model: string; photos: { url: string }[]; }
+interface MsgSender { id: string; name: string; avatarUrl: string | null; }
+interface Message { id: string; text: string; senderId: string; createdAt: string; sender: MsgSender; }
+interface Conversation {
+  id: string;
+  vehicle: Vehicle;
+  buyer: ConvUser;
+  seller: ConvUser;
+  messages: Message[];
+  updatedAt: string;
+}
 
-const mockMessages = [
-  { id: 1, from: "them", text: "Olá! Tenho interesse no Porsche Taycan. Ainda está disponível?", time: "10:30" },
-  { id: 2, from: "me", text: "Sim, está disponível! Veículo em perfeito estado, único dono.", time: "10:35" },
-  { id: 3, from: "them", text: "Ótimo! Posso visitar o carro amanhã às 10h?", time: "10:42" },
-];
+function Avatar({ user, size = 10 }: { user: ConvUser; size?: number }) {
+  const cls = `w-${size} h-${size} rounded-full overflow-hidden bg-surface-container flex items-center justify-center flex-shrink-0`;
+  return (
+    <div className={cls}>
+      {user.avatarUrl
+        ? <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+        : <span className="font-black text-on-surface-variant" style={{ fontSize: size * 1.6 }}>{user.name.charAt(0).toUpperCase()}</span>
+      }
+    </div>
+  );
+}
+
+function formatTime(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  if (diff < 86400000) return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  if (diff < 604800000) return d.toLocaleDateString("pt-BR", { weekday: "short" });
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
 
 export default function MensagensPage() {
-  const [active, setActive] = useState(conversations[0]);
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!authLoading && !user) router.push("/login?redirect=/perfil/mensagens");
+  }, [user, authLoading, router]);
+
+  const activeConv = conversations.find(c => c.id === activeId) ?? null;
+  const other = activeConv ? (activeConv.buyer.id === user?.id ? activeConv.seller : activeConv.buyer) : null;
+
+  const activeIdRef = useRef<string | null>(null);
+  activeIdRef.current = activeId;
+
+  const fetchConversations = useCallback(async (initial = false) => {
+    try {
+      const r = await fetch("/api/conversations");
+      const d = await r.json();
+      const convs: Conversation[] = d.conversations ?? [];
+      setConversations(convs);
+      if (initial && convs.length > 0) setActiveId(convs[0].id);
+    } catch (err) {
+      console.error("[conversations]", err);
+    } finally {
+      if (initial) setLoading(false);
+    }
+  }, []);
+
+  const fetchMessages = useCallback(async (convId: string, silent = false) => {
+    try {
+      const res = await fetch(`/api/conversations/${convId}/messages`);
+      const d = await res.json();
+      const incoming: Message[] = d.messages ?? [];
+      setMessages(prev => {
+        if (silent && prev.length === incoming.length) return prev;
+        const shouldScroll = silent
+          ? incoming.length > prev.length
+          : true;
+        if (shouldScroll) setTimeout(() => {
+          const c = messagesContainerRef.current;
+          if (c) c.scrollTop = c.scrollHeight;
+        }, 50);
+        return incoming;
+      });
+    } catch (err) {
+      console.error("[messages]", err);
+    }
+  }, []);
+
+  // Carga inicial
+  useEffect(() => {
+    if (authLoading || !user) return;
+    fetchConversations(true);
+  }, [authLoading, user, fetchConversations]);
+
+  // Polling a cada 3s
+  useEffect(() => {
+    if (authLoading || !user) return;
+    const interval = setInterval(async () => {
+      fetchConversations();
+      if (activeIdRef.current) fetchMessages(activeIdRef.current, true);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [authLoading, user, fetchConversations, fetchMessages]);
+
+  useEffect(() => {
+    if (activeId) fetchMessages(activeId);
+  }, [activeId, fetchMessages]);
+
+  async function sendMessage() {
+    if (!input.trim() || !activeId || sending) return;
+    const text = input.trim();
+    setInput("");
+    setSending(true);
+    const res = await fetch(`/api/conversations/${activeId}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    const d = await res.json();
+    if (d.message) {
+      setMessages(prev => [...prev, d.message]);
+      setTimeout(() => {
+        const c = messagesContainerRef.current;
+        if (c) c.scrollTop = c.scrollHeight;
+      }, 50);
+      setConversations(prev => prev.map(c =>
+        c.id === activeId ? { ...c, messages: [d.message], updatedAt: d.message.createdAt } : c
+      ));
+    }
+    setSending(false);
+  }
+
+  function handleKey(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <span className="w-8 h-8 border-2 border-primary-container/30 border-t-primary-container rounded-full animate-spin" />
+    </div>
+  );
 
   return (
-    <div className="h-[calc(100vh-80px-64px)] flex gap-0 rounded-2xl overflow-hidden shadow-sm border border-outline-variant/30">
+    <div className="h-[calc(100vh-80px-64px-64px)] md:h-[calc(100vh-80px-64px)] flex gap-0 rounded-2xl overflow-hidden shadow-sm border border-outline-variant/30">
 
       {/* Lista de conversas */}
       <div className="w-72 flex-shrink-0 bg-surface-container-lowest border-r border-outline-variant/30 flex flex-col">
         <div className="p-4 border-b border-outline-variant/20">
           <h2 className="font-black text-lg uppercase tracking-tight text-on-surface">Mensagens</h2>
-          <div className="relative mt-3">
-            <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg" />
-            <input
-              placeholder="Buscar conversa..."
-              className="w-full pl-10 pr-4 py-2 bg-surface-container rounded-xl text-sm border-0 focus:ring-2 focus:ring-primary-container outline-none"
-            />
-          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {conversations.map((conv) => (
-            <button
-              key={conv.id}
-              onClick={() => setActive(conv)}
-              className={`w-full flex items-start gap-3 px-4 py-4 text-left transition-colors border-b border-outline-variant/10 ${
-                active.id === conv.id ? "bg-primary-container/15" : "hover:bg-surface-container"
-              }`}
-            >
-              <div className="relative flex-shrink-0">
-                <div className="w-10 h-10 rounded-full overflow-hidden relative">
-                  <Image src={conv.avatar} alt={conv.name} fill className="object-cover" />
-                </div>
-                {conv.online && (
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-sm text-on-surface truncate">{conv.name}</span>
-                  <span className="text-[10px] text-outline ml-2 flex-shrink-0">{conv.time}</span>
-                </div>
-                <p className="text-[10px] text-primary font-semibold truncate">{conv.car}</p>
-                <p className="text-xs text-on-surface-variant truncate mt-0.5">{conv.lastMessage}</p>
-              </div>
-              {conv.unread > 0 && (
-                <span className="w-5 h-5 bg-primary-container rounded-full text-[10px] font-black text-on-primary-container flex items-center justify-center flex-shrink-0 mt-1">
-                  {conv.unread}
-                </span>
-              )}
-            </button>
-          ))}
+          {conversations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center px-6 py-12">
+              <Icon name="chat_bubble_outline" className="text-4xl text-outline mb-3" />
+              <p className="text-sm font-bold text-on-surface mb-1">Nenhuma conversa</p>
+              <p className="text-xs text-on-surface-variant">Envie uma proposta em um anúncio para iniciar.</p>
+            </div>
+          ) : (
+            conversations.map(conv => {
+              const other = conv.buyer.id === user?.id ? conv.seller : conv.buyer;
+              const lastMsg = conv.messages[0];
+              return (
+                <button
+                  key={conv.id}
+                  onClick={() => setActiveId(conv.id)}
+                  className={`w-full flex items-start gap-3 px-4 py-4 text-left transition-colors border-b border-outline-variant/10 ${activeId === conv.id ? "bg-primary-container/15" : "hover:bg-surface-container"}`}
+                >
+                  <Avatar user={other} size={10} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-sm text-on-surface truncate">{other.name}</span>
+                      {lastMsg && <span className="text-[10px] text-outline ml-2 flex-shrink-0">{formatTime(lastMsg.createdAt)}</span>}
+                    </div>
+                    <p className="text-[10px] text-primary font-semibold truncate">{conv.vehicle.brand} {conv.vehicle.model}</p>
+                    {lastMsg && <p className="text-xs text-on-surface-variant truncate mt-0.5">{lastMsg.text}</p>}
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
 
       {/* Chat */}
-      <div className="flex-1 flex flex-col bg-surface">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-outline-variant/20 bg-surface-container-lowest flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full overflow-hidden relative">
-              <Image src={active.avatar} alt={active.name} fill className="object-cover" />
-            </div>
-            <div>
-              <p className="font-bold text-sm text-on-surface">{active.name}</p>
-              <p className="text-[10px] text-primary font-semibold">{active.car}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant">
-              <Icon name="phone" className="text-lg" />
-            </button>
-            <button className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant">
-              <Icon name="more_vert" className="text-lg" />
-            </button>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {mockMessages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.from === "me" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl text-sm ${
-                msg.from === "me"
-                  ? "bg-primary-container text-on-primary-container rounded-br-sm"
-                  : "bg-surface-container-lowest text-on-surface shadow-sm rounded-bl-sm"
-              }`}>
-                <p>{msg.text}</p>
-                <p className={`text-[10px] mt-1 text-right ${msg.from === "me" ? "text-on-primary-container/60" : "text-outline"}`}>
-                  {msg.time}
-                </p>
+      {activeConv && other ? (
+        <div className="flex-1 flex flex-col bg-surface min-w-0">
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-outline-variant/20 bg-surface-container-lowest flex items-center gap-4 flex-shrink-0">
+            <Avatar user={other} size={10} />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm text-on-surface">{other.name}</p>
+              <Link href={`/carro/${activeConv.vehicle.id}`} className="text-[10px] text-primary font-semibold hover:underline block truncate">
+                {activeConv.vehicle.brand} {activeConv.vehicle.model}
+              </Link>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
+                <span className="text-[11px] text-on-surface-variant flex items-center gap-1">
+                  <Icon name="email" className="text-xs" />{other.email}
+                </span>
+                {other.sharePhone && other.phone && (
+                  <span className="text-[11px] text-on-surface-variant flex items-center gap-1">
+                    <Icon name="phone" className="text-xs" />{other.phone}
+                  </span>
+                )}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Input */}
-        <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container-lowest">
-          <div className="flex items-center gap-3">
-            <button className="p-2 text-outline hover:text-on-surface transition-colors flex-shrink-0">
-              <Icon name="attach_file" className="text-xl" />
-            </button>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Digite sua mensagem..."
-              className="flex-1 bg-surface-container rounded-full px-5 py-3 text-sm border-0 focus:ring-2 focus:ring-primary-container outline-none"
-            />
-            <button className={`w-10 h-10 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
-              input.trim() ? "bg-primary-container text-on-primary-container" : "bg-surface-container text-outline"
-            }`}>
-              <Icon name="send" className="text-lg" />
-            </button>
+          {/* Mensagens */}
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-6 space-y-3">
+            {messages.map(msg => {
+              const isMe = msg.senderId === user?.id;
+              return (
+                <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl text-sm ${isMe ? "bg-primary-container text-on-primary-container rounded-br-sm" : "bg-surface-container-lowest text-on-surface shadow-sm rounded-bl-sm"}`}>
+                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                    <p className={`text-[10px] mt-1 text-right ${isMe ? "text-on-primary-container/60" : "text-outline"}`}>
+                      {formatTime(msg.createdAt)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Input */}
+          <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container-lowest flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <input
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKey}
+                placeholder="Digite sua mensagem..."
+                className="flex-1 bg-surface-container rounded-full px-5 py-3 text-sm border-0 focus:ring-2 focus:ring-primary-container outline-none"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || sending}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${input.trim() ? "bg-primary-container text-on-primary-container" : "bg-surface-container text-outline"}`}
+              >
+                {sending
+                  ? <span className="w-4 h-4 border-2 border-on-primary-container/30 border-t-on-primary-container rounded-full animate-spin" />
+                  : <Icon name="send" className="text-lg" />
+                }
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center text-center bg-surface">
+          <Icon name="chat_bubble_outline" className="text-6xl text-outline mb-4" />
+          <p className="font-bold text-on-surface">Selecione uma conversa</p>
+        </div>
+      )}
 
     </div>
   );

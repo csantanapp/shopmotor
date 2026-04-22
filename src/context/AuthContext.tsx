@@ -11,6 +11,7 @@ interface AuthUser {
   avatarUrl: string | null;
   role: string;
   plan: string;
+  accountType: string;
 }
 
 interface AuthContextValue {

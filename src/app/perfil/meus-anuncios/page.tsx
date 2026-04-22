@@ -14,6 +14,8 @@ interface Vehicle {
   km: number;
   price: number;
   status: "DRAFT" | "ACTIVE" | "PAUSED" | "SOLD" | "EXPIRED";
+  boostLevel: "NONE" | "DESTAQUE" | "ELITE";
+  expiresAt: string | null;
   views: number;
   city: string;
   state: string;
@@ -55,11 +57,42 @@ export default function MeusAnunciosPage() {
   async function toggleStatus(id: string, current: Vehicle["status"]) {
     const newStatus = current === "ACTIVE" ? "PAUSED" : "ACTIVE";
     setVehicles(prev => prev.map(v => v.id === id ? { ...v, status: newStatus } : v));
-    await fetch(`/api/vehicles/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
+    try {
+      const res = await fetch(`/api/vehicles/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) setVehicles(prev => prev.map(v => v.id === id ? { ...v, status: current } : v));
+    } catch {
+      setVehicles(prev => prev.map(v => v.id === id ? { ...v, status: current } : v));
+    }
+  }
+
+  async function markAsSold(id: string) {
+    if (!confirm("Confirmar que este veículo foi vendido?")) return;
+    setVehicles(prev => prev.map(v => v.id === id ? { ...v, status: "SOLD" } : v));
+    try {
+      const res = await fetch(`/api/vehicles/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "SOLD" }),
+      });
+      if (!res.ok) load();
+    } catch { load(); }
+  }
+
+  async function renewVehicle(id: string) {
+    setVehicles(prev => prev.map(v => v.id === id ? { ...v, status: "ACTIVE" } : v));
+    try {
+      const res = await fetch(`/api/vehicles/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ACTIVE" }),
+      });
+      if (!res.ok) load();
+      else load();
+    } catch { load(); }
   }
 
   async function deleteVehicle(id: string) {
@@ -137,6 +170,20 @@ export default function MeusAnunciosPage() {
                     <p className="text-xs text-on-surface-variant mt-1">
                       {v.yearFab}/{v.yearModel} • {km} • {v.city}, {v.state}
                     </p>
+                    {v.expiresAt && v.status === "ACTIVE" && (() => {
+                      const days = Math.ceil((new Date(v.expiresAt).getTime() - Date.now()) / 86400000);
+                      return days <= 7 ? (
+                        <p className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded mt-1 inline-flex items-center gap-1">
+                          <Icon name="schedule" className="text-xs" />
+                          Expira em {days} dia{days !== 1 ? "s" : ""}
+                        </p>
+                      ) : (
+                        <p className="text-[10px] text-on-surface-variant mt-1 inline-flex items-center gap-1">
+                          <Icon name="schedule" className="text-xs" />
+                          Expira em {days} dias
+                        </p>
+                      );
+                    })()}
                   </div>
 
                   <div className="flex items-center justify-between flex-wrap gap-3">
@@ -149,6 +196,18 @@ export default function MeusAnunciosPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {/* Impulsionar */}
+                      {(v.status === "ACTIVE" || v.status === "PAUSED") && (
+                        <Link
+                          href={`/perfil/impulsionar/${v.id}`}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all hover:-translate-y-0.5 ${v.boostLevel !== "NONE" ? "bg-primary-container text-on-primary-container" : "border border-primary-container text-primary hover:bg-primary-container hover:text-on-primary-container"}`}
+                          aria-label="Impulsionar anúncio"
+                        >
+                          <Icon name="rocket_launch" className="text-sm" />
+                          {v.boostLevel !== "NONE" ? v.boostLevel : "Impulsionar"}
+                        </Link>
+                      )}
+
                       {/* Ver */}
                       <Link
                         href={`/carro/${v.id}`}
@@ -157,6 +216,49 @@ export default function MeusAnunciosPage() {
                       >
                         <Icon name="open_in_new" className="text-lg" />
                       </Link>
+
+                      {/* Editar */}
+                      <Link
+                        href={`/perfil/editar/${v.id}`}
+                        className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"
+                        aria-label="Editar anúncio"
+                      >
+                        <Icon name="edit" className="text-lg" />
+                      </Link>
+
+                      {/* Publicar rascunho */}
+                      {v.status === "DRAFT" && (
+                        <button
+                          onClick={() => toggleStatus(v.id, v.status)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
+                        >
+                          <Icon name="publish" className="text-sm" />
+                          Publicar
+                        </button>
+                      )}
+
+                      {/* Renovar anúncio expirado */}
+                      {v.status === "EXPIRED" && (
+                        <button
+                          onClick={() => renewVehicle(v.id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
+                        >
+                          <Icon name="refresh" className="text-sm" />
+                          Renovar
+                        </button>
+                      )}
+
+                      {/* Marcar como Vendido */}
+                      {(v.status === "ACTIVE" || v.status === "PAUSED") && (
+                        <button
+                          onClick={() => markAsSold(v.id)}
+                          className="p-2 rounded-full hover:bg-blue-50 text-on-surface-variant hover:text-blue-600 transition-colors"
+                          aria-label="Marcar como vendido"
+                          title="Marcar como vendido"
+                        >
+                          <Icon name="handshake" className="text-lg" />
+                        </button>
+                      )}
 
                       {/* Pausar/Ativar */}
                       {(v.status === "ACTIVE" || v.status === "PAUSED") && (
