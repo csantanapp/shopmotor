@@ -119,7 +119,7 @@ export async function GET(req: NextRequest) {
   type VehicleRow = (typeof boostedElite)[number];
   const boosted: VehicleRow[] = [...shuffle(boostedElite), ...shuffle(boostedDestaque)];
   const boostedIds = new Set(boosted.map(v => v.id));
-  const regularFiltered = regular.filter(v => !boostedIds.has(v.id));
+  const regularFiltered = regular.filter((v: VehicleRow) => !boostedIds.has(v.id));
 
   // On page 1 show boosted at top; on subsequent pages skip them
   const vehicles = page === 1
