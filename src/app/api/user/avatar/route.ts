@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? "./public/uploads";
+import { uploadToR2, deleteFromR2 } from "@/lib/r2";
 
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
@@ -21,20 +19,17 @@ export async function POST(req: NextRequest) {
   if (![".jpg", ".jpeg", ".png", ".webp"].includes(ext))
     return NextResponse.json({ error: "Formato não permitido." }, { status: 400 });
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-
-  // Remove avatar antigo se existir
+  // Remove avatar antigo do R2
   const current = await prisma.user.findUnique({ where: { id: user.id }, select: { avatarUrl: true } });
-  if (current?.avatarUrl) {
-    const oldFile = path.join("./public", current.avatarUrl);
-    unlink(oldFile).catch(() => {});
+  if (current?.avatarUrl?.includes("r2.dev")) {
+    const oldKey = `avatars/avatar-${user.id}`;
+    deleteFromR2(oldKey).catch(() => {});
   }
 
-  const filename = `avatar-${user.id}-${Date.now()}${ext}`;
-  const filepath = path.join(UPLOAD_DIR, filename);
-  await writeFile(filepath, Buffer.from(await file.arrayBuffer()));
+  const key    = `avatars/avatar-${user.id}-${Date.now()}${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const avatarUrl = await uploadToR2(key, buffer, file.type || "image/jpeg");
 
-  const avatarUrl = `/uploads/${filename}`;
   await prisma.user.update({ where: { id: user.id }, data: { avatarUrl } });
 
   return NextResponse.json({ avatarUrl });

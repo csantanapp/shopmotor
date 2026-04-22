@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { uploadToR2, deleteFromR2 } from "@/lib/r2";
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? "./public/uploads";
-const MAX_SIZE   = 10 * 1024 * 1024; // 10MB
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 /* ── POST /api/vehicles/[id]/photos ── */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -30,25 +29,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const uploaded: { url: string; filename: string }[] = [];
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-
   for (const file of files) {
     if (file.size > MAX_SIZE) {
       return NextResponse.json({ error: `Arquivo ${file.name} excede 10MB.` }, { status: 400 });
     }
 
-    const ext      = path.extname(file.name).toLowerCase();
-    const allowed  = [".jpg", ".jpeg", ".png", ".webp"];
+    const ext     = path.extname(file.name).toLowerCase();
+    const allowed = [".jpg", ".jpeg", ".png", ".webp"];
     if (!allowed.includes(ext)) {
       return NextResponse.json({ error: `Formato ${ext} não permitido.` }, { status: 400 });
     }
 
-    const filename = `${id}-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
-    const filepath = path.join(UPLOAD_DIR, filename);
+    const filename = `vehicles/${id}-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
     const buffer   = Buffer.from(await file.arrayBuffer());
+    const url      = await uploadToR2(filename, buffer, file.type || "image/jpeg");
 
-    await writeFile(filepath, buffer);
-    uploaded.push({ url: `/uploads/${filename}`, filename });
+    uploaded.push({ url, filename });
   }
 
   const isCoverNeeded = currentCount === 0;
@@ -97,13 +93,18 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const { id }    = await params;
-  const photoId   = req.nextUrl.searchParams.get("photoId");
-  if (!photoId)   return NextResponse.json({ error: "photoId obrigatório." }, { status: 400 });
+  await params;
+  const photoId = req.nextUrl.searchParams.get("photoId");
+  if (!photoId) return NextResponse.json({ error: "photoId obrigatório." }, { status: 400 });
 
   const photo = await prisma.vehiclePhoto.findUnique({ where: { id: photoId }, include: { vehicle: true } });
-  if (!photo)                          return NextResponse.json({ error: "Foto não encontrada." }, { status: 404 });
+  if (!photo)                           return NextResponse.json({ error: "Foto não encontrada." }, { status: 404 });
   if (photo.vehicle.userId !== user.id) return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
+
+  // Deletar do R2 se for URL do R2
+  if (photo.filename && photo.url.includes("r2.dev")) {
+    await deleteFromR2(photo.filename).catch(() => null);
+  }
 
   await prisma.vehiclePhoto.delete({ where: { id: photoId } });
   return NextResponse.json({ ok: true });
