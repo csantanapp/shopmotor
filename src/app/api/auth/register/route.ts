@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession, COOKIE_NAME } from "@/lib/auth";
+import { sendWelcomeEmail } from "@/lib/mailer";
 
 function slugify(str: string) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -94,6 +95,8 @@ export async function POST(req: NextRequest) {
       expires:  expiresAt,
       path:     "/",
     });
+
+    sendWelcomeEmail(user.email, user.name).catch(() => null);
 
     return response;
   } catch (err) {

@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: {
       photos:   { orderBy: { order: "asc" } },
       features: true,
-      user:     { select: { id: true, name: true, avatarUrl: true, phone: true, plan: true, city: true, state: true, createdAt: true, accountType: true, storeSlug: true } },
+      user:     { select: { id: true, name: true, avatarUrl: true, phone: true, plan: true, city: true, state: true, createdAt: true, lastSeenAt: true, accountType: true, storeSlug: true } },
     },
   });
 
@@ -21,14 +21,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   prisma.vehicle.update({ where: { id }, data: { views: { increment: 1 } } }).catch(() => null);
 
   try {
-    const similar = await prisma.vehicle.aggregate({
-      where: { brand: vehicle.brand, model: vehicle.model, status: "ACTIVE" },
-      _avg: { price: true },
-      _count: true,
-    });
+    const [similar, listingsCount, salesCount] = await Promise.all([
+      prisma.vehicle.aggregate({
+        where: { brand: vehicle.brand, model: vehicle.model, status: "ACTIVE" },
+        _avg: { price: true },
+        _count: true,
+      }),
+      prisma.vehicle.count({ where: { userId: vehicle.userId, status: "ACTIVE" } }),
+      (prisma.payment as any).count({ where: { userId: vehicle.userId, status: "approved" } }),
+    ]);
 
     return NextResponse.json({
-      vehicle,
+      vehicle: { ...vehicle, user: { ...vehicle.user, listingsCount, salesCount } },
       priceComparison: {
         shopMotorAvg: similar._avg.price,
         shopMotorCount: similar._count,

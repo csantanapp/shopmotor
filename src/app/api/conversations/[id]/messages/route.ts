@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { sendNewMessageEmail } from "@/lib/mailer";
 
 /* GET — mensagens de uma conversa */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -58,6 +59,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }),
       prisma.conversation.update({ where: { id }, data: { updatedAt: new Date() } }),
     ]);
+
+    const recipientId = conversation.buyerId === user.id ? conversation.sellerId : conversation.buyerId;
+    prisma.user.findUnique({ where: { id: recipientId }, select: { email: true, name: true } })
+      .then(recipient => {
+        if (!recipient) return;
+        return prisma.conversation.findUnique({ where: { id }, include: { vehicle: { select: { brand: true, model: true } } } })
+          .then(conv => {
+            if (conv?.vehicle) sendNewMessageEmail(recipient.email, recipient.name, user.name, `${conv.vehicle.brand} ${conv.vehicle.model}`).catch(() => null);
+          });
+      }).catch(() => null);
 
     return NextResponse.json({ message });
   } catch (err) {
