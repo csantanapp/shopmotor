@@ -51,6 +51,11 @@ const stats = [
 
 /* ── Page ─────────────────────────────────────────────── */
 
+type StoreUser = {
+  id: string; name: string; tradeName: string | null; avatarUrl: string | null; storeSlug: string | null;
+  _count: { vehicles: number };
+};
+
 type BoostedVehicle = {
   id: string; brand: string; model: string; version: string | null;
   yearFab: number; yearModel: number; km: number; price: number;
@@ -95,7 +100,7 @@ export default async function Home() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = prisma as any;
-  const [destaques, elite, recentes]: [BoostedVehicle[], BoostedVehicle[], BoostedVehicle[]] = await Promise.all([
+  const [destaques, elite, recentes, lojas]: [BoostedVehicle[], BoostedVehicle[], BoostedVehicle[], StoreUser[]] = await Promise.all([
     db.vehicle.findMany({
       where: { status: "ACTIVE", boostLevel: "DESTAQUE", boostGalleryUntil: { gte: now } },
       orderBy: { boostGalleryUntil: "desc" },
@@ -113,6 +118,12 @@ export default async function Home() {
       orderBy: { createdAt: "desc" },
       take: 12,
       select: vehicleSelect,
+    }),
+    db.user.findMany({
+      where: { accountType: "PJ", storeSlug: { not: null } },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: { id: true, name: true, tradeName: true, avatarUrl: true, storeSlug: true, _count: { select: { vehicles: true } } },
     }),
   ]);
 
@@ -377,63 +388,40 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── MODELOS & LOJAS ── */}
-      <section className="max-w-screen-2xl mx-auto px-6 pb-20 grid md:grid-cols-2 gap-12">
-        <div>
-          <p className="text-xs font-black uppercase tracking-widest text-primary mb-2">Mais buscados</p>
-          <h3 className="text-2xl font-black uppercase tracking-tighter mb-6">Categorias em alta</h3>
-          <div className="space-y-3">
-            {[
-              { label: "SUVs Premium",              count: "1.482 anúncios" },
-              { label: "Esportivos & Conversíveis", count: "154 anúncios"   },
-              { label: "Picapes 4x4",               count: "388 anúncios"   },
-              { label: "Elétricos & Híbridos",      count: "97 anúncios"    },
-            ].map((cat, i) => (
+      {/* ── LOJAS EM DESTAQUE ── */}
+      {lojas.length > 0 && (
+        <section className="max-w-screen-2xl mx-auto px-6 pb-20">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-primary mb-2">Parceiros verificados</p>
+              <h3 className="text-2xl font-black uppercase tracking-tighter">Lojas em destaque</h3>
+              <div className="h-1 w-16 bg-primary-container mt-2" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {lojas.map((shop) => (
               <Link
-                key={cat.label}
-                href="/busca"
-                className="bg-surface-container-lowest p-5 rounded-2xl flex items-center justify-between group hover:bg-primary-container transition-colors shadow-sm"
+                key={shop.id}
+                href={shop.storeSlug ? `/loja/${shop.storeSlug}` : `/vendedor/${shop.id}`}
+                className="bg-surface-container-lowest rounded-2xl p-5 flex flex-col items-center text-center border border-transparent hover:border-primary-container transition-all shadow-sm group"
               >
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl font-black text-outline group-hover:text-on-primary-container/40 transition-colors w-8">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <div>
-                    <p className="font-bold text-on-surface group-hover:text-on-primary-container transition-colors">{cat.label}</p>
-                    <p className="text-xs text-on-surface-variant group-hover:text-on-primary-container/70 transition-colors">{cat.count}</p>
-                  </div>
+                <div className="w-16 h-16 bg-surface-container rounded-full mb-3 overflow-hidden flex items-center justify-center group-hover:ring-2 group-hover:ring-primary-container transition-all">
+                  {shop.avatarUrl
+                    ? <img src={shop.avatarUrl} alt={shop.name} className="w-full h-full object-cover" />
+                    : <Icon name="storefront" className="text-2xl text-outline" />
+                  }
                 </div>
-                <Icon name="chevron_right" className="text-outline group-hover:text-on-primary-container transition-colors" />
+                <span className="font-bold text-sm text-on-surface uppercase tracking-tight mb-1 truncate w-full">
+                  {shop.tradeName ?? shop.name}
+                </span>
+                <span className="text-[10px] text-primary font-black uppercase tracking-widest">
+                  {shop._count.vehicles} anúncios
+                </span>
               </Link>
             ))}
           </div>
-        </div>
-
-        <div>
-          <p className="text-xs font-black uppercase tracking-widest text-primary mb-2">Parceiros verificados</p>
-          <h3 className="text-2xl font-black uppercase tracking-tighter mb-6">Lojas em destaque</h3>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { name: "Elite Motors",   icon: "stars",    badge: "Top vendedor" },
-              { name: "Premium Cars",   icon: "verified", badge: "Verificado"   },
-              { name: "Auto Center SP", icon: "storefront", badge: "Novo"       },
-              { name: "Speed Motors",   icon: "bolt",     badge: "Popular"      },
-            ].map((shop) => (
-              <Link
-                key={shop.name}
-                href="/busca"
-                className="bg-surface-container-lowest rounded-2xl p-5 flex flex-col items-center text-center cursor-pointer border border-transparent hover:border-primary-container transition-all shadow-sm group"
-              >
-                <div className="w-14 h-14 bg-surface-container rounded-full mb-3 flex items-center justify-center group-hover:bg-primary-container transition-colors">
-                  <Icon name={shop.icon} fill className="text-primary text-2xl group-hover:text-on-primary-container transition-colors" />
-                </div>
-                <span className="font-bold text-sm text-on-surface uppercase tracking-tight mb-1">{shop.name}</span>
-                <span className="text-[10px] text-primary font-black uppercase tracking-widest">{shop.badge}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── SERVIÇOS ── */}
       <section className="bg-surface-container-highest/30 py-20">
