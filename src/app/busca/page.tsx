@@ -233,6 +233,25 @@ function BuscaPageInner() {
           )}
         </div>
 
+        <FilterSection label="Tipo de veículo">
+          <div className="flex flex-col gap-1">
+            {[
+              { value: "Todos", label: "Todos",  icon: "apps" },
+              { value: "CAR",   label: "Carros", icon: "directions_car" },
+              { value: "MOTO",  label: "Motos",  icon: "two_wheeler" },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setVehicleTypeFilter(opt.value)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors text-left ${vehicleTypeFilter === opt.value ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container"}`}
+              >
+                <Icon name={opt.icon} className="text-base" />
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </FilterSection>
+
         <FilterSection label="Condição">
           <div className="flex gap-2">
             {["Todos","Novo","Usado"].map(c => (
@@ -343,24 +362,6 @@ function BuscaPageInner() {
           <p className="text-on-surface-variant text-sm mt-0.5">
             {fetching ? "Buscando..." : `${total} ${total === 1 ? "veículo encontrado" : "veículos encontrados"}`}
           </p>
-        </div>
-
-        {/* Carro / Moto toggle */}
-        <div className="flex bg-surface-container-lowest rounded-xl shadow-sm p-1 gap-1">
-          {[
-            { value: "Todos", label: "Todos",  icon: "apps" },
-            { value: "CAR",   label: "Carros", icon: "directions_car" },
-            { value: "MOTO",  label: "Motos",  icon: "two_wheeler" },
-          ].map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setVehicleTypeFilter(opt.value)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold transition-colors ${vehicleTypeFilter === opt.value ? "bg-primary-container text-on-primary-container" : "text-outline hover:text-on-surface"}`}
-            >
-              <Icon name={opt.icon} className="text-base" />
-              <span className="hidden sm:inline">{opt.label}</span>
-            </button>
-          ))}
         </div>
 
         <div className="flex items-center gap-3">
