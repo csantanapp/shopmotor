@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import VehicleCard from "@/components/ui/VehicleCard";
 import Icon from "@/components/ui/Icon";
+import HeroSearch from "@/components/ui/HeroSearch";
 import { vehicles } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
 
@@ -163,23 +164,7 @@ export default async function Home() {
             </p>
 
             {/* Search bar */}
-            <div className="bg-surface-container-lowest rounded-2xl p-2 shadow-2xl flex flex-col md:flex-row gap-2 w-full max-w-2xl">
-              <div className="flex items-center gap-3 flex-1 px-4">
-                <Icon name="search" className="text-outline text-xl flex-shrink-0" />
-                <input
-                  className="w-full border-none focus:ring-0 bg-transparent py-3 text-base outline-none placeholder:text-outline"
-                  placeholder="Marca, modelo ou versão..."
-                  type="text"
-                />
-              </div>
-              <Link
-                href="/busca"
-                className="bg-primary-container hover:bg-primary-fixed-dim text-on-primary-container font-black px-8 py-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm uppercase tracking-widest whitespace-nowrap"
-              >
-                Buscar oferta
-                <Icon name="arrow_forward" />
-              </Link>
-            </div>
+            <HeroSearch />
 
             {/* Quick filters */}
             <div className="flex flex-wrap gap-2 mt-4 justify-center">

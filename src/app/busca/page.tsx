@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
@@ -67,7 +68,8 @@ const CURRENT_YEAR = new Date().getFullYear();
 
 /* ── Page ── */
 export default function BuscaPage() {
-  const [search, setSearch]             = useState("");
+  const searchParams = useSearchParams();
+  const [search, setSearch]             = useState(searchParams.get("q") ?? "");
   const [brand, setBrand]               = useState("Todas");
   const [fuel, setFuel]                 = useState("Todos");
   const [body, setBody]                 = useState("Todos");
