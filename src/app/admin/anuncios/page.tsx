@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Icon from "@/components/ui/Icon";
 
 const SLOTS = [
@@ -15,6 +15,95 @@ const EMPTY = {
   title: "", subtitle: "", imageUrl: "", linkUrl: "", linkLabel: "",
   bgColor: "#e63946", textColor: "#ffffff",
 };
+
+function ImageUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [dragging, setDragging] = useState(false);
+
+  const upload = useCallback(async (file: File) => {
+    setError("");
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowed.includes(file.type)) { setError("Formato inválido. Use JPG, PNG, WebP ou GIF."); return; }
+    if (file.size > 5 * 1024 * 1024) { setError("Arquivo muito grande. Máximo 5MB."); return; }
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("image", file);
+    const res = await fetch("/api/admin/ads/upload", { method: "POST", body: fd });
+    const data = await res.json();
+    setUploading(false);
+    if (data.url) onChange(data.url);
+    else setError(data.error ?? "Erro ao fazer upload.");
+  }, [onChange]);
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) upload(file);
+  };
+
+  return (
+    <div>
+      <label className="block text-xs font-black text-neutral-400 uppercase tracking-widest mb-2">Imagem</label>
+
+      {/* Drop zone */}
+      <div
+        onDragOver={e => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={onDrop}
+        onClick={() => inputRef.current?.click()}
+        className={`relative border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
+          dragging ? "border-primary-container bg-primary-container/10" : "border-white/10 hover:border-white/20 bg-white/[0.02]"
+        }`}
+        style={{ minHeight: 100 }}
+      >
+        {uploading ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-6 h-6 border-2 border-primary-container border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs text-neutral-500">Enviando...</p>
+          </div>
+        ) : value ? (
+          <div className="flex items-center gap-4 w-full">
+            <img src={value} alt="preview" className="h-20 w-32 object-cover rounded-lg flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-neutral-400 truncate">{value}</p>
+              <p className="text-xs text-neutral-600 mt-1">Clique ou arraste para trocar</p>
+            </div>
+            <button onClick={e => { e.stopPropagation(); onChange(""); }} className="text-neutral-500 hover:text-red-400 transition-colors flex-shrink-0">
+              <Icon name="delete" className="text-lg" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <Icon name="cloud_upload" className="text-3xl text-neutral-500" />
+            <p className="text-sm text-neutral-400 font-semibold">Arraste ou clique para enviar</p>
+            <p className="text-xs text-neutral-600">JPG, PNG, WebP, GIF — máx. 5MB</p>
+          </>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+          onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }}
+        />
+      </div>
+
+      {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
+
+      {/* Manual URL fallback */}
+      <div className="mt-2">
+        <input
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-neutral-400 outline-none focus:border-primary-container placeholder:text-neutral-600"
+          placeholder="Ou cole uma URL de imagem..."
+          value={value}
+          onChange={e => onChange(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function AdminAnuncios() {
   const [ads, setAds] = useState<any[]>([]);
@@ -184,16 +273,12 @@ export default function AdminAnuncios() {
                 </div>
               )}
 
-              {/* Image URL (not for topbar) */}
+              {/* Image upload (not for topbar) */}
               {form.slot !== "home_topbar" && (
-                <div>
-                  <label className="block text-xs font-black text-neutral-400 uppercase tracking-widest mb-2">URL da imagem</label>
-                  <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-primary-container"
-                    placeholder="https://..."
-                    value={form.imageUrl ?? ""}
-                    onChange={e => setForm((f: any) => ({ ...f, imageUrl: e.target.value }))} />
-                  {form.imageUrl && <img src={form.imageUrl} alt="preview" className="mt-2 h-16 rounded-lg object-cover" />}
-                </div>
+                <ImageUpload
+                  value={form.imageUrl ?? ""}
+                  onChange={url => setForm((f: any) => ({ ...f, imageUrl: url }))}
+                />
               )}
 
               {/* Link */}
