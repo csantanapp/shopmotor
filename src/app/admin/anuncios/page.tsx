@@ -16,7 +16,7 @@ const EMPTY = {
   bgColor: "#e63946", textColor: "#ffffff",
 };
 
-function ImageUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+function ImageUpload({ value, onChange, fixedHeight }: { value: string; onChange: (url: string) => void; fixedHeight?: number }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -53,10 +53,10 @@ function ImageUpload({ value, onChange }: { value: string; onChange: (url: strin
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
+        className={`relative border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors overflow-hidden ${
           dragging ? "border-primary-container bg-primary-container/10" : "border-white/10 hover:border-white/20 bg-white/[0.02]"
         }`}
-        style={{ minHeight: 100 }}
+        style={fixedHeight ? { height: fixedHeight, minHeight: fixedHeight, maxHeight: fixedHeight, resize: "none" } : { minHeight: 100 }}
       >
         {uploading ? (
           <div className="flex flex-col items-center gap-2">
@@ -277,6 +277,7 @@ export default function AdminAnuncios() {
               <ImageUpload
                 value={form.imageUrl ?? ""}
                 onChange={url => setForm((f: any) => ({ ...f, imageUrl: url }))}
+                fixedHeight={form.slot === "home_topbar" ? 40 : undefined}
               />
 
               {/* Link */}
