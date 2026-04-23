@@ -59,6 +59,14 @@ export default function AdminReceita() {
   const pending  = revenue?.recent?.filter((p: any) => p.status === "pending") ?? [];
   const maxMonth = Math.max(...(revenue?.byMonth?.map((m: any) => m.total) ?? [1]), 1);
 
+  const plans = ["TURBO", "DESTAQUE", "SUPER_DESTAQUE"];
+  const planStats = plans.map(plan => {
+    const rows = (revenue?.byPlan ?? []).filter((r: any) => r.plan === plan && r.status === "approved");
+    const count = rows.reduce((s: number, r: any) => s + Number(r.count), 0);
+    const value = rows.reduce((s: number, r: any) => s + Number(r.total), 0);
+    return { plan, count, value };
+  });
+
   const filtered = (revenue?.recent ?? []).filter((p: any) => {
     const q = search.toLowerCase();
     return (
@@ -105,6 +113,44 @@ export default function AdminReceita() {
           </div>
           <p className="text-2xl font-black text-white">{pending.length}</p>
         </div>
+      </div>
+
+      {/* Por plano */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        {planStats.map(({ plan, count, value }) => {
+          const colors: Record<string, string> = {
+            TURBO: "text-blue-400 bg-blue-500/10",
+            DESTAQUE: "text-orange-400 bg-orange-500/10",
+            SUPER_DESTAQUE: "text-purple-400 bg-purple-500/10",
+          };
+          const icons: Record<string, string> = {
+            TURBO: "bolt",
+            DESTAQUE: "star",
+            SUPER_DESTAQUE: "workspace_premium",
+          };
+          return (
+            <div key={plan} className="bg-[#111414] border border-white/5 rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${colors[plan]}`}>
+                  <Icon name={icons[plan]} className="text-base" />
+                </div>
+                <p className="text-sm font-black text-white">{planLabels[plan]}</p>
+              </div>
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-xs text-neutral-500 mb-1">Quantidade</p>
+                  <p className="text-2xl font-black text-white">{count}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-neutral-500 mb-1">Receita</p>
+                  <p className="text-lg font-black text-white">
+                    {value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Chart + by plan */}
