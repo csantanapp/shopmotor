@@ -143,27 +143,27 @@ export default async function Home() {
             priority
           />
           {/* gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-inverse-surface via-inverse-surface/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-inverse-surface/60 via-inverse-surface/75 to-inverse-surface" />
         </div>
 
-        <div className="relative z-10 max-w-screen-2xl mx-auto px-6 py-24 w-full">
-          <div className="max-w-2xl">
+        <div className="relative z-10 max-w-screen-xl mx-auto px-6 py-24 w-full flex flex-col items-center text-center">
             {/* Eyebrow */}
             <div className="flex items-center gap-2 mb-6">
               <span className="w-8 h-0.5 bg-primary-container" />
               <span className="text-primary-container text-xs font-black uppercase tracking-widest">O maior marketplace automotivo</span>
+              <span className="w-8 h-0.5 bg-primary-container" />
             </div>
 
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-none uppercase mb-6">
               VOCÊ DE<br />
               <span className="text-primary-container">CARRO NOVO!</span>
             </h1>
-            <p className="text-neutral-400 text-lg mb-10 max-w-md">
+            <p className="text-neutral-400 text-lg mb-10 max-w-xl">
               Mais de 48 mil veículos de particulares e lojas. Compre, venda e negocie com segurança.
             </p>
 
             {/* Search bar */}
-            <div className="bg-surface-container-lowest rounded-2xl p-2 shadow-2xl flex flex-col md:flex-row gap-2 max-w-2xl">
+            <div className="bg-surface-container-lowest rounded-2xl p-2 shadow-2xl flex flex-col md:flex-row gap-2 w-full max-w-2xl">
               <div className="flex items-center gap-3 flex-1 px-4">
                 <Icon name="search" className="text-outline text-xl flex-shrink-0" />
                 <input
@@ -182,7 +182,7 @@ export default async function Home() {
             </div>
 
             {/* Quick filters */}
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-4 justify-center">
               {highlights.map((h) => (
                 <Link
                   key={h.label}
@@ -194,7 +194,6 @@ export default async function Home() {
                 </Link>
               ))}
             </div>
-          </div>
         </div>
 
         {/* Stats bar */}
