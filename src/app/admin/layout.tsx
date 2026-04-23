@@ -5,11 +5,12 @@ import { usePathname } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 
 const nav = [
-  { href: "/admin",          icon: "dashboard",    label: "Dashboard"  },
-  { href: "/admin/usuarios", icon: "person",       label: "Usuários"   },
-  { href: "/admin/lojas",    icon: "storefront",   label: "Lojas"      },
-  { href: "/admin/seo",      icon: "travel_explore", label: "SEO"      },
-  { href: "/admin/scripts",  icon: "code",         label: "Pixel & Scripts" },
+  { href: "/admin",          icon: "dashboard",      label: "Dashboard"       },
+  { href: "/admin/receita",  icon: "payments",       label: "Receita"         },
+  { href: "/admin/usuarios", icon: "person",         label: "Usuários"        },
+  { href: "/admin/lojas",    icon: "storefront",     label: "Lojas"           },
+  { href: "/admin/seo",      icon: "travel_explore", label: "SEO"             },
+  { href: "/admin/scripts",  icon: "code",           label: "Pixel & Scripts" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

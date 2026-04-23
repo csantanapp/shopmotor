@@ -7,11 +7,12 @@ import Link from "next/link";
 interface Stats {
   users: { pf: number; pj: number; total: number };
   vehicles: { total: number; cars: number; motos: number };
-  negotiatedValue: number;
+  totalVehicleValue: number;
   recentUsers: any[];
   recentStores: any[];
   vehiclesByMonth: { month: string; count: number }[];
   usersByMonth: { month: string; count: number }[];
+  revenue: { total: number; count: number; byPlan: any[]; byMonth: any[]; recent: any[] };
 }
 
 function StatCard({ label, value, icon, color, sub }: {
@@ -67,7 +68,8 @@ export default function AdminDashboard() {
 
   if (!stats) return <div className="p-8 text-red-400">Erro ao carregar dados.</div>;
 
-  const price = (stats.negotiatedValue / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+  const price = stats.totalVehicleValue.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+  const revenueTotal = stats.revenue.total.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
   const maxVeh = Math.max(...(stats.vehiclesByMonth?.map(m => m.count) ?? [1]), 1);
   const maxUsr = Math.max(...(stats.usersByMonth?.map(m => m.count) ?? [1]), 1);
 
@@ -102,11 +104,18 @@ export default function AdminDashboard() {
           sub={`${stats.vehicles.cars} carros · ${stats.vehicles.motos} motos`}
         />
         <StatCard
-          label="Valor Negociado"
+          label="Valor dos Anúncios"
           value={price}
           icon="attach_money"
           color="bg-green-500/10 text-green-400"
-          sub="soma dos anúncios ativos"
+          sub="soma de todos os veículos ativos"
+        />
+        <StatCard
+          label="Receita (Impulsionamentos)"
+          value={revenueTotal}
+          icon="rocket_launch"
+          color="bg-yellow-500/10 text-yellow-400"
+          sub={`${stats.revenue.count} pagamentos aprovados`}
         />
       </div>
 

@@ -12,9 +12,13 @@ export async function GET(req: Request) {
     totalPF, totalPJ,
     totalVehicles, totalCars, totalMotos,
     recentUsers, recentStores,
-    totalNegotiatedValue,
+    totalVehicleValue,
     vehiclesByMonth,
     usersByMonth,
+    revenueApproved,
+    revenueByPlan,
+    revenueByMonth,
+    recentPayments,
   ] = await Promise.all([
     db.user.count({ where: { accountType: "PF" } }),
     db.user.count({ where: { accountType: "PJ" } }),
@@ -35,6 +39,7 @@ export async function GET(req: Request) {
       select: { id: true, name: true, tradeName: true, companyName: true, email: true, city: true, state: true, storeSlug: true, createdAt: true, _count: { select: { vehicles: true } } },
     }),
 
+    // Soma do valor de todos os veículos ativos
     prisma.vehicle.aggregate({
       where: { status: "ACTIVE" },
       _sum: { price: true },
@@ -53,15 +58,55 @@ export async function GET(req: Request) {
       WHERE "createdAt" > NOW() - INTERVAL '6 months'
       GROUP BY 1 ORDER BY 1
     `,
+
+    // Receita total aprovada de impulsionamentos
+    prisma.payment.aggregate({
+      where: { status: "approved" },
+      _sum: { amount: true },
+      _count: true,
+    }),
+
+    // Receita por plano de impulsionamento
+    prisma.$queryRaw`
+      SELECT plan, status, SUM(amount)::float AS total, COUNT(*)::int AS count
+      FROM payments
+      GROUP BY plan, status
+      ORDER BY total DESC
+    `,
+
+    // Receita aprovada por mês (últimos 6 meses)
+    prisma.$queryRaw`
+      SELECT DATE_TRUNC('month', "createdAt") AS month, SUM(amount)::float AS total, COUNT(*)::int AS count
+      FROM payments
+      WHERE status = 'approved' AND "createdAt" > NOW() - INTERVAL '6 months'
+      GROUP BY 1 ORDER BY 1
+    `,
+
+    // Últimos pagamentos
+    db.payment.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      include: {
+        user: { select: { name: true, email: true } },
+        vehicle: { select: { brand: true, model: true } },
+      },
+    }),
   ]);
 
   return NextResponse.json({
     users: { pf: totalPF, pj: totalPJ, total: totalPF + totalPJ },
     vehicles: { total: totalVehicles, cars: totalCars, motos: totalMotos },
-    negotiatedValue: totalNegotiatedValue._sum.price ?? 0,
+    totalVehicleValue: totalVehicleValue._sum.price ?? 0,
     recentUsers,
     recentStores,
     vehiclesByMonth,
     usersByMonth,
+    revenue: {
+      total: revenueApproved._sum.amount ?? 0,
+      count: revenueApproved._count,
+      byPlan: revenueByPlan,
+      byMonth: revenueByMonth,
+      recent: recentPayments,
+    },
   });
 }
