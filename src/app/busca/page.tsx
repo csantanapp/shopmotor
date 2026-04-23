@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
@@ -68,6 +68,10 @@ const CURRENT_YEAR = new Date().getFullYear();
 
 /* ── Page ── */
 export default function BuscaPage() {
+  return <Suspense><BuscaPageInner /></Suspense>;
+}
+
+function BuscaPageInner() {
   const searchParams = useSearchParams();
   const [search, setSearch]             = useState(searchParams.get("q") ?? "");
   const [brand, setBrand]               = useState("Todas");
