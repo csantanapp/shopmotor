@@ -176,7 +176,7 @@ export default async function Home() {
                 href="/busca"
                 className="bg-primary-container hover:bg-primary-fixed-dim text-on-primary-container font-black px-8 py-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm uppercase tracking-widest whitespace-nowrap"
               >
-                Buscar veículos
+                Buscar oferta
                 <Icon name="arrow_forward" />
               </Link>
             </div>
