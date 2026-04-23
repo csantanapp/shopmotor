@@ -234,16 +234,15 @@ function BuscaPageInner() {
         </div>
 
         <FilterSection label="Tipo de veículo">
-          <div className="flex flex-col gap-1">
+          <div className="flex gap-2">
             {[
-              { value: "Todos", label: "Todos",  icon: "apps" },
-              { value: "CAR",   label: "Carros", icon: "directions_car" },
-              { value: "MOTO",  label: "Motos",  icon: "two_wheeler" },
+              { value: "CAR",  label: "Carros", icon: "directions_car" },
+              { value: "MOTO", label: "Motos",  icon: "two_wheeler" },
             ].map(opt => (
               <button
                 key={opt.value}
-                onClick={() => setVehicleTypeFilter(opt.value)}
-                className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors text-left ${vehicleTypeFilter === opt.value ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container"}`}
+                onClick={() => setVehicleTypeFilter(v => v === opt.value ? "Todos" : opt.value)}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${vehicleTypeFilter === opt.value ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container"}`}
               >
                 <Icon name={opt.icon} className="text-base" />
                 {opt.label}
