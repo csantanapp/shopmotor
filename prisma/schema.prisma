@@ -272,3 +272,20 @@ model SiteConfig {
 
   @@map("site_config")
 }
+
+model PartnerAd {
+  id        String   @id @default(cuid())
+  slot      String   // home_topbar | home_banner | busca_banner | busca_card
+  active    Boolean  @default(false)
+  title     String?
+  subtitle  String?
+  imageUrl  String?
+  linkUrl   String?
+  linkLabel String?
+  bgColor   String?
+  textColor String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("partner_ads")
+}

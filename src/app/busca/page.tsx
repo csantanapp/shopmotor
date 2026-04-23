@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import AdBanner from "@/components/ads/AdBanner";
+import AdCard from "@/components/ads/AdCard";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 
@@ -436,6 +438,7 @@ function BuscaPageInner() {
 
         {/* Results */}
         <div className="flex-1 min-w-0 space-y-6">
+          <AdBanner slot="busca_banner" maxHeight={90} />
           {fetching ? (
             <div className="flex items-center justify-center py-24">
               <span className="w-10 h-10 border-2 border-primary-container/30 border-t-primary-container rounded-full animate-spin" />
@@ -461,13 +464,13 @@ function BuscaPageInner() {
           ) : view === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {vehicles.slice(0, 8).map(v => <GridCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
-              {vehicles.length > 8 && <AdBanner className="col-span-full" />}
+              <AdCard slot="busca_card" />
               {vehicles.slice(8).map(v => <GridCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
             </div>
           ) : (
             <div className="space-y-4">
               {vehicles.slice(0, 8).map(v => <ListCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
-              {vehicles.length > 8 && <AdBanner />}
+              {vehicles.length > 8 && <AdBanner slot="busca_banner" maxHeight={90} />}
               {vehicles.slice(8).map(v => <ListCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
             </div>
           )}
@@ -570,54 +573,6 @@ function boostBorder(level: ApiVehicle["boostLevel"]) {
   return "";
 }
 
-function AdBanner({ className = "" }: { className?: string }) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl flex items-stretch min-h-[120px] shadow-lg ${className}`}>
-      {/* Left — dark panel */}
-      <div className="bg-neutral-950 flex items-center px-8 py-6 flex-1 z-10 relative">
-        <div>
-          <p className="text-primary-container font-black text-2xl md:text-3xl uppercase italic leading-tight tracking-tight">
-            PARA QUEM É<br />APAIXONADO<br />POR CARRO
-          </p>
-        </div>
-      </div>
-
-      {/* Center — logo + diagonal divider */}
-      <div className="bg-neutral-950 flex items-center justify-center px-8 z-10 relative">
-        {/* diagonal right edge */}
-        <div className="absolute right-0 top-0 bottom-0 w-12 bg-white" style={{ clipPath: "polygon(40% 0, 100% 0, 100% 100%, 0% 100%)" }} />
-        <div className="flex flex-col items-center gap-1">
-          {/* SVG logo-style icon */}
-          <svg width="56" height="32" viewBox="0 0 56 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 22 C10 8, 20 6, 28 8 C36 10, 46 8, 52 22" stroke="#C9A84C" strokeWidth="3" strokeLinecap="round" fill="none"/>
-            <path d="M1 22 L55 22 L52 28 L4 28 Z" fill="#C9A84C"/>
-            <circle cx="12" cy="27" r="4" fill="#1a1a1a" stroke="#C9A84C" strokeWidth="2"/>
-            <circle cx="44" cy="27" r="4" fill="#1a1a1a" stroke="#C9A84C" strokeWidth="2"/>
-          </svg>
-          <p className="text-white font-black text-sm tracking-widest uppercase whitespace-nowrap">
-            <span className="text-primary-container">SHOP</span>MOTORS
-          </p>
-        </div>
-      </div>
-
-      {/* Right — car image placeholder with gradient */}
-      <div className="relative w-64 flex-shrink-0 bg-white overflow-hidden hidden md:block">
-        <div className="absolute inset-0 bg-gradient-to-r from-white/0 to-white/0" />
-        <div className="w-full h-full flex items-center justify-center">
-          <svg viewBox="0 0 200 100" className="w-full h-full opacity-20" fill="none">
-            <path d="M20 65 C40 35, 70 30, 100 35 C130 40, 160 35, 180 65" stroke="#888" strokeWidth="4" strokeLinecap="round"/>
-            <path d="M10 65 L190 65 L180 80 L20 80 Z" fill="#888"/>
-            <circle cx="50" cy="78" r="10" fill="#ddd" stroke="#888" strokeWidth="3"/>
-            <circle cx="150" cy="78" r="10" fill="#ddd" stroke="#888" strokeWidth="3"/>
-          </svg>
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs text-neutral-400 font-bold uppercase tracking-widest rotate-[-15deg]">Seu anúncio aqui</span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function GridCard({ v, fav, onFav }: CardProps) {
   const price    = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });

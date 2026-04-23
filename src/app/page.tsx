@@ -3,6 +3,7 @@ import Link from "next/link";
 import VehicleCard from "@/components/ui/VehicleCard";
 import Icon from "@/components/ui/Icon";
 import HeroSearch from "@/components/ui/HeroSearch";
+import AdBanner from "@/components/ads/AdBanner";
 import { vehicles } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
 
@@ -220,6 +221,11 @@ export default async function Home() {
           ))}
         </div>
       </section>
+
+      {/* ── BANNER PARCEIRO HOME ── */}
+      <div className="max-w-screen-2xl mx-auto px-6 pb-6">
+        <AdBanner slot="home_banner" maxHeight={90} />
+      </div>
 
       {/* ── OPORTUNIDADES ── */}
       <section className="max-w-screen-2xl mx-auto px-6 pb-16">
