@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import BottomNav from "@/components/layout/BottomNav";
 import { AuthProvider } from "@/context/AuthContext";
+import { prisma } from "@/lib/prisma";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -43,11 +44,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+async function getPixelScripts(): Promise<string> {
+  try {
+    const row = await (prisma as any).siteConfig.findUnique({ where: { key: "pixel_scripts" } });
+    return row?.value ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pixelScripts = await getPixelScripts();
+
   return (
     <html lang="pt-BR" className="light">
       <head>
@@ -63,6 +75,9 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
         />
         <meta name="theme-color" content="#0c0f0f" />
+        {pixelScripts && (
+          <div dangerouslySetInnerHTML={{ __html: pixelScripts }} />
+        )}
       </head>
       <body className={`${inter.variable} font-body bg-surface text-on-surface overflow-x-hidden`}>
         <a

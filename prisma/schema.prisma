@@ -264,3 +264,11 @@ model Payment {
   @@index([mpPaymentId])
   @@map("payments")
 }
+
+model SiteConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("site_config")
+}
