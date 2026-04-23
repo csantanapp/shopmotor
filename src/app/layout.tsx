@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import BottomNav from "@/components/layout/BottomNav";
-import { AuthProvider } from "@/context/AuthContext";
 import { prisma } from "@/lib/prisma";
-import TopBar from "@/components/ads/TopBar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -87,13 +82,7 @@ export default async function RootLayout({
         >
           Pular para o conteúdo
         </a>
-        <AuthProvider>
-          <TopBar />
-          <Navbar />
-          <main id="main-content" className="pb-16 md:pb-0">{children}</main>
-          <Footer />
-          <BottomNav />
-        </AuthProvider>
+        {children}
       </body>
     </html>
   );
