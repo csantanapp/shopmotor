@@ -273,13 +273,11 @@ export default function AdminAnuncios() {
                 </div>
               )}
 
-              {/* Image upload (not for topbar) */}
-              {form.slot !== "home_topbar" && (
-                <ImageUpload
-                  value={form.imageUrl ?? ""}
-                  onChange={url => setForm((f: any) => ({ ...f, imageUrl: url }))}
-                />
-              )}
+              {/* Image upload */}
+              <ImageUpload
+                value={form.imageUrl ?? ""}
+                onChange={url => setForm((f: any) => ({ ...f, imageUrl: url }))}
+              />
 
               {/* Link */}
               <div className="grid grid-cols-2 gap-3">

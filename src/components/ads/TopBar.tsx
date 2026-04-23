@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Icon from "@/components/ui/Icon";
 
 interface Ad {
   id: string; active: boolean;
   title?: string; linkUrl?: string; linkLabel?: string;
-  bgColor?: string; textColor?: string;
+  bgColor?: string; textColor?: string; imageUrl?: string;
 }
 
 export default function TopBar() {
@@ -25,32 +24,37 @@ export default function TopBar() {
   const bg = ad.bgColor ?? "#e63946";
   const color = ad.textColor ?? "#ffffff";
 
-  const content = (
-    <span className="font-semibold text-xs md:text-sm">
-      {ad.title}
-      {ad.linkLabel && (
-        <span className="ml-3 underline underline-offset-2 font-black">{ad.linkLabel} →</span>
-      )}
-    </span>
-  );
+  const wrapper = (inner: React.ReactNode) =>
+    ad.linkUrl ? (
+      <Link href={ad.linkUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full h-full hover:opacity-90">
+        {inner}
+      </Link>
+    ) : <>{inner}</>;
 
   return (
     <div
-      className="w-full flex items-center justify-center gap-3 px-4 relative"
-      style={{ background: bg, color, height: 36, minHeight: 28, maxHeight: 36 }}
+      className="w-full relative overflow-hidden"
+      style={{ background: bg, color, height: 40, minHeight: 40, maxHeight: 40 }}
     >
-      {ad.linkUrl ? (
-        <Link href={ad.linkUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:opacity-90">
-          {content}
-        </Link>
-      ) : content}
+      {ad.imageUrl ? (
+        wrapper(<img src={ad.imageUrl} alt={ad.title ?? "Anúncio"} className="w-full h-full object-cover" />)
+      ) : (
+        <div className="w-full h-full flex items-center justify-center px-10">
+          {wrapper(
+            <span className="font-semibold text-xs md:text-sm">
+              {ad.title}
+              {ad.linkLabel && <span className="ml-3 underline underline-offset-2 font-black">{ad.linkLabel} →</span>}
+            </span>
+          )}
+        </div>
+      )}
 
       <button
         onClick={() => setDismissed(true)}
         className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100 transition-opacity"
         aria-label="Fechar"
       >
-        <Icon name="close" className="text-sm" style={{ color }} />
+        <span style={{ color, fontSize: 16, lineHeight: 1 }}>✕</span>
       </button>
     </div>
   );
