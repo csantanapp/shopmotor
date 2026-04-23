@@ -15,9 +15,32 @@ const inter = Inter({
   adjustFontFallback: true,
 });
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://www.shopmotor.com.br";
+
 export const metadata: Metadata = {
-  title: "ShopMotors — Compre e Venda Veículos",
-  description: "A plataforma definitiva para entusiastas e compradores de veículos de alta performance.",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "ShopMotor — Compre e Venda Veículos",
+    template: "%s | ShopMotor",
+  },
+  description: "A plataforma para comprar e vender veículos com segurança. Carros, motos, caminhões e mais.",
+  keywords: ["comprar carro", "vender carro", "marketplace automotivo", "carros usados", "shopmotor"],
+  authors: [{ name: "ShopMotor", url: BASE_URL }],
+  creator: "ShopMotor",
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: BASE_URL,
+    siteName: "ShopMotor",
+    title: "ShopMotor — Compre e Venda Veículos",
+    description: "A plataforma para comprar e vender veículos com segurança.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ShopMotor — Compre e Venda Veículos",
+    description: "A plataforma para comprar e vender veículos com segurança.",
+  },
 };
 
 export default function RootLayout({
