@@ -138,26 +138,6 @@ export default function PerfilPage() {
         </section>
       )}
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { icon: "add_circle",    label: "Cadastrar veículo", href: "/perfil/cadastrar",     color: "bg-primary-container/20 text-primary" },
-          { icon: "favorite",      label: "Favoritos",         href: "/perfil/favoritos",     color: "bg-red-50 text-red-500" },
-          { icon: "chat_bubble",   label: "Mensagens",         href: "/perfil/mensagens",     color: "bg-blue-50 text-blue-600" },
-          { icon: "manage_accounts", label: "Minha conta",    href: "/perfil/conta",         color: "bg-surface-container text-on-surface-variant" },
-        ].map(a => (
-          <Link
-            key={a.href}
-            href={a.href}
-            className="flex flex-col items-center gap-3 p-6 bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-center"
-          >
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${a.color}`}>
-              <Icon name={a.icon} className="text-xl" />
-            </div>
-            <span className="text-sm font-bold text-on-surface">{a.label}</span>
-          </Link>
-        ))}
-      </div>
 
       {/* Recent listings */}
       <section className="space-y-4">
