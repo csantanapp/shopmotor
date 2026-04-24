@@ -26,6 +26,7 @@ model User {
   lastSeenAt          DateTime?
   sharePhone          Boolean        @default(false)
   gender              String?
+  nickname            String?
   birthDate           DateTime?
   accountType         String         @default("PF")
   cnpj                String?        @unique

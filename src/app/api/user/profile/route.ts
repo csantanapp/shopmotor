@@ -25,6 +25,7 @@ export async function GET() {
       city:      u.city,
       state:     u.state,
       gender:      u.gender,
+      nickname:    u.nickname,
       birthDate:   u.birthDate,
       createdAt:   u.createdAt,
       accountType: u.accountType,
@@ -68,6 +69,7 @@ export async function PATCH(req: NextRequest) {
     if (body.birthDate    !== undefined) data.birthDate    = body.birthDate ? new Date(body.birthDate) : null;
     if (body.passwordHash !== undefined) data.passwordHash = body.passwordHash;
     if (body.tradeName    !== undefined) data.tradeName    = body.tradeName || null;
+    if (body.nickname     !== undefined) data.nickname     = body.nickname || null;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (prisma.user.update as any)({ where: { id: user.id }, data });

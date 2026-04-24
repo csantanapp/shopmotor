@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: {
       photos:   { orderBy: { order: "asc" } },
       features: true,
-      user:     { select: { id: true, name: true, avatarUrl: true, phone: true, plan: true, city: true, state: true, createdAt: true, lastSeenAt: true, accountType: true, storeSlug: true } },
+      user:     { select: { id: true, name: true, nickname: true, tradeName: true, avatarUrl: true, phone: true, plan: true, city: true, state: true, createdAt: true, lastSeenAt: true, accountType: true, storeSlug: true } },
     },
   });
 

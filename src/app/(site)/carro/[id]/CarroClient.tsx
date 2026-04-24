@@ -9,7 +9,8 @@ import { useAuth } from "@/context/AuthContext";
 interface VehiclePhoto { id: string; url: string; order: number; isCover: boolean; }
 interface VehicleFeature { id: string; name: string; }
 interface Seller {
-  id: string; name: string; avatarUrl: string | null; phone: string | null;
+  id: string; name: string; nickname: string | null; tradeName: string | null;
+  avatarUrl: string | null; phone: string | null;
   plan: string; city: string | null; state: string | null; createdAt: string;
   lastSeenAt: string | null; accountType?: string; storeSlug?: string | null;
   listingsCount: number; salesCount: number;
@@ -48,7 +49,6 @@ export default function CarroClient({ params }: { params: { id: string } }) {
   const [loadingFipe, setLoadingFipe] = useState(false);
 
   const [reviews, setReviews] = useState<{ id: string; rating: number }[]>([]);
-  const [reviewsAvg, setReviewsAvg] = useState<number | null>(null);
 
   // Carrega veículo (apenas uma vez por id)
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function CarroClient({ params }: { params: { id: string } }) {
     if (!vehicle) return;
     fetch(`/api/reviews?userId=${vehicle.user.id}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) { setReviews(d.reviews); setReviewsAvg(d.avg); } })
+      .then(d => { if (d) { setReviews(d.reviews); } })
       .catch(() => {});
   }, [vehicle]);
 
@@ -282,7 +282,7 @@ export default function CarroClient({ params }: { params: { id: string } }) {
           {vehicle.description && (
             <section className="bg-surface-container-low p-8 rounded-2xl">
               <h2 className="text-sm font-bold text-on-surface-variant mb-4 uppercase tracking-widest">Observações do vendedor</h2>
-              <p className="text-on-surface text-sm leading-relaxed whitespace-pre-line">{vehicle.description}</p>
+              <p className="text-on-surface text-sm leading-relaxed whitespace-pre-line break-words overflow-hidden">{vehicle.description}</p>
             </section>
           )}
 
@@ -444,7 +444,11 @@ export default function CarroClient({ params }: { params: { id: string } }) {
                 )}
               </div>
               <div className="min-w-0">
-                <p className="font-black text-sm text-on-surface uppercase leading-tight truncate">{vehicle.user.name}</p>
+                <p className="font-black text-sm text-on-surface uppercase leading-tight truncate">
+                  {vehicle.user.accountType === "PJ"
+                    ? (vehicle.user.tradeName ?? vehicle.user.name)
+                    : (vehicle.user.nickname ?? vehicle.user.name)}
+                </p>
                 {vehicle.user.plan === "PREMIUM" && (
                   <span className="text-[10px] font-black text-primary uppercase tracking-widest">Premium</span>
                 )}
@@ -490,36 +494,35 @@ export default function CarroClient({ params }: { params: { id: string } }) {
               </div>
             </div>
 
-            {/* Barras de avaliação estilo ML */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-black text-on-surface uppercase tracking-widest">Avaliações</span>
-                {reviewsAvg !== null && (
-                  <span className="text-xs font-bold text-on-surface-variant">{reviewsAvg.toFixed(1)} / 5 · {reviews.length} avaliações</span>
-                )}
-              </div>
+            {/* Barras de avaliação */}
+            <div className="space-y-2.5">
+              <span className="text-xs font-black text-on-surface uppercase tracking-widest">Avaliações</span>
               {[
-                { star: 5, label: "Excelente", color: "bg-green-600",       textColor: "text-green-700" },
-                { star: 4, label: "Seguro",    color: "bg-green-400",       textColor: "text-green-600" },
-                { star: 3, label: "Em evolução", color: "bg-yellow-400",    textColor: "text-yellow-600" },
-                { star: 2, label: "Inseguro",  color: "bg-orange-400",      textColor: "text-orange-600" },
-                { star: 1, label: "Crítico",   color: "bg-red-500",         textColor: "text-red-600" },
-              ].map(({ star, label, color, textColor }) => {
+                { star: 5, label: "Excelente",   color: "bg-green-500" },
+                { star: 4, label: "Bom",         color: "bg-green-400" },
+                { star: 3, label: "Regular",     color: "bg-yellow-400" },
+                { star: 2, label: "Ruim",        color: "bg-orange-400" },
+                { star: 1, label: "Péssimo",     color: "bg-red-500" },
+              ].map(({ star, label, color }) => {
                 const count = reviews.filter(r => r.rating === star).length;
                 const pct   = reviews.length > 0 ? Math.round((count / reviews.length) * 100) : 0;
                 return (
-                  <div key={star} className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-on-surface-variant w-4 text-right">{star}</span>
-                    <Icon name="star" fill className="text-yellow-400 text-xs flex-shrink-0" />
-                    <div className="flex-1 h-2 bg-surface-container rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
+                  <div key={star} className="space-y-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-on-surface-variant font-medium">{label}</span>
+                      <span className="text-[10px] text-on-surface-variant">{count}</span>
                     </div>
-                    <span className={`text-[10px] font-bold w-8 text-right ${pct > 0 ? textColor : "text-outline"}`}>{pct}%</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex-1 h-2 bg-surface-container rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      <Icon name="star" fill className="text-yellow-400 text-xs flex-shrink-0" />
+                    </div>
                   </div>
                 );
               })}
               {reviews.length === 0 && (
-                <p className="text-xs text-on-surface-variant text-center py-1">Sem avaliações ainda</p>
+                <p className="text-xs text-on-surface-variant text-center py-2">Sem avaliações ainda</p>
               )}
             </div>
 

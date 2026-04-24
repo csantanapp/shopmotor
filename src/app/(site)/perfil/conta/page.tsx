@@ -21,6 +21,7 @@ interface ProfileData {
   city: string | null;
   state: string | null;
   gender: string | null;
+  nickname: string | null;
   birthDate: string | null;
   createdAt: string;
   accountType: string;
@@ -224,7 +225,11 @@ export default function ContaPage() {
             )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Field label="Nome completo" name="name" defaultValue={profile.name ?? ""} />
+            <Field
+              label={profile.accountType === "PJ" ? "Nome completo do responsável" : "Nome completo"}
+              name="name"
+              defaultValue={profile.name ?? ""}
+            />
             <Field label="E-mail" name="email" type="email" defaultValue={profile.email} disabled />
             <Field label="Telefone / WhatsApp" name="phone" type="tel" defaultValue={profile.phone ?? ""} />
             {profile.accountType === "PJ" ? (
@@ -239,9 +244,18 @@ export default function ContaPage() {
               </>
             )}
 
-            {/* Sexo */}
+            {/* Como quer ser chamado — apenas PF */}
+            {profile.accountType !== "PJ" && (
+              <Field
+                label="Como você quer ser chamado(a)?"
+                name="nickname"
+                defaultValue={profile.nickname ?? ""}
+              />
+            )}
+
+            {/* Gênero */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Sexo</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Gênero</label>
               <select
                 name="gender"
                 defaultValue={profile.gender ?? ""}
