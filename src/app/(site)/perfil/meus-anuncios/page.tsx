@@ -38,10 +38,24 @@ const STATUS_COLOR: Record<Vehicle["status"], string> = {
   EXPIRED: "bg-error/10 text-error",
 };
 
+type Tab = "ativos" | "inativos" | "incompletos";
+
+const ACTIVE_STATUSES: Vehicle["status"][]   = ["ACTIVE"];
+const INACTIVE_STATUSES: Vehicle["status"][] = ["PAUSED", "SOLD", "EXPIRED"];
+const DRAFT_STATUSES: Vehicle["status"][]    = ["DRAFT"];
+
+function filterByTab(vehicles: Vehicle[], tab: Tab) {
+  if (tab === "ativos")      return vehicles.filter(v => ACTIVE_STATUSES.includes(v.status));
+  if (tab === "inativos")    return vehicles.filter(v => INACTIVE_STATUSES.includes(v.status));
+  if (tab === "incompletos") return vehicles.filter(v => DRAFT_STATUSES.includes(v.status));
+  return vehicles;
+}
+
 export default function MeusAnunciosPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>("ativos");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/vehicles/mine");
@@ -103,6 +117,17 @@ export default function MeusAnunciosPage() {
     setDeletingId(null);
   }
 
+  const ativos      = filterByTab(vehicles, "ativos");
+  const inativos    = filterByTab(vehicles, "inativos");
+  const incompletos = filterByTab(vehicles, "incompletos");
+  const listed      = filterByTab(vehicles, tab);
+
+  const tabs: { key: Tab; label: string; count: number; dot: string }[] = [
+    { key: "ativos",      label: "Ativos",      count: ativos.length,      dot: "bg-green-500" },
+    { key: "inativos",    label: "Inativos",    count: inativos.length,    dot: "bg-yellow-500" },
+    { key: "incompletos", label: "Incompletos", count: incompletos.length, dot: "bg-neutral-400" },
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -112,12 +137,13 @@ export default function MeusAnunciosPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-6">
 
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Meus Anúncios</h1>
-          <p className="text-on-surface-variant text-sm mt-1">{vehicles.length} anúncio{vehicles.length !== 1 ? "s" : ""}</p>
+          <p className="text-on-surface-variant text-sm mt-1">{vehicles.length} anúncio{vehicles.length !== 1 ? "s" : ""} no total</p>
         </div>
         <Link
           href="/perfil/cadastrar"
@@ -128,18 +154,52 @@ export default function MeusAnunciosPage() {
         </Link>
       </div>
 
-      {vehicles.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-outline/10">
+        {tabs.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all -mb-px ${
+              tab === t.key
+                ? "border-primary-container text-on-surface"
+                : "border-transparent text-on-surface-variant hover:text-on-surface"
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${t.dot}`} />
+            {t.label}
+            <span className={`text-[11px] font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${
+              tab === t.key ? "bg-primary-container text-on-primary-container" : "bg-surface-container text-on-surface-variant"
+            }`}>
+              {t.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* List */}
+      {listed.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
           <Icon name="directions_car" className="text-6xl text-outline mb-4" />
-          <h3 className="font-bold text-lg text-on-surface mb-2">Nenhum anúncio ainda</h3>
-          <p className="text-on-surface-variant text-sm mb-6">Cadastre seu primeiro veículo e comece a vender.</p>
-          <Link href="/perfil/cadastrar" className="bg-primary-container text-on-primary-container font-black px-8 py-3 rounded-full text-sm uppercase tracking-widest">
-            Cadastrar veículo
-          </Link>
+          <h3 className="font-bold text-lg text-on-surface mb-2">
+            {tab === "ativos"      && "Nenhum anúncio ativo"}
+            {tab === "inativos"    && "Nenhum anúncio inativo"}
+            {tab === "incompletos" && "Nenhum anúncio incompleto"}
+          </h3>
+          <p className="text-on-surface-variant text-sm mb-6">
+            {tab === "ativos"      && "Publique um anúncio para ele aparecer aqui."}
+            {tab === "inativos"    && "Anúncios pausados, vendidos ou expirados aparecem aqui."}
+            {tab === "incompletos" && "Rascunhos salvos aparecem aqui até serem publicados."}
+          </p>
+          {tab !== "inativos" && (
+            <Link href="/perfil/cadastrar" className="bg-primary-container text-on-primary-container font-black px-8 py-3 rounded-full text-sm uppercase tracking-widest">
+              Cadastrar veículo
+            </Link>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
-          {vehicles.map(v => {
+          {listed.map(v => {
             const price = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
             const km = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
             const coverUrl = v.photos[0]?.url ?? null;
@@ -201,7 +261,6 @@ export default function MeusAnunciosPage() {
                         <Link
                           href={`/perfil/impulsionar/${v.id}`}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all hover:-translate-y-0.5 ${v.boostLevel !== "NONE" ? "bg-primary-container text-on-primary-container" : "border border-primary-container text-primary hover:bg-primary-container hover:text-on-primary-container"}`}
-                          aria-label="Impulsionar anúncio"
                         >
                           <Icon name="rocket_launch" className="text-sm" />
                           {v.boostLevel !== "NONE" ? v.boostLevel : "Impulsionar"}
@@ -209,20 +268,12 @@ export default function MeusAnunciosPage() {
                       )}
 
                       {/* Ver */}
-                      <Link
-                        href={`/carro/${v.id}`}
-                        className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"
-                        aria-label="Ver anúncio"
-                      >
+                      <Link href={`/carro/${v.id}`} className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant" aria-label="Ver anúncio">
                         <Icon name="open_in_new" className="text-lg" />
                       </Link>
 
                       {/* Editar */}
-                      <Link
-                        href={`/perfil/editar/${v.id}`}
-                        className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"
-                        aria-label="Editar anúncio"
-                      >
+                      <Link href={`/perfil/editar/${v.id}`} className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant" aria-label="Editar anúncio">
                         <Icon name="edit" className="text-lg" />
                       </Link>
 
@@ -237,7 +288,7 @@ export default function MeusAnunciosPage() {
                         </button>
                       )}
 
-                      {/* Renovar anúncio expirado */}
+                      {/* Renovar */}
                       {v.status === "EXPIRED" && (
                         <button
                           onClick={() => renewVehicle(v.id)}
