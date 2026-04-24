@@ -14,7 +14,7 @@ interface StoreData {
 }
 interface Subscription { plan: StorePlan; status: string; endsAt: string; }
 interface AnalyticsData {
-  total: number; last30Total: number; uniqueSessions: number;
+  total: number; last30Total: number; uniqueSessions: number; waClicks: number; waClicks30d: number;
   days: { date: string; views: number }[];
   devices: { device: string; count: number; pct: number }[];
   sources: { source: string; count: number }[];
@@ -377,7 +377,7 @@ export default function LojaPage() {
                     { label: "Visitas (30d)",  value: analytics.last30Total.toLocaleString("pt-BR"), icon: "visibility" },
                     { label: "Sessões únicas", value: analytics.uniqueSessions.toLocaleString("pt-BR"), icon: "person" },
                     { label: "Total histórico", value: analytics.total.toLocaleString("pt-BR"), icon: "bar_chart" },
-                    { label: "Anúncios rastr.", value: String(analytics.topVehicles.length), icon: "directions_car" },
+                    { label: "Cliques WhatsApp (30d)", value: analytics.waClicks30d.toLocaleString("pt-BR"), icon: "chat" },
                   ].map(k => (
                     <div key={k.label} className="bg-surface-container-lowest rounded-2xl border border-neutral-100 shadow-sm p-4">
                       <Icon name={k.icon} className="text-primary text-xl mb-2" />

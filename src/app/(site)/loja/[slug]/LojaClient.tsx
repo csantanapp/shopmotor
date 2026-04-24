@@ -38,14 +38,39 @@ const SOCIAL_ICONS: { key: keyof Social; icon: string; label: string }[] = [
   { key: "tiktok",    icon: "M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z", label: "TikTok" },
 ];
 
+const brandOptions = [
+  "Todas","Aston Martin","Audi","Bentley","BMW","BYD","Cadillac","Caoa Changan","Caoa Chery",
+  "Chevrolet","Chrysler","Citroën","Denza","Dodge","Effa","Ferrari","Fiat","Ford","Foton",
+  "GAC","Geely","GMC","GWM","Honda","Hyundai","Iveco","JAC","Jaecoo","Jaguar","Jeep","Jetour",
+  "Kia","Lamborghini","Land Rover","Leapmotor","Lexus","McLaren","Mercedes-Benz","MG","Mini",
+  "Mitsubishi","Nissan","Omoda","Peugeot","Porsche","RAM","Renault","Riddara","Rolls-Royce",
+  "Shineray","Tesla","Toyota","Volkswagen","Volvo","Zeekr","Outros",
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const selectCls = "w-full bg-surface-container-low border-0 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-primary-container outline-none";
+const inputCls  = "w-full bg-surface-container-low border-0 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-primary-container outline-none placeholder:text-outline";
+
 export default function LojaClient({ params }: { params: { slug: string } }) {
   const { slug } = params;
-  const [store, setStore] = useState<Store | null>(null);
+  const [store, setStore]     = useState<Store | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("createdAt_desc");
+
+  // Filtros
+  const [search, setSearch]           = useState("");
+  const [brand, setBrand]             = useState("Todas");
+  const [condition, setCondition]     = useState("Todos");
+  const [vehicleType, setVehicleType] = useState("Todos");
+  const [priceMin, setPriceMin]       = useState("");
+  const [priceMax, setPriceMax]       = useState("");
+  const [kmMin, setKmMin]             = useState("");
+  const [kmMax, setKmMax]             = useState("");
+  const [yearMin, setYearMin]         = useState("");
+  const [yearMax, setYearMax]         = useState("");
+  const [sort, setSort]               = useState("createdAt_desc");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     fetch(`/api/loja/${slug}`).then(async r => {
@@ -77,166 +102,281 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
   const displayName = store.tradeName || store.companyName || store.name;
   const memberSince = new Date(store.createdAt).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   const badge = store.subPlan ? PLAN_BADGE[store.subPlan] : null;
+  const socialLinks = store.social ? SOCIAL_ICONS.filter(s => store.social![s.key]) : [];
 
-  const filtered = vehicles
-    .filter(v => !search || `${v.brand} ${v.model} ${v.version ?? ""}`.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => {
-      if (sort === "price_asc")  return a.price - b.price;
-      if (sort === "price_desc") return b.price - a.price;
-      if (sort === "km_asc")     return a.km - b.km;
-      return 0;
-    });
+  const resetFilters = () => {
+    setBrand("Todas"); setCondition("Todos"); setVehicleType("Todos");
+    setPriceMin(""); setPriceMax(""); setKmMin(""); setKmMax(""); setYearMin(""); setYearMax(""); setSearch("");
+  };
 
-  const socialLinks = store.social
-    ? SOCIAL_ICONS.filter(s => store.social![s.key])
-    : [];
+  const activeFiltersCount = [
+    brand !== "Todas", condition !== "Todos", vehicleType !== "Todos",
+    !!priceMin, !!priceMax, !!kmMin, !!kmMax, !!yearMin, !!yearMax,
+  ].filter(Boolean).length;
+
+  const filtered = vehicles.filter(v => {
+    if (search && !`${v.brand} ${v.model} ${v.version ?? ""}`.toLowerCase().includes(search.toLowerCase())) return false;
+    if (brand !== "Todas" && v.brand !== brand) return false;
+    if (condition === "Novo"  && v.condition !== "NEW")  return false;
+    if (condition === "Usado" && v.condition !== "USED") return false;
+    if (priceMin && v.price < Number(priceMin.replace(/\D/g, ""))) return false;
+    if (priceMax && v.price > Number(priceMax.replace(/\D/g, ""))) return false;
+    if (kmMin && v.km < Number(kmMin.replace(/\D/g, ""))) return false;
+    if (kmMax && v.km > Number(kmMax.replace(/\D/g, ""))) return false;
+    if (yearMin && v.yearModel < Number(yearMin)) return false;
+    if (yearMax && v.yearModel > Number(yearMax)) return false;
+    return true;
+  }).sort((a, b) => {
+    if (sort === "price_asc")  return a.price - b.price;
+    if (sort === "price_desc") return b.price - a.price;
+    if (sort === "km_asc")     return a.km - b.km;
+    return 0;
+  });
+
+  const FilterPanel = () => (
+    <div className="space-y-5">
+      <div className="relative">
+        <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg" />
+        <input
+          value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Marca, modelo..."
+          className="w-full pl-10 pr-4 py-3 bg-surface-container-lowest border-0 rounded-xl text-sm shadow-sm focus:ring-2 focus:ring-primary-container outline-none"
+        />
+      </div>
+
+      <div className="bg-surface-container-lowest rounded-2xl shadow-sm p-5 space-y-5">
+        <div className="flex items-center justify-between">
+          <h3 className="font-black text-sm uppercase tracking-wider text-on-surface">Filtros</h3>
+          {activeFiltersCount > 0 && (
+            <button onClick={resetFilters} className="text-xs text-primary font-bold hover:underline flex items-center gap-1">
+              <Icon name="close" className="text-sm" />Limpar ({activeFiltersCount})
+            </button>
+          )}
+        </div>
+
+        <FilterSection label="Tipo de veículo">
+          <div className="flex gap-2">
+            {[{ value: "CAR", label: "Carros", icon: "directions_car" }, { value: "MOTO", label: "Motos", icon: "two_wheeler" }].map(opt => (
+              <button key={opt.value}
+                onClick={() => setVehicleType(v => v === opt.value ? "Todos" : opt.value)}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${vehicleType === opt.value ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container"}`}>
+                <Icon name={opt.icon} className="text-base" />{opt.label}
+              </button>
+            ))}
+          </div>
+        </FilterSection>
+
+        <FilterSection label="Condição">
+          <div className="flex gap-2">
+            {["Todos","Novo","Usado"].map(c => (
+              <ChipBtn key={c} label={c} active={condition === c} onClick={() => setCondition(c)} />
+            ))}
+          </div>
+        </FilterSection>
+
+        <FilterSection label="Marca">
+          <select value={brand} onChange={e => setBrand(e.target.value)} className={selectCls}>
+            {brandOptions.map(b => <option key={b}>{b}</option>)}
+          </select>
+        </FilterSection>
+
+        <FilterSection label="Ano (modelo)">
+          <div className="grid grid-cols-2 gap-2">
+            <input type="number" value={yearMin} onChange={e => setYearMin(e.target.value)} placeholder="De" min={1960} max={CURRENT_YEAR + 1} className={inputCls} />
+            <input type="number" value={yearMax} onChange={e => setYearMax(e.target.value)} placeholder="Até" min={1960} max={CURRENT_YEAR + 1} className={inputCls} />
+          </div>
+        </FilterSection>
+
+        <FilterSection label="Preço (R$)">
+          <div className="grid grid-cols-2 gap-2">
+            <input value={priceMin} onChange={e => setPriceMin(e.target.value)} placeholder="Mínimo" className={inputCls} />
+            <input value={priceMax} onChange={e => setPriceMax(e.target.value)} placeholder="Máximo" className={inputCls} />
+          </div>
+        </FilterSection>
+
+        <FilterSection label="Quilometragem">
+          <div className="grid grid-cols-2 gap-2">
+            <input value={kmMin} onChange={e => setKmMin(e.target.value)} placeholder="KM mín." className={inputCls} />
+            <input value={kmMax} onChange={e => setKmMax(e.target.value)} placeholder="KM máx." className={inputCls} />
+          </div>
+        </FilterSection>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-surface">
 
-      {/* ── VITRINE AUTOMÁTICA ─────────────────────────────────────────────── */}
+      {/* ── BANNER ── */}
       <div className="relative bg-zinc-900 overflow-hidden">
-        {/* Fundo padrão desfocado estilo home */}
         <div className="absolute inset-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDehxNs9I9ak52LfvX_Zc3BVGNcPeZ1FnK3XDjiLtGXZpa8_S7fs9ePvOMwHIMiWFG1MPgWz_J1MhDiXcMV3kWnIN33Y1Ax_jyj6riWUhcLHJFWN2upxKz16lyPpVDyryAsfcodfBkdqXYPgR-GSTeLhBIGITS1-SjCZKAyMu_7hWkDEJFVxesHEpPQXR7YwOEozTX6cZxyBvPl78nytBKtX_iQcHHyN5V6epMv-4viGLiRp8Bj5gkmWv064nm8rRhpNpvZNuqVXsI"
-            alt=""
-            className="w-full h-full object-cover opacity-20 blur-[2px] scale-105"
+            alt="" className="w-full h-full object-cover opacity-20 blur-[2px] scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/70 via-zinc-900/80 to-zinc-900" />
+          <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/60 via-zinc-900/75 to-zinc-900" />
         </div>
 
-        <div className="relative max-w-screen-xl mx-auto px-6 md:px-10 py-10 md:py-14">
-          <div className="flex flex-col items-start gap-8 md:gap-12">
+        <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
+          <div className="flex flex-col md:flex-row md:items-center gap-8">
 
-            {/* ── INFO DA LOJA ── */}
-            <div className="w-full max-w-2xl flex flex-col justify-center">
-              {/* Logo */}
-              <div className="mb-5 flex items-center gap-4">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-white/10 bg-white/10 overflow-hidden flex items-center justify-center shadow-2xl flex-shrink-0">
-                  {store.avatarUrl ? (
-                    <img src={store.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-2xl md:text-3xl font-black text-white">{displayName.charAt(0).toUpperCase()}</span>
+            {/* ESQUERDA — logo + info */}
+            <div className="flex items-center gap-5 flex-1">
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-2 border-white/10 bg-white/10 overflow-hidden flex items-center justify-center shadow-2xl flex-shrink-0">
+                {store.avatarUrl ? (
+                  <img src={store.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-3xl font-black text-white">{displayName.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  {store.isVerified && (
+                    <span className="inline-flex items-center gap-1 bg-yellow-500/20 text-yellow-400 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide">
+                      <Icon name="verified" className="text-xs" /> Verificada
+                    </span>
+                  )}
+                  {badge && (
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide ${badge.cls}`}>
+                      {badge.label}
+                    </span>
                   )}
                 </div>
-                <div>
-                  {/* Badges */}
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    {store.isVerified && (
-                      <span className="inline-flex items-center gap-1 bg-yellow-500/20 text-yellow-400 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide">
-                        <Icon name="verified" className="text-xs" /> Verificada
-                      </span>
-                    )}
-                    {badge && (
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide ${badge.cls}`}>
-                        {badge.label}
-                      </span>
-                    )}
+                <h1 className="text-2xl md:text-3xl font-black text-white leading-tight">{displayName}</h1>
+                {store.city && store.state && (
+                  <div className="flex items-center gap-1 text-zinc-400 text-sm mt-1.5">
+                    <Icon name="location_on" className="text-sm text-zinc-500" />
+                    {store.city}, {store.state}
                   </div>
-                  <h1 className="text-2xl md:text-3xl font-black text-white leading-tight">{displayName}</h1>
-                </div>
+                )}
+                {store.storeDescription && (
+                  <p className="text-zinc-400 text-sm mt-2 line-clamp-2 max-w-xs">{store.storeDescription}</p>
+                )}
               </div>
+            </div>
 
-              {/* Cidade/UF */}
-              {store.city && store.state && (
-                <div className="flex items-center gap-1.5 text-zinc-400 text-sm mb-3">
-                  <Icon name="location_on" className="text-base text-zinc-500" />
-                  {store.city}, {store.state}
-                </div>
-              )}
-
-              {/* Descrição / slogan */}
-              {store.storeDescription && (
-                <p className="text-zinc-300 text-sm leading-relaxed mb-5 max-w-md line-clamp-3">
-                  {store.storeDescription}
-                </p>
-              )}
-
-              {/* Stats */}
-              <div className="flex items-center gap-5 mb-6">
+            {/* DIREITA — stats + CTAs */}
+            <div className="flex flex-col items-start md:items-end gap-4">
+              <div className="flex items-center gap-6">
                 <div className="text-center">
-                  <p className="text-2xl font-black text-white">{store._count.vehicles}</p>
+                  <p className="text-3xl font-black text-white">{store._count.vehicles}</p>
                   <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Veículos</p>
                 </div>
-                <div className="w-px h-8 bg-white/10" />
+                <div className="w-px h-10 bg-white/10" />
                 <div className="text-center">
                   <p className="text-sm font-bold text-zinc-300">{memberSince}</p>
                   <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Na ShopMotor</p>
                 </div>
               </div>
 
-              {/* CTAs */}
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 justify-start md:justify-end">
                 {store.whatsapp && (
-                  <a href={`https://wa.me/55${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"
-                    className="inline-flex items-center gap-2 bg-green-600 text-white font-black px-5 py-2.5 rounded-full text-sm hover:bg-green-500 transition-colors">
-                    <Icon name="chat" className="text-base" /> WhatsApp
+                  <a
+                    href={`https://wa.me/55${store.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Vim pelo site Shopmotor e gostaria de informações sobre a loja e os carros.")}`}
+                    target="_blank" rel="noreferrer"
+                    onClick={() => fetch(`/api/loja/${slug}/wa-click`, { method: "POST", headers: { "x-session-id": sessionStorage.getItem("sm_sid") ?? "" } }).catch(() => null)}
+                    className="inline-flex items-center gap-2 bg-green-600 text-white font-black px-6 py-3 rounded-full text-sm hover:bg-green-500 transition-colors shadow-lg">
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    WhatsApp
                   </a>
                 )}
                 {store.phone && !store.whatsapp && (
                   <a href={`tel:${store.phone.replace(/\D/g, "")}`}
-                    className="inline-flex items-center gap-2 bg-white/10 text-white font-bold px-5 py-2.5 rounded-full text-sm hover:bg-white/20 transition-colors">
+                    className="inline-flex items-center gap-2 bg-white/10 text-white font-bold px-5 py-3 rounded-full text-sm hover:bg-white/20 transition-colors">
                     <Icon name="call" className="text-base" /> {store.phone}
                   </a>
                 )}
-                {/* Redes sociais */}
-                {socialLinks.map(s => store.social![s.key] && (
-                  <a key={s.key} href={store.social![s.key]!} target="_blank" rel="noreferrer"
-                    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                    title={s.label}>
-                    <svg className="w-4 h-4 fill-current text-white" viewBox="0 0 24 24">
-                      <path d={s.icon} />
-                    </svg>
-                  </a>
-                ))}
               </div>
+
+              {socialLinks.length > 0 && (
+                <div className="flex items-center gap-2">
+                  {socialLinks.map(s => store.social![s.key] && (
+                    <a key={s.key} href={store.social![s.key]!} target="_blank" rel="noreferrer"
+                      className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors" title={s.label}>
+                      <svg className="w-4 h-4 fill-current text-white" viewBox="0 0 24 24"><path d={s.icon} /></svg>
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>
         </div>
       </div>
 
-      {/* ── ESTOQUE ──────────────────────────────────────────────────────── */}
-      <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-10">
-
-        {/* Filtros */}
-        <div className="flex items-center gap-3 flex-wrap mb-6">
-          <h2 className="text-xl font-black text-zinc-900 flex-1">
-            Estoque <span className="text-zinc-400 font-normal text-base">({filtered.length})</span>
-          </h2>
-          <div className="relative">
-            <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-lg" />
-            <input type="search" value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar modelo..."
-              className="bg-white border border-zinc-200 rounded-full pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-yellow-400/30 focus:border-yellow-400 outline-none w-44" />
+      {/* ── ESTOQUE + SIDEBAR ── */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+          <div>
+            <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Estoque</h2>
+            <p className="text-on-surface-variant text-sm mt-0.5">{filtered.length} {filtered.length === 1 ? "veículo encontrado" : "veículos encontrados"}</p>
           </div>
-          <select value={sort} onChange={e => setSort(e.target.value)}
-            className="bg-white border border-zinc-200 rounded-full px-4 py-2.5 text-sm outline-none focus:border-yellow-400">
-            <option value="createdAt_desc">Mais recentes</option>
-            <option value="price_asc">Menor preço</option>
-            <option value="price_desc">Maior preço</option>
-            <option value="km_asc">Menor km</option>
-          </select>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setFiltersOpen(!filtersOpen)}
+              className="lg:hidden flex items-center gap-2 px-4 py-2 bg-surface-container-lowest rounded-xl text-sm font-bold shadow-sm">
+              <Icon name="tune" className="text-lg" />Filtros
+              {activeFiltersCount > 0 && (
+                <span className="w-5 h-5 bg-primary-container rounded-full text-[10px] font-black text-on-primary-container flex items-center justify-center">{activeFiltersCount}</span>
+              )}
+            </button>
+            <select value={sort} onChange={e => setSort(e.target.value)}
+              className="bg-surface-container-lowest border-0 rounded-xl px-4 py-2.5 text-sm font-medium shadow-sm focus:ring-2 focus:ring-primary-container outline-none">
+              <option value="createdAt_desc">Mais recentes</option>
+              <option value="price_asc">Menor preço</option>
+              <option value="price_desc">Maior preço</option>
+              <option value="km_asc">Menor KM</option>
+            </select>
+          </div>
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <Icon name="search_off" className="text-5xl text-zinc-300 mb-3" />
-            <p className="font-bold text-zinc-500">Nenhum veículo encontrado</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filtered.map(v => <VehicleCard key={v.id} v={v} />)}
-          </div>
-        )}
+        <div className="flex gap-8 items-start">
 
-        {/* Avaliações — futuras */}
-        <div className="mt-14 bg-white rounded-2xl border border-zinc-100 p-8 text-center">
-          <Icon name="star_rate" className="text-3xl text-zinc-300 mb-3" />
-          <p className="font-black text-zinc-500 text-sm">Avaliações em breve</p>
-          <p className="text-xs text-zinc-400 mt-1">Os clientes poderão avaliar esta loja em uma próxima atualização.</p>
+          {/* Sidebar desktop */}
+          <aside className="hidden lg:block w-72 flex-shrink-0">
+            <FilterPanel />
+          </aside>
+
+          {/* Mobile drawer */}
+          {filtersOpen && (
+            <div className="lg:hidden fixed inset-0 z-50 flex">
+              <div className="absolute inset-0 bg-black/40" onClick={() => setFiltersOpen(false)} />
+              <div className="relative ml-auto w-80 h-full bg-surface overflow-y-auto p-5 shadow-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-black text-lg uppercase tracking-tight">Filtros</h2>
+                  <button onClick={() => setFiltersOpen(false)}><Icon name="close" className="text-xl" /></button>
+                </div>
+                <FilterPanel />
+              </div>
+            </div>
+          )}
+
+          {/* Grid */}
+          <div className="flex-1 min-w-0">
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <Icon name="search_off" className="text-6xl text-outline mb-4" />
+                <h3 className="font-bold text-lg text-on-surface mb-2">Nenhum veículo encontrado</h3>
+                <p className="text-on-surface-variant text-sm mb-6">Tente ajustar os filtros para ver mais resultados.</p>
+                {activeFiltersCount > 0 && (
+                  <button onClick={resetFilters} className="bg-primary-container text-on-primary-container font-black px-8 py-3 rounded-full text-sm uppercase tracking-widest">
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {filtered.map(v => <VehicleCard key={v.id} v={v} />)}
+              </div>
+            )}
+
+            <div className="mt-14 bg-surface-container-lowest rounded-2xl shadow-sm p-8 text-center">
+              <Icon name="star_rate" className="text-3xl text-outline mb-3" />
+              <p className="font-black text-on-surface-variant text-sm">Avaliações em breve</p>
+              <p className="text-xs text-on-surface-variant mt-1">Os clientes poderão avaliar esta loja em uma próxima atualização.</p>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -244,31 +384,49 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
   );
 }
 
+function FilterSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+function ChipBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick}
+      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${active ? "bg-primary-container text-on-primary-container" : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"}`}>
+      {label}
+    </button>
+  );
+}
+
 function VehicleCard({ v }: { v: Vehicle }) {
-  const price = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
-  const km    = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
-  const cover = v.photos[0]?.url ?? null;
+  const price  = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+  const km     = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
+  const cover  = v.photos[0]?.url ?? null;
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm flex flex-col border border-zinc-100 hover:shadow-md hover:-translate-y-0.5 transition-all">
-      <Link href={`/carro/${v.id}`} className="group">
-        <div className="h-44 overflow-hidden relative bg-zinc-100">
+    <div className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-md hover:-translate-y-0.5 transition-all">
+      <Link href={`/carro/${v.id}`} className="flex-1">
+        <div className="h-44 overflow-hidden relative bg-surface-container">
           {cover ? (
             <img src={cover} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Icon name="directions_car" className="text-5xl text-zinc-300" />
+              <Icon name="directions_car" className="text-5xl text-outline" />
             </div>
           )}
           {v.condition === "NEW" && (
-            <div className="absolute top-3 left-3 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded">0 km</div>
+            <div className="absolute top-3 left-3 bg-primary-container text-on-primary-container text-[10px] font-black px-2 py-1 uppercase rounded">0 km</div>
           )}
         </div>
-        <div className="p-5 flex flex-col flex-1">
-          <p className="text-xs font-black uppercase tracking-widest text-yellow-600 mb-0.5">{v.brand}</p>
-          <h3 className="font-bold text-base text-zinc-900 leading-tight">{v.model}{v.version ? ` ${v.version}` : ""}</h3>
-          <p className="text-xs text-zinc-500 mt-1 mb-3">{v.yearFab}/{v.yearModel} · {km}</p>
-          <p className="text-xl font-black text-zinc-900 mt-auto">{price}</p>
+        <div className="p-5">
+          <p className="text-xs font-black uppercase tracking-widest text-primary mb-0.5">{v.brand}</p>
+          <h3 className="font-bold text-base text-on-surface leading-tight">{v.model}{v.version ? ` ${v.version}` : ""}</h3>
+          <p className="text-xs text-on-surface-variant mt-1 mb-3">{v.yearFab}/{v.yearModel} · {km}</p>
+          <p className="text-xl font-black text-on-surface">{price}</p>
           <div className="flex flex-wrap gap-1.5 mt-1.5">
             {v.previousPrice && v.previousPrice > v.price && (
               <span className="text-[10px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -283,7 +441,11 @@ function VehicleCard({ v }: { v: Vehicle }) {
           </div>
         </div>
       </Link>
-
+      <div className="px-5 pb-5">
+        <Link href={`/carro/${v.id}`} className="w-full block text-center bg-surface-container hover:bg-primary-container hover:text-on-primary-container text-on-surface font-bold py-2.5 rounded-full text-sm transition-colors">
+          Ver anúncio
+        </Link>
+      </div>
     </div>
   );
 }

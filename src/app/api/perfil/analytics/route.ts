@@ -33,15 +33,16 @@ export async function GET() {
   // Paths relevantes: página da loja + páginas dos veículos
   const storePath = storeSlug ? `/loja/${storeSlug}` : null;
   const vehiclePaths = vehicleIds.map((id: string) => `/carro/${id}`);
+  const waPath = storePath ? `${storePath}/whatsapp` : null;
   const relevantPaths = [...(storePath ? [storePath] : []), ...vehiclePaths];
 
   if (relevantPaths.length === 0) {
-    return NextResponse.json({ total: 0, last30Total: 0, days: [], devices: [], sources: [], topVehicles: [] });
+    return NextResponse.json({ total: 0, last30Total: 0, days: [], devices: [], sources: [], topVehicles: [], waClicks: 0, waClicks30d: 0 });
   }
 
   const pathFilter = { path: { in: relevantPaths } };
 
-  const [total, last30Views, deviceRows, sourceRows] = await Promise.all([
+  const [total, last30Views, deviceRows, sourceRows, waTotal, waLast30] = await Promise.all([
     db.pageView.count({ where: pathFilter }),
     db.pageView.findMany({
       where: { createdAt: { gte: d30 }, ...pathFilter },
@@ -58,6 +59,8 @@ export async function GET() {
       orderBy: { _count: { id: "desc" } },
       take: 8,
     }),
+    waPath ? db.pageView.count({ where: { path: waPath } }) : Promise.resolve(0),
+    waPath ? db.pageView.count({ where: { path: waPath, createdAt: { gte: d30 } } }) : Promise.resolve(0),
   ]);
 
   // Daily chart
@@ -120,6 +123,8 @@ export async function GET() {
     devices,
     sources,
     topVehicles,
+    waClicks: waTotal,
+    waClicks30d: waLast30,
     plan: activeSub.plan,
   });
 }
