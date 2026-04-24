@@ -45,7 +45,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       },
     });
   } catch {
-    return NextResponse.json({ vehicle, priceComparison: null });
+    return NextResponse.json({ vehicle: { ...vehicle, user: { ...vehicle.user, subPlan: null } }, priceComparison: null });
   }
 }
 
