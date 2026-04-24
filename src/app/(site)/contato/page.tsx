@@ -12,12 +12,29 @@ export default function ContatoPage() {
     setForm(p => ({ ...p, [k]: v }));
   }
 
+  const [error, setError] = useState("");
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setLoading(false);
-    setSent(true);
+    setError("");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setError(d.error ?? "Erro ao enviar mensagem.");
+      } else {
+        setSent(true);
+      }
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -100,6 +117,9 @@ export default function ContatoPage() {
                   className="bg-surface-container-low border-0 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-container outline-none resize-none"
                 />
               </div>
+              {error && (
+                <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{error}</p>
+              )}
               <button
                 type="submit"
                 disabled={loading}

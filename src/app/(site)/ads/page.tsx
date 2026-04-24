@@ -1,12 +1,19 @@
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 
-const stats = [
-  { value: "48.200+", label: "Anúncios ativos", icon: "directions_car" },
-  { value: "12.000+", label: "Vendedores cadastrados", icon: "people" },
-  { value: "6x",      label: "Sessões por usuário/mês", icon: "repeat" },
-  { value: "20 min",  label: "Tempo médio na plataforma", icon: "schedule" },
-];
+async function getPlatformStats() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/public-stats`, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    return res.json() as Promise<{ totalVehicles: number; totalUsers: number; totalStores: number }>;
+  } catch { return null; }
+}
+
+function fmt(n: number) {
+  if (n >= 1000) return `${(n / 1000).toFixed(0)}k+`;
+  return `${n}+`;
+}
 
 const whyShopMotor = [
   {
@@ -31,70 +38,6 @@ const whyShopMotor = [
   },
 ];
 
-const formats = [
-  {
-    badge: "PUSH",
-    badgeClass: "bg-surface-container text-on-surface",
-    borderClass: "border-outline/20",
-    icon: "trending_up",
-    title: "Plano Push",
-    tagline: "Comece a aparecer mais",
-    price: "R$ 15,90",
-    days: "5 dias",
-    desc: "Ideal para quem quer dar um primeiro impulso no anúncio sem grande investimento. Seu carro sobe para o topo da busca e ganha o selo Destaque.",
-    features: [
-      "Topo da busca por 5 dias",
-      "Selo Destaque no card",
-      "3 dias na galeria da Home",
-      "Borda amarela nos resultados",
-      "Maior visibilidade imediata",
-    ],
-    cta: "Começar com Push",
-    ctaHref: "/perfil/meus-anuncios",
-  },
-  {
-    badge: "DESTAQUE",
-    badgeClass: "bg-primary-container text-on-primary-container",
-    borderClass: "border-primary-container",
-    icon: "rocket_launch",
-    title: "Plano Destaque",
-    tagline: "O mais popular",
-    price: "R$ 25,90",
-    days: "7 dias",
-    highlight: true,
-    desc: "A escolha preferida dos vendedores. Mais dias no topo, mais exposição e um custo-benefício imbatível para fechar negócio rápido.",
-    features: [
-      "Topo da busca por 7 dias",
-      "Selo Destaque por 7 dias",
-      "3 dias na galeria da Home",
-      "Borda amarela nos resultados",
-      "Prioridade sobre anúncios comuns",
-    ],
-    cta: "Impulsionar com Destaque",
-    ctaHref: "/perfil/meus-anuncios",
-  },
-  {
-    badge: "ELITE",
-    badgeClass: "bg-inverse-surface text-inverse-on-surface",
-    borderClass: "border-inverse-surface",
-    icon: "stars",
-    title: "Plano Elite",
-    tagline: "Máxima visibilidade",
-    price: "R$ 45,90",
-    days: "7 dias",
-    desc: "Para quem não pode esperar. Máxima exposição em todos os pontos da plataforma: topo da busca, galeria da home e seção Elite exclusiva.",
-    features: [
-      "Topo da busca por 7 dias",
-      "Selo Elite com estrela por 7 dias",
-      "7 dias na galeria Elite da Home",
-      "Anúncio patrocinado por 7 dias",
-      "Prioridade sobre anúncios Destaque",
-      "Seção exclusiva Elite na Home",
-    ],
-    cta: "Garantir plano Elite",
-    ctaHref: "/perfil/meus-anuncios",
-  },
-];
 
 const faqs = [
   {
@@ -115,7 +58,16 @@ const faqs = [
   },
 ];
 
-export default function AdsPage() {
+export default async function AdsPage() {
+  const platformStats = await getPlatformStats();
+
+  const stats = [
+    { value: platformStats ? fmt(platformStats.totalVehicles) : "—", label: "Anúncios ativos", icon: "directions_car" },
+    { value: platformStats ? fmt(platformStats.totalUsers) : "—", label: "Vendedores cadastrados", icon: "people" },
+    { value: "6x", label: "Sessões por usuário/mês", icon: "repeat" },
+    { value: "20 min", label: "Tempo médio na plataforma", icon: "schedule" },
+  ];
+
   return (
     <div className="min-h-screen">
 

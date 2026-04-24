@@ -6,7 +6,24 @@ export const metadata: Metadata = {
   description: "Conheça a ShopMotor, a plataforma definitiva para compra e venda de veículos no Brasil.",
 };
 
-export default function SobrePage() {
+async function getStats() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/api/public-stats`, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    return res.json() as Promise<{ totalVehicles: number; totalUsers: number; totalStores: number }>;
+  } catch {
+    return null;
+  }
+}
+
+function fmt(n: number) {
+  if (n >= 1000) return `${(n / 1000).toFixed(0)}k+`;
+  return `${n}+`;
+}
+
+export default async function SobrePage() {
+  const stats = await getStats();
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-16">
 
@@ -53,9 +70,9 @@ export default function SobrePage() {
       {/* Números */}
       <div className="bg-inverse-surface rounded-3xl p-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
         {[
-          { value: "10k+", label: "Veículos anunciados" },
-          { value: "8k+", label: "Usuários cadastrados" },
-          { value: "500+", label: "Lojas parceiras" },
+          { value: stats ? fmt(stats.totalVehicles) : "—", label: "Veículos anunciados" },
+          { value: stats ? fmt(stats.totalUsers) : "—", label: "Usuários cadastrados" },
+          { value: stats ? fmt(stats.totalStores) : "—", label: "Lojas parceiras" },
           { value: "26", label: "Estados atendidos" },
         ].map(item => (
           <div key={item.label}>
