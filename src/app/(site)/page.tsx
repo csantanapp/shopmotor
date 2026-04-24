@@ -1,10 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import VehicleCard from "@/components/ui/VehicleCard";
 import Icon from "@/components/ui/Icon";
 import HeroSearch from "@/components/ui/HeroSearch";
 import AdBanner from "@/components/ads/AdBanner";
-import { vehicles } from "@/lib/data";
 import { prisma } from "@/lib/prisma";
 
 export const revalidate = 60; // revalida a cada 60 segundos
@@ -228,24 +226,6 @@ export default async function Home() {
         <AdBanner slot="home_banner" maxHeight={150} />
       </div>
 
-      {/* ── OPORTUNIDADES ── */}
-      <section className="max-w-screen-2xl mx-auto px-6 pb-16">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Selecionados para você</p>
-            <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Destaques</h2>
-            <div className="h-1 w-16 bg-primary-container mt-2" />
-          </div>
-          <Link href="/busca" className="text-primary font-bold flex items-center gap-1 hover:underline text-sm">
-            Ver todos <Icon name="arrow_forward" className="text-base" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {vehicles.map((v) => (
-            <VehicleCard key={v.id} vehicle={v} />
-          ))}
-        </div>
-      </section>
 
       {/* ── ANÚNCIOS DESTAQUE ── */}
       {destaques.length > 0 && (
