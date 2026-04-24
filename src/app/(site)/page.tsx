@@ -225,7 +225,7 @@ export default async function Home() {
 
       {/* ── BANNER PARCEIRO HOME ── */}
       <div className="max-w-screen-2xl mx-auto px-6 pb-6">
-        <AdBanner slot="home_banner" maxHeight={350} />
+        <AdBanner slot="home_banner" maxHeight={250} />
       </div>
 
       {/* ── OPORTUNIDADES ── */}
