@@ -333,6 +333,29 @@ model PartnerAd {
   @@map("partner_ads")
 }
 
+model FinanciamentoLead {
+  id          String   @id @default(cuid())
+  nome        String
+  cpf         String
+  nascimento  String
+  email       String
+  cidade      String
+  whatsapp    String
+  prazo       String
+  valorCarro  Float
+  entrada     Float
+  financiado  Float
+  parcelas    Int
+  pmt         Float
+  status      String   @default("novo") // "novo" | "contatado" | "convertido" | "descartado"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("financiamento_leads")
+}
+
 model PageView {
   id        String   @id @default(cuid())
   path      String
