@@ -206,7 +206,7 @@ export default function ContaPage() {
             </button>
           </div>
           <div>
-            <h3 className="font-black text-xl text-on-surface">{profile.name}</h3>
+            <h3 className="font-black text-xl text-on-surface">{profile.accountType === "PJ" ? (profile.tradeName || profile.name) : profile.name}</h3>
             <p className="text-sm text-primary font-semibold">{planLabel}</p>
             <p className="text-xs text-on-surface-variant mt-1">Membro desde {memberSince}</p>
           </div>
