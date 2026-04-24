@@ -13,6 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
       avatarUrl: true, storeBannerUrl: true, storeDescription: true,
       city: true, state: true, phone: true, sharePhone: true,
       plan: true, createdAt: true, storeSlug: true,
+      socialInstagram: true, socialFacebook: true, socialYoutube: true, socialTiktok: true,
       _count: { select: { vehicles: { where: { status: "ACTIVE" } } } },
     },
   });
@@ -38,7 +39,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
   // Redes sociais (do SiteConfig do usuário — futuramente por loja; por ora usa as globais se plano permitir)
   // Por enquanto usamos campos extras que já existem ou null
   const social = showSocial ? {
-    instagram: null, facebook: null, youtube: null, tiktok: null,
+    instagram: store.socialInstagram ?? null,
+    facebook:  store.socialFacebook  ?? null,
+    youtube:   store.socialYoutube   ?? null,
+    tiktok:    store.socialTiktok    ?? null,
   } : null;
 
   const vehicles = await prisma.vehicle.findMany({

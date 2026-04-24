@@ -26,6 +26,12 @@ export async function GET() {
       state:            u.state,
       phone:            u.phone,
       sharePhone:       u.sharePhone,
+      social: {
+        instagram: u.socialInstagram ?? null,
+        facebook:  u.socialFacebook  ?? null,
+        youtube:   u.socialYoutube   ?? null,
+        tiktok:    u.socialTiktok    ?? null,
+      },
     },
   });
 }
@@ -45,6 +51,10 @@ export async function PATCH(req: NextRequest) {
   if (body.tradeName        !== undefined) data.tradeName        = body.tradeName || null;
   if (body.phone            !== undefined) data.phone            = body.phone || null;
   if (body.sharePhone       !== undefined) data.sharePhone       = Boolean(body.sharePhone);
+  if (body.social?.instagram !== undefined) data.socialInstagram = body.social.instagram || null;
+  if (body.social?.facebook  !== undefined) data.socialFacebook  = body.social.facebook  || null;
+  if (body.social?.youtube   !== undefined) data.socialYoutube   = body.social.youtube   || null;
+  if (body.social?.tiktok    !== undefined) data.socialTiktok    = body.social.tiktok    || null;
 
   await (prisma.user.update as any)({ where: { id: user.id }, data });
   return NextResponse.json({ ok: true });

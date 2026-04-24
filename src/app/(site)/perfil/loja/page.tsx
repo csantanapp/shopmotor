@@ -69,7 +69,7 @@ export default function LojaPage() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [tab, setTab] = useState<"info" | "social" | "analytics">("info");
+  const [tab, setTab] = useState<"info" | "social" | "analytics">("analytics");
   const [socialForm, setSocialForm] = useState({ instagram: "", facebook: "", youtube: "", tiktok: "" });
   const [savingSocial, setSavingSocial] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
@@ -95,6 +95,14 @@ export default function LojaPage() {
           phone: storeData.store.phone ?? "",
           sharePhone: storeData.store.sharePhone ?? false,
         });
+        if (storeData.store.social) {
+          setSocialForm({
+            instagram: storeData.store.social.instagram ?? "",
+            facebook:  storeData.store.social.facebook  ?? "",
+            youtube:   storeData.store.social.youtube   ?? "",
+            tiktok:    storeData.store.social.tiktok    ?? "",
+          });
+        }
       }
       if (subData?.subscription?.status === "active") setSub(subData.subscription);
       setLoading(false);
@@ -186,11 +194,11 @@ export default function LojaPage() {
             className="flex items-center gap-2 text-sm font-bold text-on-surface-variant border border-outline-variant px-4 py-2 rounded-full hover:bg-surface-container transition-colors">
             <Icon name="open_in_new" className="text-base" /> Ver loja
           </a>
-          {sub && (
+          {sub && planConfig && (
             <Link href="/perfil/plano"
               className="flex items-center gap-2 text-sm font-black bg-primary-container text-on-primary-container px-4 py-2 rounded-full hover:opacity-90 transition-opacity">
-              <Icon name="card_membership" className="text-base" />
-              R$ {planConfig?.price?.toLocaleString("pt-BR")}/mês
+              <Icon name="verified" className="text-base" />
+              Plano {planConfig.name}
             </Link>
           )}
         </div>
@@ -216,9 +224,9 @@ export default function LojaPage() {
       {/* ── TABS ── */}
       <div className="flex gap-1 bg-surface-container rounded-xl p-1 w-fit">
         {([
-          { key: "info",      label: "Informações",  icon: "edit" },
-          { key: "social",    label: "Redes Sociais", icon: "share",    locked: !hasSocial },
           { key: "analytics", label: "Analytics",     icon: "bar_chart", locked: !hasAnalytics },
+          { key: "social",    label: "Redes Sociais", icon: "share",    locked: !hasSocial },
+          { key: "info",      label: "Informações",  icon: "edit" },
         ] as { key: "info"|"social"|"analytics"; label: string; icon: string; locked?: boolean }[]).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold transition-all ${

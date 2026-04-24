@@ -35,6 +35,10 @@ model User {
   storeSlug           String?        @unique
   storeBannerUrl      String?
   storeDescription    String?
+  socialInstagram     String?
+  socialFacebook      String?
+  socialYoutube       String?
+  socialTiktok        String?
   conversations       Conversation[] @relation("BuyerConversations")
   sellerConversations Conversation[] @relation("SellerConversations")
   favorites           Favorite[]
