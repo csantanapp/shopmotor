@@ -1,6 +1,20 @@
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 
+const whyShopMotor = [
+  { icon: "ads_click",   title: "Alto alcance",           desc: "Dezenas de milhares de compradores navegando todos os meses em busca do veículo ideal." },
+  { icon: "psychology",  title: "Intenção de compra real", desc: "Quem está no ShopMotor já decidiu comprar. Sua marca aparece no exato momento da decisão." },
+  { icon: "target",      title: "Segmentação precisa",     desc: "Impacte usuários por marca, modelo, faixa de preço, estado e tipo de veículo. Zero desperdício de verba." },
+  { icon: "trending_up", title: "Resultados mensuráveis",  desc: "Visualizações, cliques e conversões rastreados em tempo real. Você sabe exatamente o que está recebendo." },
+];
+
+const FALLBACK_FAQS = [
+  { q: "Quando começa a aparecer no topo após contratar?",   a: "Imediatamente. Assim que o impulsionamento é ativado, seu anúncio sobe para o topo dos resultados de busca e exibe o selo do plano escolhido." },
+  { q: "Posso impulsionar mais de um veículo ao mesmo tempo?", a: "Sim. Cada anúncio tem seu próprio impulsionamento independente. Você pode ativar planos diferentes para veículos diferentes." },
+  { q: "O que acontece quando o período termina?",           a: "O anúncio volta ao posicionamento orgânico normalmente. Nenhum dado é perdido e você pode renovar o impulsionamento quando quiser." },
+  { q: "Precisa ser vendedor cadastrado para impulsionar?",   a: "Sim. Você precisa ter uma conta de vendedor e pelo menos um anúncio ativo na plataforma." },
+];
+
 async function getPlatformStats() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
@@ -10,56 +24,24 @@ async function getPlatformStats() {
   } catch { return null; }
 }
 
+async function getAdsFaqs(): Promise<{ q: string; a: string }[]> {
+  try {
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+    const res = await fetch(`${base}/api/faq?pagina=ads`, { next: { revalidate: 300 } });
+    if (!res.ok) return FALLBACK_FAQS;
+    const d = await res.json();
+    if (!d.items || d.items.length === 0) return FALLBACK_FAQS;
+    return d.items.map((i: any) => ({ q: i.pergunta, a: i.resposta }));
+  } catch { return FALLBACK_FAQS; }
+}
+
 function fmt(n: number) {
   if (n >= 1000) return `${(n / 1000).toFixed(0)}k+`;
   return `${n}+`;
 }
 
-const whyShopMotor = [
-  {
-    icon: "ads_click",
-    title: "Alto alcance",
-    desc: "Mais de 12 mil vendedores ativos e dezenas de milhares de compradores navegando todos os meses em busca do veículo ideal.",
-  },
-  {
-    icon: "psychology",
-    title: "Intenção de compra real",
-    desc: "Diferente de redes sociais, quem está no ShopMotors já decidiu comprar. Sua marca aparece no exato momento da decisão.",
-  },
-  {
-    icon: "target",
-    title: "Segmentação precisa",
-    desc: "Impacte usuários por marca, modelo, faixa de preço, estado e tipo de veículo. Zero desperdício de verba.",
-  },
-  {
-    icon: "trending_up",
-    title: "Resultados mensuráveis",
-    desc: "Visualizações, cliques e conversões rastreados em tempo real. Você sabe exatamente o que está pagando e o que está recebendo.",
-  },
-];
-
-
-const faqs = [
-  {
-    q: "Quando começa a aparecer no topo após contratar?",
-    a: "Imediatamente. Assim que o impulsionamento é ativado, seu anúncio sobe para o topo dos resultados de busca e exibe o selo do plano escolhido.",
-  },
-  {
-    q: "Posso impulsionar mais de um veículo ao mesmo tempo?",
-    a: "Sim. Cada anúncio tem seu próprio impulsionamento independente. Você pode ativar planos diferentes para veículos diferentes.",
-  },
-  {
-    q: "O que acontece quando o período termina?",
-    a: "O anúncio volta ao posicionamento orgânico normalmente. Nenhum dado é perdido e você pode renovar o impulsionamento quando quiser.",
-  },
-  {
-    q: "Precisa ser vendedor cadastrado para impulsionar?",
-    a: "Sim. Para acessar os planos de impulsionamento você precisa ter uma conta de vendedor e pelo menos um anúncio ativo na plataforma.",
-  },
-];
-
 export default async function AdsPage() {
-  const platformStats = await getPlatformStats();
+  const [platformStats, faqs] = await Promise.all([getPlatformStats(), getAdsFaqs()]);
 
   const stats = [
     { value: platformStats ? fmt(platformStats.totalVehicles) : "—", label: "Anúncios ativos", icon: "directions_car" },

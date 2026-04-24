@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Respostas para as perguntas mais comuns sobre a ShopMotor.",
 };
 
-const faqs = [
+const FALLBACK = [
   {
     categoria: "Geral",
     perguntas: [
@@ -18,38 +18,56 @@ const faqs = [
   {
     categoria: "Anúncios",
     perguntas: [
-      { q: "Como meu anúncio aparece nos resultados de busca?", a: "Os resultados são ordenados por data de publicação por padrão. Anúncios impulsionados (Destaque ou Elite) aparecem no topo. Você também pode filtrar por preço, km, marca e outros critérios." },
-      { q: "Por quanto tempo meu anúncio fica ativo?", a: "Anúncios ficam ativos indefinidamente enquanto você não os pausar, excluir ou marcar como vendido. Anúncios impulsionados têm prazo de destaque conforme o plano escolhido." },
-      { q: "Posso ter fotos em 360° no anúncio?", a: "No momento os anúncios suportam até 20 fotos convencionais. Funcionalidades de fotos 360° estão no nosso roadmap." },
-      { q: "O que significa 'Abaixo da FIPE'?", a: "Quando o preço do anúncio é inferior ao valor de referência FIPE para aquele modelo e ano, exibimos automaticamente essa indicação para ajudar compradores a identificar boas oportunidades." },
+      { q: "Como meu anúncio aparece nos resultados de busca?", a: "Os resultados são ordenados por data de publicação por padrão. Anúncios impulsionados (Destaque ou Elite) aparecem no topo." },
+      { q: "Por quanto tempo meu anúncio fica ativo?", a: "Anúncios ficam ativos enquanto você não os pausar, excluir ou marcar como vendido." },
+      { q: "O que significa 'Abaixo da FIPE'?", a: "Quando o preço do anúncio é inferior ao valor FIPE para aquele modelo, exibimos automaticamente essa indicação para ajudar compradores a identificar boas oportunidades." },
     ],
   },
   {
     categoria: "Conta e Acesso",
     perguntas: [
       { q: "Posso ter mais de uma conta?", a: "Cada CPF ou CNPJ pode ter apenas uma conta na ShopMotor. Contas duplicadas podem ser suspensas." },
-      { q: "Meus dados pessoais são seguros?", a: "Sim. Seguimos a LGPD e adotamos criptografia de dados, HTTPS e boas práticas de segurança. Consulte nossa Política de Privacidade para mais detalhes." },
-      { q: "Como funciona a conta Loja (PJ)?", a: "Contas PJ são para empresas do setor automotivo. Além dos recursos padrão, lojas terão uma página pública personalizada com banner, logo e vitrine de veículos." },
+      { q: "Meus dados pessoais são seguros?", a: "Sim. Seguimos a LGPD e adotamos criptografia de dados, HTTPS e boas práticas de segurança." },
     ],
   },
   {
     categoria: "FIPE e Valores",
     perguntas: [
-      { q: "Como é calculado o valor FIPE exibido?", a: "Consultamos a tabela FIPE via API parceira (Parallelum) com base na marca, modelo e ano do veículo informados no anúncio." },
-      { q: "O valor FIPE é atualizado automaticamente?", a: "O valor é consultado no momento da publicação do anúncio. Para anúncios antigos, o valor pode estar desatualizado em relação à tabela atual." },
+      { q: "Como é calculado o valor FIPE exibido?", a: "Consultamos a tabela FIPE via API com base na marca, modelo e ano do veículo informados no anúncio." },
     ],
   },
   {
     categoria: "Pagamentos e Planos",
     perguntas: [
       { q: "Quais formas de pagamento são aceitas?", a: "Aceitamos cartão de crédito, PIX e boleto bancário para contratação de planos e impulsionamentos." },
-      { q: "Posso cancelar meu plano a qualquer momento?", a: "Sim, planos recorrentes podem ser cancelados a qualquer momento. O acesso permanece ativo até o fim do período já pago." },
-      { q: "Existe reembolso?", a: "Créditos de impulsionamento já utilizados não são reembolsáveis. Para cancelamentos de planos, avaliamos caso a caso conforme o Código de Defesa do Consumidor." },
+      { q: "Posso cancelar meu plano a qualquer momento?", a: "Sim, planos recorrentes podem ser cancelados. O acesso permanece ativo até o fim do período pago." },
     ],
   },
 ];
 
-export default function FaqPage() {
+async function getFaqs() {
+  try {
+    const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+    const res = await fetch(`${base}/api/faq?pagina=faq`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    const d = await res.json();
+    if (!d.items || d.items.length === 0) return null;
+    // Agrupar por categoria
+    const grouped: Record<string, { q: string; a: string }[]> = {};
+    for (const item of d.items) {
+      if (!grouped[item.categoria]) grouped[item.categoria] = [];
+      grouped[item.categoria].push({ q: item.pergunta, a: item.resposta });
+    }
+    return Object.entries(grouped).map(([categoria, perguntas]) => ({ categoria, perguntas }));
+  } catch {
+    return null;
+  }
+}
+
+export default async function FaqPage() {
+  const dbFaqs = await getFaqs();
+  const faqs = dbFaqs ?? FALLBACK;
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-10">
 
