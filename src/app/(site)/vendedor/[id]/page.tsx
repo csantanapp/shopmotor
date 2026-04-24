@@ -141,7 +141,7 @@ export default function VendedorPage({ params }: { params: { id: string } }) {
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <span className="text-sm text-on-surface-variant flex items-center gap-2">
-                    <Icon name="check_circle" className="text-base text-blue-500" />Anúncios no ShopMotor
+                    <Icon name="check_circle" className="text-base text-blue-500" />Anúncios realizados na ShopMotor
                   </span>
                   <span className="text-sm font-black text-blue-600">{stats.soldCount}</span>
                 </div>
