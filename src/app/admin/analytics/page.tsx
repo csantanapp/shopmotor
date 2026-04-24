@@ -22,9 +22,13 @@ const COUNTRY_NAMES: Record<string, string> = {
 export default function AdminAnalytics() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/admin/analytics").then(r => r.json()).then(d => { setData(d); setLoading(false); });
+    fetch("/api/admin/analytics")
+      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+      .then(d => { setData(d); setLoading(false); })
+      .catch(e => { setError(e.message); setLoading(false); });
   }, []);
 
   if (loading) return (
@@ -34,6 +38,7 @@ export default function AdminAnalytics() {
     </div>
   );
 
+  if (error) return <div className="p-8 text-red-400 text-sm">Erro ao carregar analytics: {error}</div>;
   if (!data) return null;
 
   const maxViews = Math.max(...data.days.map(d => d.views), 1);
