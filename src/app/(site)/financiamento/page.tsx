@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 
@@ -102,7 +103,11 @@ const FAQS_FIN = [
 ];
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-export default function FinanciamentoPage() {
+function FinanciamentoContent() {
+  const searchParams = useSearchParams();
+  const storeSlug = searchParams.get("loja") ?? undefined;
+  const vehicleId = searchParams.get("veiculo") ?? undefined;
+
   const [step, setStep] = useState(0);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
 
@@ -137,7 +142,7 @@ export default function FinanciamentoPage() {
       await fetch("/api/financiamento", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, cpf, nascimento, email, cidade, whatsapp, prazo, valorCarro: veiculo, entrada: entradaVal, parcelas, financiado, pmt }),
+        body: JSON.stringify({ nome, cpf, nascimento, email, cidade, whatsapp, prazo, valorCarro: veiculo, entrada: entradaVal, parcelas, financiado, pmt, storeSlug, vehicleId }),
       });
     } catch {}
     setLoading(false);
@@ -429,5 +434,14 @@ export default function FinanciamentoPage() {
       </div>
 
     </div>
+  );
+}
+
+
+export default function FinanciamentoPage() {
+  return (
+    <Suspense>
+      <FinanciamentoContent />
+    </Suspense>
   );
 }

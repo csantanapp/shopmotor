@@ -7,10 +7,23 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { nome, cpf, nascimento, email, cidade, whatsapp, prazo, valorCarro, entrada, parcelas, financiado, pmt } = body;
+    const { nome, cpf, nascimento, email, cidade, whatsapp, prazo, valorCarro, entrada, parcelas, financiado, pmt, storeSlug, vehicleId } = body;
+
+    // Resolve storeUserId a partir do slug se fornecido
+    let storeUserId: string | null = null;
+    if (storeSlug) {
+      const store = await (prisma as any).user.findFirst({ where: { storeSlug }, select: { id: true } });
+      storeUserId = store?.id ?? null;
+    }
 
     await (prisma as any).financiamentoLead.create({
-      data: { nome, cpf, nascimento, email, cidade, whatsapp, prazo, valorCarro, entrada, financiado, parcelas, pmt },
+      data: {
+        nome, cpf, nascimento, email, cidade, whatsapp, prazo,
+        valorCarro, entrada, financiado, parcelas, pmt,
+        storeSlug: storeSlug ?? null,
+        storeUserId,
+        vehicleId: vehicleId ?? null,
+      },
     });
 
     const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
@@ -18,9 +31,10 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: "ShopMotor <noreply@shopmotor.com.br>",
       to: "contato@shopmotor.com.br",
-      subject: `[Financiamento] Nova simulação — ${nome}`,
+      subject: `[Financiamento] Nova simulação — ${nome}${storeSlug ? ` via loja ${storeSlug}` : ""}`,
       html: `
         <h2>Nova simulação de financiamento</h2>
+        ${storeSlug ? `<p><strong>Loja origem:</strong> /loja/${storeSlug}</p>` : ""}
         <p><strong>Nome:</strong> ${nome}</p>
         <p><strong>CPF:</strong> ${cpf}</p>
         <p><strong>Nascimento:</strong> ${nascimento}</p>

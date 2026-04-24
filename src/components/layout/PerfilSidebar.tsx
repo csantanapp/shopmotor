@@ -73,6 +73,19 @@ export default function PerfilSidebar() {
         )}
         {user?.accountType === "PJ" && (
           <Link
+            href="/perfil/leads-financiamento"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+              pathname === "/perfil/leads-financiamento"
+                ? "bg-white text-yellow-600 font-bold shadow-sm"
+                : "text-neutral-600 hover:bg-neutral-200 hover:translate-x-1"
+            }`}
+          >
+            <Icon name="account_balance" className="text-lg" />
+            Leads Financiamento
+          </Link>
+        )}
+        {user?.accountType === "PJ" && (
+          <Link
             href="/perfil/loja"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
               pathname === "/perfil/loja"

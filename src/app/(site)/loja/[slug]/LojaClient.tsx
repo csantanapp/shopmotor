@@ -228,7 +228,7 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filtered.map(v => <VehicleCard key={v.id} v={v} />)}
+            {filtered.map(v => <VehicleCard key={v.id} v={v} storeSlug={slug} showFinanciamento={store.subPlan === "ELITE"} />)}
           </div>
         )}
 
@@ -244,44 +244,63 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
   );
 }
 
-function VehicleCard({ v }: { v: Vehicle }) {
+function VehicleCard({ v, storeSlug, showFinanciamento }: { v: Vehicle; storeSlug: string; showFinanciamento: boolean }) {
   const price = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
   const km    = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
   const cover = v.photos[0]?.url ?? null;
+  const financiamentoUrl = `/financiamento?loja=${storeSlug}&veiculo=${v.id}`;
 
   return (
-    <Link href={`/carro/${v.id}`}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm group flex flex-col hover:shadow-md transition-all border border-zinc-100 hover:-translate-y-0.5">
-      <div className="h-44 overflow-hidden relative bg-zinc-100">
-        {cover ? (
-          <img src={cover} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Icon name="directions_car" className="text-5xl text-zinc-300" />
-          </div>
-        )}
-        {v.condition === "NEW" && (
-          <div className="absolute top-3 left-3 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded">0 km</div>
-        )}
-      </div>
-      <div className="p-5 flex flex-col flex-1">
-        <p className="text-xs font-black uppercase tracking-widest text-yellow-600 mb-0.5">{v.brand}</p>
-        <h3 className="font-bold text-base text-zinc-900 leading-tight">{v.model}{v.version ? ` ${v.version}` : ""}</h3>
-        <p className="text-xs text-zinc-500 mt-1 mb-3">{v.yearFab}/{v.yearModel} · {km}</p>
-        <p className="text-xl font-black text-zinc-900 mt-auto">{price}</p>
-        <div className="flex flex-wrap gap-1.5 mt-1.5">
-          {v.previousPrice && v.previousPrice > v.price && (
-            <span className="text-[10px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <Icon name="trending_down" className="text-xs" />Baixou
-            </span>
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm flex flex-col border border-zinc-100 hover:shadow-md hover:-translate-y-0.5 transition-all">
+      <Link href={`/carro/${v.id}`} className="group">
+        <div className="h-44 overflow-hidden relative bg-zinc-100">
+          {cover ? (
+            <img src={cover} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Icon name="directions_car" className="text-5xl text-zinc-300" />
+            </div>
           )}
-          {v.fipePrice && v.fipePrice > 0 && v.price < v.fipePrice && (
-            <span className="text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <Icon name="verified" className="text-xs" />Abaixo da FIPE
-            </span>
+          {v.condition === "NEW" && (
+            <div className="absolute top-3 left-3 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded">0 km</div>
           )}
         </div>
-      </div>
-    </Link>
+        <div className="p-5 flex flex-col flex-1">
+          <p className="text-xs font-black uppercase tracking-widest text-yellow-600 mb-0.5">{v.brand}</p>
+          <h3 className="font-bold text-base text-zinc-900 leading-tight">{v.model}{v.version ? ` ${v.version}` : ""}</h3>
+          <p className="text-xs text-zinc-500 mt-1 mb-3">{v.yearFab}/{v.yearModel} · {km}</p>
+          <p className="text-xl font-black text-zinc-900 mt-auto">{price}</p>
+          <div className="flex flex-wrap gap-1.5 mt-1.5">
+            {v.previousPrice && v.previousPrice > v.price && (
+              <span className="text-[10px] font-black text-green-700 bg-green-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <Icon name="trending_down" className="text-xs" />Baixou
+              </span>
+            )}
+            {v.fipePrice && v.fipePrice > 0 && v.price < v.fipePrice && (
+              <span className="text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <Icon name="verified" className="text-xs" />Abaixo da FIPE
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+
+      {/* Bloco de financiamento — apenas lojas Elite */}
+      {showFinanciamento && (
+        <div className="mx-4 mb-4 bg-gradient-to-r from-zinc-900 to-zinc-800 rounded-xl p-3 flex items-center gap-3">
+          <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon name="account_balance" className="text-yellow-400 text-base" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-[11px] font-black leading-tight">Financie este veículo</p>
+            <p className="text-zinc-400 text-[10px]">Simule em segundos · sem consulta ao SPC</p>
+          </div>
+          <Link href={financiamentoUrl}
+            className="bg-yellow-500 text-black text-[10px] font-black px-3 py-1.5 rounded-lg whitespace-nowrap hover:bg-yellow-400 transition-colors flex-shrink-0">
+            SIMULAR
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }

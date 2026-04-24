@@ -21,7 +21,7 @@ type Lead = {
   id: string; nome: string; cpf: string; nascimento: string; email: string;
   cidade: string; whatsapp: string; prazo: string; valorCarro: number;
   entrada: number; financiado: number; parcelas: number; pmt: number;
-  status: string; createdAt: string;
+  status: string; createdAt: string; storeSlug: string | null;
 };
 
 export default function AdminLeads() {
@@ -113,6 +113,7 @@ export default function AdminLeads() {
               <thead>
                 <tr className="border-b border-white/5 text-neutral-500 text-xs uppercase tracking-widest">
                   <th className="text-left px-5 py-3 font-bold">Lead</th>
+                  <th className="text-left px-5 py-3 font-bold hidden xl:table-cell">Loja</th>
                   <th className="text-left px-5 py-3 font-bold hidden lg:table-cell">Simulação</th>
                   <th className="text-left px-5 py-3 font-bold hidden md:table-cell">Prazo</th>
                   <th className="text-left px-5 py-3 font-bold">Status</th>
@@ -121,10 +122,10 @@ export default function AdminLeads() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {loading && (
-                  <tr><td colSpan={5} className="text-center py-10 text-neutral-600 text-sm">Carregando...</td></tr>
+                  <tr><td colSpan={6} className="text-center py-10 text-neutral-600 text-sm">Carregando...</td></tr>
                 )}
                 {!loading && items.length === 0 && (
-                  <tr><td colSpan={5} className="text-center py-10 text-neutral-600 text-sm">Nenhum lead encontrado.</td></tr>
+                  <tr><td colSpan={6} className="text-center py-10 text-neutral-600 text-sm">Nenhum lead encontrado.</td></tr>
                 )}
                 {items.map(lead => (
                   <tr
@@ -136,6 +137,16 @@ export default function AdminLeads() {
                       <p className="font-semibold text-white">{lead.nome}</p>
                       <p className="text-xs text-neutral-500">{lead.whatsapp}</p>
                       <p className="text-xs text-neutral-600">{lead.cidade}</p>
+                    </td>
+                    <td className="px-5 py-3 hidden xl:table-cell">
+                      {lead.storeSlug ? (
+                        <a href={`/loja/${lead.storeSlug}`} target="_blank" rel="noreferrer"
+                          className="text-xs text-yellow-400 hover:underline font-mono">
+                          /loja/{lead.storeSlug}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-neutral-600">—</span>
+                      )}
                     </td>
                     <td className="px-5 py-3 hidden lg:table-cell">
                       <p className="text-white font-bold">{fmt(lead.valorCarro)}</p>
@@ -192,6 +203,7 @@ export default function AdminLeads() {
                   { label: "WhatsApp", value: selected.whatsapp },
                   { label: "Cidade", value: selected.cidade },
                   { label: "Prazo de compra", value: selected.prazo },
+                  { label: "Loja origem", value: selected.storeSlug ? `/loja/${selected.storeSlug}` : "ShopMotor (direto)" },
                 ].map(row => (
                   <div key={row.label}>
                     <p className="text-xs text-neutral-600 uppercase tracking-wider">{row.label}</p>

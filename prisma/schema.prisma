@@ -369,11 +369,15 @@ model FinanciamentoLead {
   parcelas    Int
   pmt         Float
   status      String   @default("novo") // "novo" | "contatado" | "convertido" | "descartado"
+  storeSlug   String?  // loja que gerou o lead (opcional)
+  storeUserId String?  // userId do lojista
+  vehicleId   String?  // veículo que originou o lead
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([status])
   @@index([createdAt])
+  @@index([storeUserId])
   @@map("financiamento_leads")
 }
 
