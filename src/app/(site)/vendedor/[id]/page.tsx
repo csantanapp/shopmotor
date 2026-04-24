@@ -19,8 +19,6 @@ interface Seller {
 interface Stats {
   activeListings: number;
   soldCount: number;
-  avgRating: number | null;
-  reviewCount: number;
 }
 
 interface Vehicle {

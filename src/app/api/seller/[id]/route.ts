@@ -30,23 +30,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     where: { userId: id },
   });
 
-  const reviews = await prisma.review.findMany({
-    where: { toUserId: id },
-    select: { rating: true },
-  });
-
-  const avgRating = reviews.length > 0
-    ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviews.length
-    : null;
-
   return NextResponse.json({
     seller,
     vehicles,
     stats: {
       activeListings: seller._count.vehicles,
       soldCount: totalListings,
-      avgRating,
-      reviewCount: reviews.length,
     },
   });
 }

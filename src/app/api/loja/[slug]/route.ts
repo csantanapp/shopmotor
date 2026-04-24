@@ -23,16 +23,5 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     include: { photos: { where: { isCover: true }, take: 1 } },
   });
 
-  const reviews = await prisma.review.aggregate({
-    where: { toUserId: store.id },
-    _avg: { rating: true },
-    _count: true,
-  });
-
-  return NextResponse.json({
-    store,
-    vehicles,
-    avgRating: reviews._avg.rating,
-    reviewCount: reviews._count,
-  });
+  return NextResponse.json({ store, vehicles });
 }
