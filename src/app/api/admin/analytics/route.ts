@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     db.pageView.groupBy({ by: ["device"], _count: { id: true }, where: { createdAt: { gte: d30 }, ...notAdmin } }),
     db.pageView.groupBy({ by: ["referrer"], _count: { id: true }, where: { createdAt: { gte: d30 }, ...notAdmin }, orderBy: { _count: { id: "desc" } }, take: 10 }),
     db.pageView.groupBy({ by: ["path"], _count: { id: true }, where: { createdAt: { gte: d30 }, ...notAdmin }, orderBy: { _count: { id: "desc" } }, take: 10 }),
-    db.pageView.groupBy({ by: ["country", "region", "city"], _count: { id: true }, where: { createdAt: { gte: d30 }, country: { not: null }, ...notAdmin }, orderBy: { _count: { id: "desc" } }, take: 15 }),
+    db.pageView.findMany({ where: { createdAt: { gte: d30 }, country: { not: null }, ...notAdmin }, select: { country: true, region: true, city: true }, take: 500 }),
   ]);
 
   // Build daily chart (last 30 days)
@@ -63,6 +63,14 @@ export async function GET(req: NextRequest) {
     devices: deviceRows.map((r: any) => ({ device: r.device ?? "unknown", count: r._count.id })),
     sources: mergedSources,
     pages: pageRows.map((r: any) => ({ path: r.path, count: r._count.id })),
-    cities: cityRows.map((r: any) => ({ country: r.country, region: r.region, city: r.city, count: r._count.id })),
+    cities: (() => {
+      const map: Record<string, { country: string; region: string | null; city: string | null; count: number }> = {};
+      for (const r of cityRows) {
+        const key = `${r.country}|${r.region ?? ""}|${r.city ?? ""}`;
+        if (map[key]) map[key].count++;
+        else map[key] = { country: r.country, region: r.region, city: r.city, count: 1 };
+      }
+      return Object.values(map).sort((a, b) => b.count - a.count).slice(0, 15);
+    })(),
   });
 }
