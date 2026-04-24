@@ -10,6 +10,7 @@ const nav = [
   { href: "/admin/anuncios",  icon: "campaign",       label: "Anúncios Parceiros" },
   { href: "/admin/usuarios",  icon: "person",         label: "Usuários"        },
   { href: "/admin/lojas",     icon: "storefront",     label: "Lojas"           },
+  { href: "/admin/mensagens", icon: "mail",           label: "Mensagens"       },
   { href: "/admin/faq",       icon: "quiz",           label: "FAQ"             },
   { href: "/admin/seo",       icon: "travel_explore", label: "SEO"             },
   { href: "/admin/scripts",   icon: "code",           label: "Pixel & Scripts" },

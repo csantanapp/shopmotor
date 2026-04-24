@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { prisma } from "@/lib/prisma";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const { name, email, subject, message } = await req.json();
+  const body = await req.json();
+  const { name, email, subject, message } = body;
 
   if (!name || !email || !subject || !message) {
     return NextResponse.json({ error: "Preencha todos os campos." }, { status: 400 });
   }
 
   try {
+    const db = prisma as any;
+
+    // Salvar no banco
+    await db.contactMessage.create({
+      data: { origem: "contato", name, email, subject, message },
+    });
+
+    // Enviar e-mail de notificação
     await resend.emails.send({
       from: "ShopMotor <noreply@shopmotor.com.br>",
       to: "contato@shopmotor.com.br",
@@ -27,14 +37,14 @@ export async function POST(req: NextRequest) {
           </table>
           <p style="color:#333;line-height:1.7;white-space:pre-wrap">${message}</p>
           <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-          <p style="color:#ccc;font-size:11px">© ${new Date().getFullYear()} ShopMotor. Responda diretamente a este e-mail para falar com ${name}.</p>
+          <p style="color:#ccc;font-size:11px">Gerencie no CMS: /admin/mensagens</p>
         </div>
       `,
     });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("Contact email error:", err);
+    console.error("Contact error:", err);
     return NextResponse.json({ error: "Erro ao enviar mensagem." }, { status: 500 });
   }
 }

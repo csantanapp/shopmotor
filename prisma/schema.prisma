@@ -266,6 +266,31 @@ model Payment {
   @@map("payments")
 }
 
+model ContactMessage {
+  id        String   @id @default(cuid())
+  origem    String   // "contato" | "anuncie"
+  status    String   @default("novo") // "novo" | "lido" | "respondido" | "arquivado"
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  // campos extras de /anuncie
+  company   String?
+  segment   String?
+  budget    String?
+  // resposta
+  replyText    String?
+  repliedAt    DateTime?
+  // controle
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([origem, status])
+  @@map("contact_messages")
+}
+
 model FaqItem {
   id        String   @id @default(cuid())
   categoria String

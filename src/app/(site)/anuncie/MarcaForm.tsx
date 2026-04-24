@@ -8,6 +8,7 @@ export default function MarcaForm() {
   });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   function set(k: string, v: string) {
     setForm(p => ({ ...p, [k]: v }));
@@ -16,9 +17,24 @@ export default function MarcaForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setLoading(false);
-    setSent(true);
+    setError("");
+    try {
+      const res = await fetch("/api/anuncie", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setError(d.error ?? "Erro ao enviar proposta.");
+      } else {
+        setSent(true);
+      }
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (sent) {
@@ -98,6 +114,9 @@ export default function MarcaForm() {
         />
       </div>
 
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3">{error}</p>
+      )}
       <button
         type="submit"
         disabled={loading}
