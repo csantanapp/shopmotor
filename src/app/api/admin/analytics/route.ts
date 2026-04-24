@@ -10,17 +10,19 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  const [total, last30Views, deviceRows, sourceRows, pageRows, countryRows] = await Promise.all([
-    db.pageView.count(),
+  const notAdmin = { NOT: { path: { startsWith: "/admin" } } };
+
+  const [total, last30Views, deviceRows, sourceRows, pageRows, cityRows] = await Promise.all([
+    db.pageView.count({ where: notAdmin }),
     db.pageView.findMany({
-      where: { createdAt: { gte: d30 } },
+      where: { createdAt: { gte: d30 }, ...notAdmin },
       select: { createdAt: true, sessionId: true },
       orderBy: { createdAt: "asc" },
     }),
-    db.pageView.groupBy({ by: ["device"], _count: { id: true }, where: { createdAt: { gte: d30 } } }),
-    db.pageView.groupBy({ by: ["referrer"], _count: { id: true }, where: { createdAt: { gte: d30 } }, orderBy: { _count: { id: "desc" } }, take: 10 }),
-    db.pageView.groupBy({ by: ["path"], _count: { id: true }, where: { createdAt: { gte: d30 } }, orderBy: { _count: { id: "desc" } }, take: 10 }),
-    db.pageView.groupBy({ by: ["country"], _count: { id: true }, where: { createdAt: { gte: d30 }, country: { not: null } }, orderBy: { _count: { id: "desc" } }, take: 10 }),
+    db.pageView.groupBy({ by: ["device"], _count: { id: true }, where: { createdAt: { gte: d30 }, ...notAdmin } }),
+    db.pageView.groupBy({ by: ["referrer"], _count: { id: true }, where: { createdAt: { gte: d30 }, ...notAdmin }, orderBy: { _count: { id: "desc" } }, take: 10 }),
+    db.pageView.groupBy({ by: ["path"], _count: { id: true }, where: { createdAt: { gte: d30 }, ...notAdmin }, orderBy: { _count: { id: "desc" } }, take: 10 }),
+    db.pageView.groupBy({ by: ["country", "region", "city"], _count: { id: true }, where: { createdAt: { gte: d30 }, country: { not: null }, ...notAdmin }, orderBy: { _count: { id: "desc" } }, take: 15 }),
   ]);
 
   // Build daily chart (last 30 days)
@@ -61,6 +63,6 @@ export async function GET(req: NextRequest) {
     devices: deviceRows.map((r: any) => ({ device: r.device ?? "unknown", count: r._count.id })),
     sources: mergedSources,
     pages: pageRows.map((r: any) => ({ path: r.path, count: r._count.id })),
-    countries: countryRows.map((r: any) => ({ country: r.country, count: r._count.id })),
+    cities: cityRows.map((r: any) => ({ country: r.country, region: r.region, city: r.city, count: r._count.id })),
   });
 }

@@ -339,6 +339,8 @@ model PageView {
   referrer  String?
   device    String?  // "mobile" | "desktop" | "tablet"
   country   String?
+  region    String?
+  city      String?
   sessionId String?
   createdAt DateTime @default(now())
 

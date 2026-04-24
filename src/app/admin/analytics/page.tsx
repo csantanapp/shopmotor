@@ -11,7 +11,7 @@ type AnalyticsData = {
   devices: { device: string; count: number }[];
   sources: { source: string; count: number }[];
   pages: { path: string; count: number }[];
-  countries: { country: string; count: number }[];
+  cities: { country: string; region: string | null; city: string | null; count: number }[];
 };
 
 const COUNTRY_NAMES: Record<string, string> = {
@@ -164,16 +164,19 @@ export default function AdminAnalytics() {
 
         {/* Geolocation */}
         <div className="bg-[#111414] border border-white/5 rounded-2xl p-6">
-          <p className="text-xs font-black text-neutral-400 uppercase tracking-widest mb-5">Geolocalização (país)</p>
+          <p className="text-xs font-black text-neutral-400 uppercase tracking-widest mb-5">Geolocalização</p>
           <div className="space-y-3">
-            {data.countries.map((c, i) => (
-              <div key={c.country} className="flex items-center gap-3">
-                <span className="text-xs text-neutral-600 w-4">{i + 1}</span>
-                <span className="flex-1 text-sm text-white">{COUNTRY_NAMES[c.country] ?? c.country}</span>
-                <span className="text-sm text-neutral-400 tabular-nums">{c.count.toLocaleString("pt-BR")}</span>
-              </div>
-            ))}
-            {data.countries.length === 0 && <p className="text-neutral-600 text-sm">Sem dados de país ainda. Requer header x-vercel-ip-country ou cf-ipcountry.</p>}
+            {data.cities.map((c, i) => {
+              const label = [c.city, c.region, COUNTRY_NAMES[c.country] ?? c.country].filter(Boolean).join(", ");
+              return (
+                <div key={`${c.country}-${c.region}-${c.city}-${i}`} className="flex items-center gap-3">
+                  <span className="text-xs text-neutral-600 w-4">{i + 1}</span>
+                  <span className="flex-1 text-sm text-white">{label}</span>
+                  <span className="text-sm text-neutral-400 tabular-nums">{c.count.toLocaleString("pt-BR")}</span>
+                </div>
+              );
+            })}
+            {data.cities.length === 0 && <p className="text-neutral-600 text-sm">Sem dados ainda.</p>}
           </div>
         </div>
       </div>
