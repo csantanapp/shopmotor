@@ -12,7 +12,7 @@ interface Seller {
   id: string; name: string; nickname: string | null; tradeName: string | null;
   avatarUrl: string | null; phone: string | null;
   plan: string; city: string | null; state: string | null; createdAt: string;
-  lastSeenAt: string | null; accountType?: string; storeSlug?: string | null;
+  lastSeenAt: string | null; accountType?: string; storeSlug?: string | null; subPlan?: string | null;
   listingsCount: number; salesCount: number;
 }
 interface Vehicle {
@@ -370,6 +370,25 @@ export default function CarroClient({ params }: { params: { id: string } }) {
                 )}
               </div>
             </div>
+
+            {/* Bloco financiamento — lojas Elite */}
+            {vehicle.user.subPlan === "ELITE" && vehicle.user.storeSlug && (
+              <div className="bg-zinc-900 rounded-2xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Icon name="account_balance" className="text-yellow-400 text-xl" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-black leading-tight">Financie este veículo</p>
+                  <p className="text-zinc-400 text-xs mt-0.5">Simule em segundos · sem consulta ao SPC · aprovação em 24h</p>
+                </div>
+                <Link
+                  href={`/financiamento?loja=${vehicle.user.storeSlug}&veiculo=${vehicle.id}`}
+                  className="bg-yellow-500 text-black font-black px-4 py-2.5 rounded-xl text-sm whitespace-nowrap hover:bg-yellow-400 transition-colors flex-shrink-0"
+                >
+                  SIMULAR
+                </Link>
+              </div>
+            )}
 
             {/* Contact form */}
             <div>

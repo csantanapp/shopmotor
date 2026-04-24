@@ -21,7 +21,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   prisma.vehicle.update({ where: { id }, data: { views: { increment: 1 } } }).catch(() => null);
 
   try {
-    const [similar, listingsCount, totalListings] = await Promise.all([
+    const now = new Date();
+    const [similar, listingsCount, totalListings, activeSub] = await Promise.all([
       prisma.vehicle.aggregate({
         where: { brand: vehicle.brand, model: vehicle.model, status: "ACTIVE" },
         _avg: { price: true },
@@ -29,10 +30,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       }),
       prisma.vehicle.count({ where: { userId: vehicle.userId, status: "ACTIVE" } }),
       prisma.vehicle.count({ where: { userId: vehicle.userId } }),
+      (prisma as any).storeSubscription.findFirst({
+        where: { userId: vehicle.userId, status: "active", endsAt: { gt: now } },
+        orderBy: { endsAt: "desc" },
+        select: { plan: true },
+      }),
     ]);
 
     return NextResponse.json({
-      vehicle: { ...vehicle, user: { ...vehicle.user, listingsCount, salesCount: totalListings } },
+      vehicle: { ...vehicle, user: { ...vehicle.user, listingsCount, salesCount: totalListings, subPlan: activeSub?.plan ?? null } },
       priceComparison: {
         shopMotorAvg: similar._avg.price,
         shopMotorCount: similar._count,

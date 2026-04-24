@@ -228,7 +228,7 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filtered.map(v => <VehicleCard key={v.id} v={v} storeSlug={slug} showFinanciamento={store.subPlan === "ELITE"} />)}
+            {filtered.map(v => <VehicleCard key={v.id} v={v} />)}
           </div>
         )}
 
@@ -244,11 +244,10 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
   );
 }
 
-function VehicleCard({ v, storeSlug, showFinanciamento }: { v: Vehicle; storeSlug: string; showFinanciamento: boolean }) {
+function VehicleCard({ v }: { v: Vehicle }) {
   const price = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
   const km    = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
   const cover = v.photos[0]?.url ?? null;
-  const financiamentoUrl = `/financiamento?loja=${storeSlug}&veiculo=${v.id}`;
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm flex flex-col border border-zinc-100 hover:shadow-md hover:-translate-y-0.5 transition-all">
@@ -285,22 +284,6 @@ function VehicleCard({ v, storeSlug, showFinanciamento }: { v: Vehicle; storeSlu
         </div>
       </Link>
 
-      {/* Bloco de financiamento — apenas lojas Elite */}
-      {showFinanciamento && (
-        <div className="mx-4 mb-4 bg-gradient-to-r from-zinc-900 to-zinc-800 rounded-xl p-3 flex items-center gap-3">
-          <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Icon name="account_balance" className="text-yellow-400 text-base" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white text-[11px] font-black leading-tight">Financie este veículo</p>
-            <p className="text-zinc-400 text-[10px]">Simule em segundos · sem consulta ao SPC</p>
-          </div>
-          <Link href={financiamentoUrl}
-            className="bg-yellow-500 text-black text-[10px] font-black px-3 py-1.5 rounded-lg whitespace-nowrap hover:bg-yellow-400 transition-colors flex-shrink-0">
-            SIMULAR
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
