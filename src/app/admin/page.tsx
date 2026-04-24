@@ -19,12 +19,12 @@ function StatCard({ label, value, icon, color, sub }: {
   label: string; value: string | number; icon: string; color: string; sub?: string;
 }) {
   return (
-    <div className="bg-[#111414] border border-white/5 rounded-2xl p-6 flex items-start gap-4">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
-        <Icon name={icon} className="text-xl" />
+    <div className="bg-[#111414] border border-white/5 rounded-2xl p-4 flex items-start gap-3">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
+        <Icon name={icon} className="text-lg" />
       </div>
       <div>
-        <p className="text-2xl font-black text-white">{value}</p>
+        <p className="text-xl font-black text-white">{value}</p>
         <p className="text-sm text-neutral-400 mt-0.5">{label}</p>
         {sub && <p className="text-xs text-neutral-600 mt-1">{sub}</p>}
       </div>
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
         <StatCard
           label="Pessoas Físicas"
           value={stats.users.pf.toLocaleString("pt-BR")}
