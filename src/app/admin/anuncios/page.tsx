@@ -15,6 +15,7 @@ const EMPTY = {
   slot: "home_topbar", active: false,
   title: "", subtitle: "", imageUrl: "", linkUrl: "", linkLabel: "",
   bgColor: "#e63946", textColor: "#ffffff", popupDelay: 0,
+  startsAt: "", endsAt: "",
 };
 
 function ImageUpload({ value, onChange, fixedHeight }: { value: string; onChange: (url: string) => void; fixedHeight?: number }) {
@@ -182,7 +183,7 @@ export default function AdminAnuncios() {
             <tr className="border-b border-white/5">
               <th className="text-left px-6 py-3 text-xs font-black text-neutral-500 uppercase tracking-widest">Slot</th>
               <th className="text-left px-6 py-3 text-xs font-black text-neutral-500 uppercase tracking-widest">Título</th>
-              <th className="text-left px-6 py-3 text-xs font-black text-neutral-500 uppercase tracking-widest">Link</th>
+              <th className="text-left px-6 py-3 text-xs font-black text-neutral-500 uppercase tracking-widest">Período</th>
               <th className="text-left px-6 py-3 text-xs font-black text-neutral-500 uppercase tracking-widest">Status</th>
               <th className="text-left px-6 py-3 text-xs font-black text-neutral-500 uppercase tracking-widest">Ações</th>
             </tr>
@@ -205,8 +206,21 @@ export default function AdminAnuncios() {
                   <p className="text-sm text-white">{ad.title || <span className="text-neutral-600 italic">sem título</span>}</p>
                   {ad.subtitle && <p className="text-xs text-neutral-500 truncate max-w-[200px]">{ad.subtitle}</p>}
                 </td>
-                <td className="px-6 py-4 text-xs text-neutral-500 truncate max-w-[160px]">
-                  {ad.linkUrl || "—"}
+                <td className="px-6 py-4 text-xs text-neutral-500">
+                  {ad.startsAt || ad.endsAt ? (
+                    <div className="space-y-0.5">
+                      <p className="flex items-center gap-1">
+                        <span className="text-neutral-600">De:</span>
+                        {ad.startsAt ? new Date(ad.startsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}
+                      </p>
+                      <p className="flex items-center gap-1">
+                        <span className="text-neutral-600">Até:</span>
+                        {ad.endsAt ? new Date(ad.endsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="text-neutral-700 italic">Sem limite</span>
+                  )}
                 </td>
                 <td className="px-6 py-4">
                   <button onClick={() => toggle(ad)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${ad.active ? "bg-green-500" : "bg-neutral-700"}`}>
@@ -340,6 +354,32 @@ export default function AdminAnuncios() {
                   <p className="text-xs text-neutral-600 mt-1">0 = aparece imediatamente. O pop-up só é exibido uma vez por sessão.</p>
                 </div>
               )}
+
+              {/* Schedule */}
+              <div>
+                <label className="block text-xs font-black text-neutral-400 uppercase tracking-widest mb-2">Período de exibição</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[10px] text-neutral-500 mb-1">Início</p>
+                    <input
+                      type="datetime-local"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-primary-container [color-scheme:dark]"
+                      value={form.startsAt ? form.startsAt.slice(0, 16) : ""}
+                      onChange={e => setForm((f: any) => ({ ...f, startsAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-neutral-500 mb-1">Fim</p>
+                    <input
+                      type="datetime-local"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-primary-container [color-scheme:dark]"
+                      value={form.endsAt ? form.endsAt.slice(0, 16) : ""}
+                      onChange={e => setForm((f: any) => ({ ...f, endsAt: e.target.value ? new Date(e.target.value).toISOString() : "" }))}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-600 mt-1.5">Deixe em branco para exibir sem limite de data.</p>
+              </div>
 
               {/* Active */}
               <div className="flex items-center justify-between pt-2">
