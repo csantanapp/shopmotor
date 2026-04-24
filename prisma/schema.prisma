@@ -332,3 +332,17 @@ model PartnerAd {
 
   @@map("partner_ads")
 }
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String?
+  device    String?  // "mobile" | "desktop" | "tablet"
+  country   String?
+  sessionId String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@map("page_views")
+}

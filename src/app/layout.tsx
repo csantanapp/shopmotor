@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { prisma } from "@/lib/prisma";
+import PageTracker from "@/components/PageTracker";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -82,6 +83,7 @@ export default async function RootLayout({
         >
           Pular para o conteúdo
         </a>
+        <PageTracker />
         {children}
       </body>
     </html>

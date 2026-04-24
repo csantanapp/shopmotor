@@ -12,6 +12,7 @@ const nav = [
   { href: "/admin/lojas",     icon: "storefront",     label: "Lojas"           },
   { href: "/admin/mensagens", icon: "mail",           label: "Mensagens"       },
   { href: "/admin/faq",       icon: "quiz",           label: "FAQ"             },
+  { href: "/admin/analytics", icon: "bar_chart",      label: "Analytics"       },
   { href: "/admin/seo",       icon: "travel_explore", label: "SEO"             },
   { href: "/admin/scripts",   icon: "code",           label: "Pixel & Scripts" },
 ];

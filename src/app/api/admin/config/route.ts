@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 
-const KEYS = ["seo_title", "seo_description", "seo_keywords", "pixel_scripts"];
+const KEYS = ["seo_title", "seo_description", "seo_keywords", "pixel_scripts", "social_facebook", "social_instagram", "social_youtube", "social_tiktok"];
 
 export async function GET(req: Request) {
   const err = await requireAdmin(req);
