@@ -21,22 +21,24 @@ export default function AdCard({ slot }: { slot: string }) {
 
   if (!ad) return null;
 
-  return (
-    <Link
-      href={ad.linkUrl ?? "#"}
-      target={ad.linkUrl ? "_blank" : undefined}
-      rel="noopener noreferrer"
-      className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm block relative group border border-primary-container/30 hover:border-primary-container transition-colors"
-    >
+  const hasText = ad.title || ad.subtitle || ad.linkLabel;
+
+  const inner = (
+    <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm relative group border border-primary-container/30 hover:border-primary-container transition-colors">
       {/* Sponsored badge */}
       <div className="absolute top-2 left-2 z-10 bg-primary-container/90 text-on-primary-container text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
         Patrocinado
       </div>
 
-      {/* Image */}
-      <div className="h-48 bg-surface-container overflow-hidden relative">
+      {/* Image — full card if no text */}
+      <div className={`bg-surface-container overflow-hidden relative ${hasText ? "h-48" : "h-full min-h-[340px]"}`}>
         {ad.imageUrl ? (
-          <img src={ad.imageUrl} alt={ad.title ?? "Anúncio"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img
+            src={ad.imageUrl}
+            alt={ad.title ?? "Anúncio"}
+            style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
+            className="group-hover:scale-105 transition-transform duration-500"
+          />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-surface-container to-surface-container-highest">
             <Icon name="campaign" className="text-4xl text-primary-container" />
@@ -45,17 +47,30 @@ export default function AdCard({ slot }: { slot: string }) {
         )}
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        <p className="font-bold text-sm text-on-surface truncate">{ad.title ?? "Anúncio parceiro"}</p>
-        {ad.subtitle && <p className="text-xs text-on-surface-variant mt-1 line-clamp-2">{ad.subtitle}</p>}
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-xs font-black text-primary-container uppercase tracking-wide flex items-center gap-1">
-            {ad.linkLabel ?? "Saiba mais"}
-            <Icon name="arrow_forward" className="text-xs" />
-          </span>
+      {/* Content — only if has text */}
+      {hasText && (
+        <div className="p-4">
+          {ad.title && <p className="font-bold text-sm text-on-surface truncate">{ad.title}</p>}
+          {ad.subtitle && <p className="text-xs text-on-surface-variant mt-1 line-clamp-2">{ad.subtitle}</p>}
+          {ad.linkLabel && (
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-xs font-black text-primary-container uppercase tracking-wide flex items-center gap-1">
+                {ad.linkLabel}
+                <Icon name="arrow_forward" className="text-xs" />
+              </span>
+            </div>
+          )}
         </div>
-      </div>
-    </Link>
+      )}
+    </div>
   );
+
+  if (ad.linkUrl) {
+    return (
+      <Link href={ad.linkUrl} target="_blank" rel="noopener noreferrer" className="block">
+        {inner}
+      </Link>
+    );
+  }
+  return inner;
 }
