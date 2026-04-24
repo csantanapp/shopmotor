@@ -24,8 +24,6 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const [store, setStore] = useState<Store | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [avgRating, setAvgRating] = useState<number | null>(null);
-  const [reviewCount, setReviewCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [search, setSearch] = useState("");
@@ -38,8 +36,6 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
         const d = await r.json();
         setStore(d.store);
         setVehicles(d.vehicles);
-        setAvgRating(d.avgRating);
-        setReviewCount(d.reviewCount);
         setLoading(false);
       });
   }, [slug]);
@@ -114,12 +110,6 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
               <span className="flex items-center gap-1">
                 <Icon name="calendar_today" className="text-sm" />Na ShopMotor desde {memberSince}
               </span>
-              {avgRating && reviewCount > 0 && (
-                <span className="flex items-center gap-1">
-                  <Icon name="star" fill className="text-sm text-yellow-500" />
-                  {avgRating.toFixed(1)} ({reviewCount} {reviewCount === 1 ? "avaliacao" : "avaliacoes"})
-                </span>
-              )}
               <span className="flex items-center gap-1">
                 <Icon name="directions_car" className="text-sm" />{store._count.vehicles} veiculos
               </span>

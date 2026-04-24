@@ -48,8 +48,6 @@ export default function CarroClient({ params }: { params: { id: string } }) {
   const [fipePrice, setFipePrice] = useState<number | null>(null);
   const [loadingFipe, setLoadingFipe] = useState(false);
 
-  const [reviews, setReviews] = useState<{ id: string; rating: number }[]>([]);
-
   // Carrega veículo (apenas uma vez por id)
   useEffect(() => {
     fetch(`/api/vehicles/${id}`)
@@ -78,15 +76,6 @@ export default function CarroClient({ params }: { params: { id: string } }) {
         }
       });
   }, [id]);
-
-  // Carrega reviews do vendedor quando veículo estiver disponível
-  useEffect(() => {
-    if (!vehicle) return;
-    fetch(`/api/reviews?userId=${vehicle.user.id}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) { setReviews(d.reviews); } })
-      .catch(() => {});
-  }, [vehicle]);
 
   // Checa favorito após autenticação carregar
   useEffect(() => {
@@ -494,37 +483,6 @@ export default function CarroClient({ params }: { params: { id: string } }) {
               </div>
             </div>
 
-            {/* Barras de avaliação */}
-            <div className="space-y-2.5">
-              <span className="text-xs font-black text-on-surface uppercase tracking-widest">Avaliações</span>
-              {[
-                { star: 5, label: "Excelente",   color: "bg-green-500" },
-                { star: 4, label: "Bom",         color: "bg-green-400" },
-                { star: 3, label: "Regular",     color: "bg-yellow-400" },
-                { star: 2, label: "Ruim",        color: "bg-orange-400" },
-                { star: 1, label: "Péssimo",     color: "bg-red-500" },
-              ].map(({ star, label, color }) => {
-                const count = reviews.filter(r => r.rating === star).length;
-                const pct   = reviews.length > 0 ? Math.round((count / reviews.length) * 100) : 0;
-                return (
-                  <div key={star} className="space-y-0.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-on-surface-variant font-medium">{label}</span>
-                      <span className="text-[10px] text-on-surface-variant">{count}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="flex-1 h-2 bg-surface-container rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
-                      </div>
-                      <Icon name="star" fill className="text-yellow-400 text-xs flex-shrink-0" />
-                    </div>
-                  </div>
-                );
-              })}
-              {reviews.length === 0 && (
-                <p className="text-xs text-on-surface-variant text-center py-2">Sem avaliações ainda</p>
-              )}
-            </div>
 
             {/* Ações */}
             <div className="space-y-3 pt-1">

@@ -151,14 +151,6 @@ export default function VendedorPage({ params }: { params: { id: string } }) {
                   </span>
                   <span className="text-sm font-black text-green-600">&lt; 1h</span>
                 </div>
-                <div className="flex items-center justify-between py-3">
-                  <span className="text-sm text-on-surface-variant flex items-center gap-2">
-                    <Icon name="star" className="text-base text-yellow-500" />Avaliações
-                  </span>
-                  <span className="text-sm font-black text-on-surface">
-                    {stats.avgRating !== null ? `${stats.avgRating.toFixed(1)} (${stats.reviewCount})` : "—"}
-                  </span>
-                </div>
               </div>
             </div>
           )}
