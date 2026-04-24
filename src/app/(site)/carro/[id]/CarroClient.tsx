@@ -478,7 +478,7 @@ export default function CarroClient({ params }: { params: { id: string } }) {
                 <span className="font-bold text-on-surface">{vehicle.user.listingsCount}</span>
               </div>
               <div className="flex items-center justify-between py-1.5">
-                <span className="font-medium">Vendas realizadas</span>
+                <span className="font-medium">Anúncios no ShopMotor</span>
                 <span className="font-bold text-on-surface">{vehicle.user.salesCount}</span>
               </div>
             </div>

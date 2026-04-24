@@ -26,8 +26,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: { photos: { where: { isCover: true }, take: 1 } },
   });
 
-  const soldCount = await prisma.vehicle.count({
-    where: { userId: id, status: "SOLD" },
+  const totalListings = await prisma.vehicle.count({
+    where: { userId: id },
   });
 
   const reviews = await prisma.review.findMany({
@@ -44,7 +44,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     vehicles,
     stats: {
       activeListings: seller._count.vehicles,
-      soldCount,
+      soldCount: totalListings,
       avgRating,
       reviewCount: reviews.length,
     },

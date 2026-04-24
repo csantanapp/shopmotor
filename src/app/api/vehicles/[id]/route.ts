@@ -21,18 +21,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   prisma.vehicle.update({ where: { id }, data: { views: { increment: 1 } } }).catch(() => null);
 
   try {
-    const [similar, listingsCount, salesCount] = await Promise.all([
+    const [similar, listingsCount, totalListings] = await Promise.all([
       prisma.vehicle.aggregate({
         where: { brand: vehicle.brand, model: vehicle.model, status: "ACTIVE" },
         _avg: { price: true },
         _count: true,
       }),
       prisma.vehicle.count({ where: { userId: vehicle.userId, status: "ACTIVE" } }),
-      (prisma.payment as any).count({ where: { userId: vehicle.userId, status: "approved" } }),
+      prisma.vehicle.count({ where: { userId: vehicle.userId } }),
     ]);
 
     return NextResponse.json({
-      vehicle: { ...vehicle, user: { ...vehicle.user, listingsCount, salesCount } },
+      vehicle: { ...vehicle, user: { ...vehicle.user, listingsCount, salesCount: totalListings } },
       priceComparison: {
         shopMotorAvg: similar._avg.price,
         shopMotorCount: similar._count,
