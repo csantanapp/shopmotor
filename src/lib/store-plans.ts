@@ -1,0 +1,95 @@
+export type StorePlan = "STARTER" | "PRO" | "ELITE";
+
+export const STORE_PLANS = {
+  STARTER: {
+    key: "STARTER",
+    name: "Starter",
+    emoji: "🟢",
+    price: 497,
+    days: 30,
+    anunciosExtras: 5,
+    anunciosTotal: 25,
+    destaques: 2,
+    features: [
+      "Perfil Loja personalizado",
+      "Vitrine automática",
+      "URL exclusiva da loja",
+      "+5 anúncios extras (25 no total)",
+      "2 destaques mensais",
+      "Selo verificado",
+    ],
+    notIncluded: [
+      "Links redes sociais",
+      "Acesso ao e-mail e telefone do lead",
+      "Analytics de anúncios",
+      "Simulação de financiamento",
+      "Destaque na Home",
+    ],
+    socialLinks: false,
+    leadContact: false,
+    analytics: false,
+    financiamento: false,
+    homeDestaque: false,
+  },
+  PRO: {
+    key: "PRO",
+    name: "Pro",
+    emoji: "⭐",
+    price: 897,
+    days: 30,
+    anunciosExtras: 15,
+    anunciosTotal: 35,
+    destaques: 5,
+    features: [
+      "Tudo do Starter",
+      "+15 anúncios extras (35 no total)",
+      "5 destaques por mês",
+      "Links de redes sociais",
+      "Acesso e-mail + telefone do lead",
+      "Analytics de anúncios",
+      "Selo verificado",
+    ],
+    notIncluded: [
+      "Simulação de financiamento",
+      "Destaque na Home",
+    ],
+    socialLinks: true,
+    leadContact: true,
+    analytics: true,
+    financiamento: false,
+    homeDestaque: false,
+  },
+  ELITE: {
+    key: "ELITE",
+    name: "Elite",
+    emoji: "🔥",
+    price: 1497,
+    days: 30,
+    anunciosExtras: 30,
+    anunciosTotal: 50,
+    destaques: 10,
+    features: [
+      "Tudo do Pro",
+      "+30 anúncios extras (50 no total)",
+      "10 destaques por mês",
+      "Simulação de financiamento integrada",
+      "Destaque nas lojas da Home",
+      "Lead completo prioritário",
+      "Selo verificado Elite",
+    ],
+    notIncluded: [],
+    socialLinks: true,
+    leadContact: true,
+    analytics: true,
+    financiamento: true,
+    homeDestaque: true,
+  },
+} as const;
+
+export function getPlanLimits(plan: StorePlan | null) {
+  if (!plan || !STORE_PLANS[plan]) return { anunciosTotal: 20, destaques: 0 };
+  return {
+    anunciosTotal: STORE_PLANS[plan].anunciosTotal,
+    destaques: STORE_PLANS[plan].destaques,
+  };
+}

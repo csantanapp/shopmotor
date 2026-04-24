@@ -138,9 +138,21 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  // Limite por tipo de conta
+  // Limite por tipo de conta + assinatura de loja
   const u = user as any;
-  const limit = u.accountType === "PJ" ? 20 : user.plan === "PREMIUM" ? 20 : 3;
+  let limit = u.accountType === "PJ" ? 20 : user.plan === "PREMIUM" ? 20 : 3;
+  if (u.accountType === "PJ") {
+    const now = new Date();
+    const activeSub = await (prisma as any).storeSubscription.findFirst({
+      where: { userId: user.id, status: "active", endsAt: { gt: now } },
+      orderBy: { endsAt: "desc" },
+    });
+    if (activeSub) {
+      const { STORE_PLANS } = await import("@/lib/store-plans");
+      const planConfig = STORE_PLANS[activeSub.plan as keyof typeof STORE_PLANS];
+      if (planConfig) limit = planConfig.anunciosTotal;
+    }
+  }
   const activeCount = await prisma.vehicle.count({
     where: { userId: user.id, status: { in: ["ACTIVE", "DRAFT", "PAUSED"] } },
   });

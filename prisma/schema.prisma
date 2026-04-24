@@ -45,6 +45,7 @@ model User {
   vehicles            Vehicle[]
   passwordResets      PasswordReset[]
   payments            Payment[]
+  storeSubscriptions  StoreSubscription[]
 
   @@map("users")
 }
@@ -331,6 +332,26 @@ model PartnerAd {
   updatedAt  DateTime  @updatedAt
 
   @@map("partner_ads")
+}
+
+model StoreSubscription {
+  id          String   @id @default(cuid())
+  userId      String
+  plan        String   // "STARTER" | "PRO" | "ELITE"
+  status      String   @default("pending") // "pending" | "active" | "cancelled" | "expired"
+  startsAt    DateTime?
+  endsAt      DateTime?
+  mpPaymentId String?  @unique
+  mpPreferenceId String?
+  amount      Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([endsAt])
+  @@map("store_subscriptions")
 }
 
 model FinanciamentoLead {

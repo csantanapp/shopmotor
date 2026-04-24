@@ -13,7 +13,8 @@ const nav = [
   { href: "/admin/mensagens", icon: "mail",           label: "Mensagens"       },
   { href: "/admin/faq",       icon: "quiz",           label: "FAQ"             },
   { href: "/admin/analytics", icon: "bar_chart",      label: "Analytics"       },
-  { href: "/admin/leads",     icon: "finance_mode",   label: "Leads Financ."   },
+  { href: "/admin/leads",       icon: "finance_mode",   label: "Leads Financ."   },
+  { href: "/admin/assinaturas", icon: "card_membership", label: "Assinaturas"     },
   { href: "/admin/seo",       icon: "travel_explore", label: "SEO"             },
   { href: "/admin/scripts",   icon: "code",           label: "Pixel & Scripts" },
 ];
