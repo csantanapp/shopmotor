@@ -78,10 +78,6 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
   const memberSince = new Date(store.createdAt).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   const badge = store.subPlan ? PLAN_BADGE[store.subPlan] : null;
 
-  // Foto destaque automática (primeiro veículo com foto)
-  const featuredPhoto = vehicles.find(v => v.photos[0])?.photos[0]?.url ?? null;
-  const featuredVehicle = vehicles.find(v => v.photos[0]);
-
   const filtered = vehicles
     .filter(v => !search || `${v.brand} ${v.model} ${v.version ?? ""}`.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
@@ -100,19 +96,22 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
 
       {/* ── VITRINE AUTOMÁTICA ─────────────────────────────────────────────── */}
       <div className="relative bg-zinc-900 overflow-hidden">
-        {/* Fundo com foto desfocada */}
-        {featuredPhoto && (
-          <div className="absolute inset-0">
-            <img src={featuredPhoto} alt="" className="w-full h-full object-cover opacity-20 blur-sm scale-110" />
-            <div className="absolute inset-0 bg-gradient-to-r from-zinc-900 via-zinc-900/90 to-zinc-900/60" />
-          </div>
-        )}
+        {/* Fundo padrão desfocado estilo home */}
+        <div className="absolute inset-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDehxNs9I9ak52LfvX_Zc3BVGNcPeZ1FnK3XDjiLtGXZpa8_S7fs9ePvOMwHIMiWFG1MPgWz_J1MhDiXcMV3kWnIN33Y1Ax_jyj6riWUhcLHJFWN2upxKz16lyPpVDyryAsfcodfBkdqXYPgR-GSTeLhBIGITS1-SjCZKAyMu_7hWkDEJFVxesHEpPQXR7YwOEozTX6cZxyBvPl78nytBKtX_iQcHHyN5V6epMv-4viGLiRp8Bj5gkmWv064nm8rRhpNpvZNuqVXsI"
+            alt=""
+            className="w-full h-full object-cover opacity-20 blur-[2px] scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/70 via-zinc-900/80 to-zinc-900" />
+        </div>
 
         <div className="relative max-w-screen-xl mx-auto px-6 md:px-10 py-10 md:py-14">
-          <div className="flex flex-col md:flex-row items-center md:items-stretch gap-8 md:gap-12">
+          <div className="flex flex-col items-start gap-8 md:gap-12">
 
-            {/* ── ESQUERDA ── */}
-            <div className="flex-1 flex flex-col justify-center">
+            {/* ── INFO DA LOJA ── */}
+            <div className="w-full max-w-2xl flex flex-col justify-center">
               {/* Logo */}
               <div className="mb-5 flex items-center gap-4">
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-white/10 bg-white/10 overflow-hidden flex items-center justify-center shadow-2xl flex-shrink-0">
@@ -195,29 +194,6 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
               </div>
             </div>
 
-            {/* ── DIREITA — foto destaque ── */}
-            {featuredPhoto && featuredVehicle && (
-              <div className="w-full md:w-80 lg:w-96 flex-shrink-0">
-                <Link href={`/carro/${featuredVehicle.id}`} className="block relative group">
-                  <div className="relative h-52 md:h-64 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                    <img src={featuredPhoto} alt={`${featuredVehicle.brand} ${featuredVehicle.model}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <p className="text-xs font-black text-yellow-400 uppercase tracking-widest">{featuredVehicle.brand}</p>
-                      <p className="text-white font-black text-base leading-tight">{featuredVehicle.model}</p>
-                      <p className="text-white/70 text-xs mt-0.5">{featuredVehicle.yearModel} · {featuredVehicle.km === 0 ? "0 km" : `${featuredVehicle.km.toLocaleString("pt-BR")} km`}</p>
-                    </div>
-                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-black px-3 py-1.5 rounded-full">
-                      {featuredVehicle.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 })}
-                    </div>
-                  </div>
-                  <p className="text-center text-zinc-500 text-xs mt-2 group-hover:text-zinc-300 transition-colors">
-                    Ver veículo →
-                  </p>
-                </Link>
-              </div>
-            )}
           </div>
         </div>
       </div>
