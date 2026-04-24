@@ -57,6 +57,7 @@ const stats = [
 
 type StoreUser = {
   id: string; name: string; tradeName: string | null; avatarUrl: string | null; storeSlug: string | null;
+  city: string | null; state: string | null;
   _count: { vehicles: number };
 };
 
@@ -127,7 +128,7 @@ export default async function Home() {
       where: { accountType: "PJ", storeSlug: { not: null } },
       orderBy: { createdAt: "desc" },
       take: 4,
-      select: { id: true, name: true, tradeName: true, avatarUrl: true, storeSlug: true, _count: { select: { vehicles: true } } },
+      select: { id: true, name: true, tradeName: true, avatarUrl: true, storeSlug: true, city: true, state: true, _count: { select: { vehicles: true } } },
     }),
   ]);
 
@@ -224,7 +225,7 @@ export default async function Home() {
 
       {/* ── BANNER PARCEIRO HOME ── */}
       <div className="max-w-screen-2xl mx-auto px-6 pb-6">
-        <AdBanner slot="home_banner" maxHeight={90} />
+        <AdBanner slot="home_banner" maxHeight={350} />
       </div>
 
       {/* ── OPORTUNIDADES ── */}
@@ -353,29 +354,29 @@ export default async function Home() {
 
       {/* ── EDITORIAL BANNER ── */}
       <section className="max-w-screen-2xl mx-auto px-6 py-20">
-        <div className="bg-inverse-surface rounded-3xl overflow-hidden flex flex-col md:flex-row relative min-h-[320px]">
-          <div className="p-12 md:p-20 flex-1 z-10 flex flex-col justify-center">
-            <p className="text-primary-container text-xs font-black uppercase tracking-widest mb-4">Coleção exclusiva</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white leading-tight uppercase mb-5 italic tracking-tighter">
-              PARA QUEM É<br />APAIXONADO<br />POR CARRO
-            </h2>
-            <p className="text-zinc-400 max-w-sm mb-8 text-sm leading-relaxed">
-              Experiência editorial completa com as melhores máquinas do mercado mundial.
-            </p>
-            <Link
-              href="/busca"
-              className="bg-primary-container text-on-primary-container font-black py-3 px-8 rounded-full self-start hover:scale-105 transition-transform uppercase tracking-widest text-xs"
-            >
-              Explorar Coleção
-            </Link>
-          </div>
-          <div className="md:absolute right-0 top-0 bottom-0 md:w-3/5 h-64 md:h-full">
+        <div className="bg-inverse-surface rounded-2xl overflow-hidden relative" style={{ height: 90 }}>
+          <div className="absolute inset-0">
             <Image
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIvLp-rtsJt2IjPOLqXPiPBkYuHU2HARrJ8J75dRrfQv_2BBPNRKry2HOpanttRVmJy92r7AXo9cbIv9RWOnK-iZxLQHeC1V2d1Wtrb5ZK9luoIbaZF1i46T9MLv-3Z8nWX4O_A9qqOH01kXZNfGmV1Wpkd8lDPgkP4O4oGxm_wsvLXs8eUB7WnvXulAselnLZ2vNhT9Fqx08p22CtyTtig7tJQo0VJQkA1AcdwoZdwH4MIc9T0KGWWWku95z_Nrg5iutFCvtq-Ig"
               alt="Supercar"
               fill
-              className="object-cover md:object-right kinetic-angle"
+              className="object-cover object-center opacity-40"
             />
+            <div className="absolute inset-0 bg-gradient-to-r from-inverse-surface/90 via-inverse-surface/60 to-transparent" />
+          </div>
+          <div className="relative z-10 h-full flex items-center justify-between px-8 gap-6">
+            <div className="flex flex-col gap-1">
+              <p className="text-primary-container text-[10px] font-black uppercase tracking-widest">Coleção exclusiva</p>
+              <h2 className="text-xl font-black text-white uppercase italic tracking-tighter leading-tight">
+                Para quem é apaixonado por carro
+              </h2>
+            </div>
+            <Link
+              href="/busca"
+              className="flex-shrink-0 bg-primary-container text-on-primary-container font-black py-2.5 px-6 rounded-full hover:scale-105 transition-transform uppercase tracking-widest text-xs whitespace-nowrap"
+            >
+              Explorar Coleção
+            </Link>
           </div>
         </div>
       </section>
@@ -406,9 +407,12 @@ export default async function Home() {
                 <span className="font-bold text-sm text-on-surface uppercase tracking-tight mb-1 truncate w-full">
                   {shop.tradeName ?? shop.name}
                 </span>
-                <span className="text-[10px] text-primary font-black uppercase tracking-widest">
-                  {shop._count.vehicles} anúncios
-                </span>
+                {(shop.city || shop.state) && (
+                  <span className="text-[11px] text-on-surface-variant flex items-center gap-1 justify-center">
+                    <Icon name="location_on" className="text-xs text-primary" />
+                    {[shop.city, shop.state].filter(Boolean).join(", ")}
+                  </span>
+                )}
               </Link>
             ))}
           </div>

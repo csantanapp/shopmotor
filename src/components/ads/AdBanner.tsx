@@ -22,11 +22,15 @@ export default function AdBanner({ slot, maxHeight = 90 }: { slot: string; maxHe
 
   const inner = (
     <div
-      className="w-full overflow-hidden rounded-xl relative flex items-center justify-center bg-surface-container"
-      style={{ maxHeight, height: maxHeight }}
+      className="w-full overflow-hidden rounded-xl relative bg-surface-container"
+      style={{ height: maxHeight }}
     >
       {ad.imageUrl ? (
-        <img src={ad.imageUrl} alt={ad.title ?? "Anúncio"} className="w-full h-full object-cover" />
+        <img
+          src={ad.imageUrl}
+          alt={ad.title ?? "Anúncio"}
+          style={{ width: "100%", height: "100%", display: "block", objectFit: "fill" }}
+        />
       ) : (
         <div className="w-full h-full flex items-center justify-center gap-4 px-6"
           style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)" }}>

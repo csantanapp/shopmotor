@@ -11,7 +11,7 @@ interface Ad {
 
 export default function TopBar() {
   const [ad, setAd] = useState<Ad | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed] = useState(false);
 
   useEffect(() => {
     fetch("/api/ads?slot=home_topbar")
@@ -49,13 +49,6 @@ export default function TopBar() {
         </div>
       )}
 
-      <button
-        onClick={() => setDismissed(true)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100 transition-opacity"
-        aria-label="Fechar"
-      >
-        <span style={{ color, fontSize: 16, lineHeight: 1 }}>✕</span>
-      </button>
     </div>
   );
 }

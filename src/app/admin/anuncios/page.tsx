@@ -4,16 +4,17 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Icon from "@/components/ui/Icon";
 
 const SLOTS = [
-  { value: "home_topbar",  label: "Home — Barra de aviso (topo)",   desc: "Faixa acima do menu, máx. 36px, com texto e cor personalizável. Possui botão de fechar." },
-  { value: "home_banner",  label: "Home — Banner acima dos anúncios", desc: "Banner full-width (máx. 90px) acima da grade de veículos na home." },
-  { value: "busca_banner", label: "Busca — Banner acima dos resultados", desc: "Banner full-width (máx. 90px) acima da lista de resultados na página de busca." },
-  { value: "busca_card",   label: "Busca — Card patrocinado na grade", desc: "Card na posição 9 da grade de resultados, visual idêntico ao card de veículo." },
+  { value: "home_topbar",  label: "Home — Barra de aviso (topo)",      desc: "Faixa acima do menu, fixada no topo do site.", dimensions: "Largura: 100% da tela · Altura: 40px (fixa)" },
+  { value: "home_banner",  label: "Home — Banner acima dos anúncios",  desc: "Banner exibido entre as categorias e a grade de veículos da home.", dimensions: "Largura: ~1500px (100% do container) · Altura: 350px" },
+  { value: "busca_banner", label: "Busca — Banner acima dos resultados", desc: "Banner no topo da coluna de resultados na página de busca.", dimensions: "Largura: ~1100px (coluna de resultados) · Altura: 350px" },
+  { value: "busca_card",   label: "Busca — Card patrocinado na grade", desc: "Card na posição 9 da grade de resultados, visual idêntico ao card de veículo.", dimensions: "Largura: ~280px (card padrão) · Altura: ~340px" },
+  { value: "home_popup",   label: "Home — Pop-up com temporizador",    desc: "Modal pop-up centralizado na home. Aparece após X segundos, uma vez por sessão.", dimensions: "Largura: 448px (max) · Altura: variável conforme conteúdo" },
 ];
 
 const EMPTY = {
   slot: "home_topbar", active: false,
   title: "", subtitle: "", imageUrl: "", linkUrl: "", linkLabel: "",
-  bgColor: "#e63946", textColor: "#ffffff",
+  bgColor: "#e63946", textColor: "#ffffff", popupDelay: 0,
 };
 
 function ImageUpload({ value, onChange, fixedHeight }: { value: string; onChange: (url: string) => void; fixedHeight?: number }) {
@@ -251,6 +252,12 @@ export default function AdminAnuncios() {
                   {SLOTS.map(s => <option key={s.value} value={s.value} className="bg-neutral-900">{s.label}</option>)}
                 </select>
                 <p className="text-xs text-neutral-600 mt-1">{slotMeta(form.slot)?.desc}</p>
+                {slotMeta(form.slot)?.dimensions && (
+                  <div className="mt-2 flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2">
+                    <span className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Medidas</span>
+                    <span className="text-[11px] text-primary-container font-bold">{slotMeta(form.slot)?.dimensions}</span>
+                  </div>
+                )}
               </div>
 
               {/* Title */}
@@ -315,6 +322,22 @@ export default function AdminAnuncios() {
                       <input className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none" value={form.textColor ?? "#ffffff"} onChange={e => setForm((f: any) => ({ ...f, textColor: e.target.value }))} />
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Popup delay (popup only) */}
+              {form.slot === "home_popup" && (
+                <div>
+                  <label className="block text-xs font-black text-neutral-400 uppercase tracking-widest mb-2">Delay de aparição (segundos)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-primary-container"
+                    placeholder="0"
+                    value={form.popupDelay ?? 0}
+                    onChange={e => setForm((f: any) => ({ ...f, popupDelay: Number(e.target.value) }))}
+                  />
+                  <p className="text-xs text-neutral-600 mt-1">0 = aparece imediatamente. O pop-up só é exibido uma vez por sessão.</p>
                 </div>
               )}
 

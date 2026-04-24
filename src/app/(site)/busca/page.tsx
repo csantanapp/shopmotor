@@ -438,7 +438,7 @@ function BuscaPageInner() {
 
         {/* Results */}
         <div className="flex-1 min-w-0 space-y-6">
-          <AdBanner slot="busca_banner" maxHeight={90} />
+          <AdBanner slot="busca_banner" maxHeight={350} />
           {fetching ? (
             <div className="flex items-center justify-center py-24">
               <span className="w-10 h-10 border-2 border-primary-container/30 border-t-primary-container rounded-full animate-spin" />
@@ -470,7 +470,7 @@ function BuscaPageInner() {
           ) : (
             <div className="space-y-4">
               {vehicles.slice(0, 8).map(v => <ListCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
-              {vehicles.length > 8 && <AdBanner slot="busca_banner" maxHeight={90} />}
+              {vehicles.length > 8 && <AdBanner slot="busca_banner" maxHeight={350} />}
               {vehicles.slice(8).map(v => <ListCard key={v.id} v={v} fav={favorites.includes(v.id)} onFav={() => toggleFav(v.id)} />)}
             </div>
           )}
