@@ -12,6 +12,7 @@ interface AuthUser {
   role: string;
   plan: string;
   accountType: string;
+  tradeName: string | null;
 }
 
 interface AuthContextValue {

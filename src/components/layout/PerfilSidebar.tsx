@@ -33,10 +33,10 @@ export default function PerfilSidebar() {
             </span>
           )}
         </div>
-        <div className="overflow-hidden">
-          <h3 className="text-neutral-900 font-bold leading-tight text-sm truncate">{user?.name ?? "..."}</h3>
+        <Link href="/perfil" className="overflow-hidden hover:opacity-80 transition-opacity">
+          <h3 className="text-neutral-900 font-bold leading-tight text-sm truncate">{user?.accountType === "PJ" ? (user.tradeName || user.name) : user?.name ?? "..."}</h3>
           <p className="text-xs text-neutral-500">{planLabel}</p>
-        </div>
+        </Link>
       </div>
 
       {/* Nav */}
