@@ -410,7 +410,7 @@ export default async function Home() {
             {[
               { icon: "tire_repair",    title: "Acessórios",    desc: "Personalize seu veículo com o que há de mais moderno em tecnologia e design.", highlight: false },
               { icon: "security",       title: "Simule Seguro", desc: "Proteção total para sua nova conquista com as melhores taxas do mercado.",    highlight: true  },
-              { icon: "account_balance", title: "Financiamento", desc: "Aprovação rápida e parcelas que cabem no seu planejamento financeiro.",      highlight: false },
+              { icon: "account_balance", title: "Financiamento", desc: "Aprovação rápida e parcelas que cabem no seu planejamento financeiro.", highlight: false, href: "/financiamento" },
             ].map((s) => (
               <div
                 key={s.title}
@@ -424,13 +424,19 @@ export default async function Home() {
                 <Icon name={s.icon} fill className="text-5xl text-primary mb-6 block" />
                 <h4 className="text-2xl font-black mb-3 uppercase">{s.title}</h4>
                 <p className="text-on-surface-variant mb-8 leading-relaxed text-sm">{s.desc}</p>
-                <button className={`w-full font-bold py-3 rounded-full transition-all uppercase text-sm tracking-widest ${
-                  s.highlight
-                    ? "bg-primary-container hover:bg-primary-fixed-dim"
-                    : "border border-outline/20 hover:bg-on-surface hover:text-white"
-                }`}>
-                  Saiba mais
-                </button>
+                {(s as any).href ? (
+                  <a href={(s as any).href} className={`block w-full text-center font-bold py-3 rounded-full transition-all uppercase text-sm tracking-widest border border-outline/20 hover:bg-on-surface hover:text-white`}>
+                    Simular agora
+                  </a>
+                ) : (
+                  <button className={`w-full font-bold py-3 rounded-full transition-all uppercase text-sm tracking-widest ${
+                    s.highlight
+                      ? "bg-primary-container hover:bg-primary-fixed-dim"
+                      : "border border-outline/20 hover:bg-on-surface hover:text-white"
+                  }`}>
+                    Saiba mais
+                  </button>
+                )}
               </div>
             ))}
           </div>
