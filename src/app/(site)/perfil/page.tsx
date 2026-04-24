@@ -97,20 +97,45 @@ export default function PerfilPage() {
         <div className="absolute -right-10 top-0 w-64 h-full bg-primary/10 -skew-x-12 pointer-events-none" />
       </div>
 
-      {/* Stats */}
-      {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-surface-container-lowest rounded-2xl p-6 animate-pulse h-24" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard icon="directions_car" label="Total de anúncios" value={stats?.total ?? 0} />
-          <StatCard icon="check_circle"   label="Anúncios ativos"   value={stats?.active ?? 0} color="text-green-600" />
-          <StatCard icon="visibility"     label="Visualizações"     value={stats?.totalViews ?? 0} />
-          <StatCard icon="sell"           label="Vendidos"          value={stats?.sold ?? 0} color="text-blue-600" />
-        </div>
+      {/* Stats — apenas para lojas (PJ) */}
+      {user?.accountType === "PJ" && (
+        loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-surface-container-lowest rounded-2xl p-6 animate-pulse h-24" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard icon="directions_car" label="Total de anúncios" value={stats?.total ?? 0} />
+            <StatCard icon="check_circle"   label="Anúncios ativos"   value={stats?.active ?? 0} color="text-green-600" />
+            <StatCard icon="visibility"     label="Visualizações"     value={stats?.totalViews ?? 0} />
+            <StatCard icon="sell"           label="Vendidos"          value={stats?.sold ?? 0} color="text-blue-600" />
+          </div>
+        )
+      )}
+
+      {/* Resumo dos anúncios — PF: aparece aqui no lugar do dashboard */}
+      {user?.accountType !== "PJ" && stats && stats.total > 0 && (
+        <section className="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
+          <h2 className="text-base font-black uppercase tracking-tight text-on-surface mb-6">Resumo dos anúncios</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "Ativos",    value: stats.active, color: "bg-green-500" },
+              { label: "Rascunho",  value: stats.draft,  color: "bg-neutral-400" },
+              { label: "Pausados",  value: stats.paused, color: "bg-yellow-400" },
+              { label: "Vendidos",  value: stats.sold,   color: "bg-blue-500" },
+            ].map(s => (
+              <div key={s.label} className="flex items-center gap-3">
+                <div className={`w-2 h-8 rounded-full ${s.color}`} />
+                <div>
+                  <p className="text-2xl font-black text-on-surface">{s.value}</p>
+                  <p className="text-xs text-on-surface-variant font-medium">{s.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Quick actions */}
@@ -193,8 +218,8 @@ export default function PerfilPage() {
         )}
       </section>
 
-      {/* Status breakdown */}
-      {stats && stats.total > 0 && (
+      {/* Resumo dos anúncios — PJ: aparece também no final com mais contexto */}
+      {user?.accountType === "PJ" && stats && stats.total > 0 && (
         <section className="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
           <h2 className="text-base font-black uppercase tracking-tight text-on-surface mb-6">Resumo dos anúncios</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
