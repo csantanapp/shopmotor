@@ -26,7 +26,7 @@ const PLANS: {
   tagline: string;
   icon: string;
   price: number;
-  installments: number;
+  perDay: string;
   days: number;
   highlight?: boolean;
   borderClass: string;
@@ -41,7 +41,7 @@ const PLANS: {
     tagline: "Comece a se destacar",
     icon: "trending_up",
     price: 17.90,
-    installments: 3,
+    perDay: "2,55",
     days: 7,
     borderClass: "border-outline/20",
     badgeClass: "bg-surface-container text-on-surface",
@@ -62,7 +62,7 @@ const PLANS: {
     tagline: "Mais popular",
     icon: "rocket_launch",
     price: 27.90,
-    installments: 3,
+    perDay: "1,86",
     days: 15,
     highlight: true,
     borderClass: "border-primary-container",
@@ -84,7 +84,7 @@ const PLANS: {
     tagline: "Máxima visibilidade",
     icon: "stars",
     price: 47.90,
-    installments: 3,
+    perDay: "1,59",
     days: 30,
     borderClass: "border-inverse-surface",
     badgeClass: "bg-inverse-surface text-inverse-on-surface",
@@ -222,7 +222,7 @@ export default function ImpulsionarPage() {
                   <span className="text-3xl font-black text-on-surface">R$ {plan.price.toFixed(2).replace(".", ",")}</span>
                 </div>
                 <p className="text-xs text-on-surface-variant mt-0.5">
-                  ou {plan.installments}x de R$ {(plan.price / plan.installments).toFixed(2).replace(".", ",")} • {plan.days} dias
+                  Apenas R$ {plan.perDay} por dia • {plan.days} dias
                 </p>
               </div>
 
@@ -262,7 +262,7 @@ export default function ImpulsionarPage() {
             <>
               <p className="font-black text-on-surface">Plano {selectedPlan?.name} selecionado</p>
               <p className="text-sm text-on-surface-variant">
-                R$ {selectedPlan?.price.toFixed(2).replace(".", ",")} · {selectedPlan?.days} dias · {selectedPlan?.installments}x de R$ {((selectedPlan?.price ?? 0) / (selectedPlan?.installments ?? 1)).toFixed(2).replace(".", ",")}
+                R$ {selectedPlan?.price.toFixed(2).replace(".", ",")} · {selectedPlan?.days} dias · R$ {selectedPlan?.perDay}/dia
               </p>
             </>
           ) : (
