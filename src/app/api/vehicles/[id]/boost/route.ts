@@ -4,28 +4,28 @@ import { getCurrentUser } from "@/lib/auth";
 
 /*
   Regras por plano:
-  PUSH     → boostLevel=DESTAQUE, selo 5d, galeria 3d, topo 5d
-  DESTAQUE → boostLevel=DESTAQUE, selo 7d, galeria 3d, topo 7d
-  ELITE    → boostLevel=ELITE,    selo 7d, galeria 7d, topo 7d
+  TURBO         → boostLevel=DESTAQUE,       selo 7d,  galeria 7d,  topo 7d   — R$ 17,90
+  DESTAQUE      → boostLevel=DESTAQUE,       selo 15d, galeria 15d, topo 15d  — R$ 27,90
+  SUPER_DESTAQUE→ boostLevel=SUPER_DESTAQUE, selo 30d, galeria 30d, topo 30d  — R$ 47,90
 */
 const PLAN_RULES = {
-  PUSH: {
+  TURBO: {
     boostLevel: "DESTAQUE" as const,
-    badgeDays:   5,
-    galleryDays: 3,
-    topDays:     5,
-  },
-  DESTAQUE: {
-    boostLevel: "DESTAQUE" as const,
-    badgeDays:   7,
-    galleryDays: 3,
-    topDays:     7,
-  },
-  ELITE: {
-    boostLevel: "ELITE" as const,
     badgeDays:   7,
     galleryDays: 7,
     topDays:     7,
+  },
+  DESTAQUE: {
+    boostLevel: "DESTAQUE" as const,
+    badgeDays:   15,
+    galleryDays: 15,
+    topDays:     15,
+  },
+  SUPER_DESTAQUE: {
+    boostLevel: "ELITE" as const,
+    badgeDays:   30,
+    galleryDays: 30,
+    topDays:     30,
   },
 } as const;
 
