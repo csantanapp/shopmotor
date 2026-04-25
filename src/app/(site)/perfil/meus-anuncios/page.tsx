@@ -16,6 +16,7 @@ interface Vehicle {
   status: "DRAFT" | "ACTIVE" | "PAUSED" | "SOLD" | "EXPIRED";
   boostLevel: "NONE" | "DESTAQUE" | "ELITE";
   expiresAt: string | null;
+  renewalCount: number;
   views: number;
   city: string;
   state: string;
@@ -97,16 +98,14 @@ export default function MeusAnunciosPage() {
   }
 
   async function renewVehicle(id: string) {
-    setVehicles(prev => prev.map(v => v.id === id ? { ...v, status: "ACTIVE" } : v));
     try {
-      const res = await fetch(`/api/vehicles/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "ACTIVE" }),
-      });
-      if (!res.ok) load();
-      else load();
-    } catch { load(); }
+      const res = await fetch(`/api/vehicles/${id}/renew`, { method: "POST" });
+      if (res.ok) load();
+      else {
+        const d = await res.json();
+        alert(d.error ?? "Não foi possível renovar o anúncio.");
+      }
+    } catch { alert("Erro de conexão. Tente novamente."); }
   }
 
   async function deleteVehicle(id: string) {
@@ -272,10 +271,12 @@ export default function MeusAnunciosPage() {
                         <Icon name="open_in_new" className="text-lg" />
                       </Link>
 
-                      {/* Editar */}
-                      <Link href={`/perfil/editar/${v.id}`} className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant" aria-label="Editar anúncio">
-                        <Icon name="edit" className="text-lg" />
-                      </Link>
+                      {/* Editar — bloqueado após 2 renovações expiradas */}
+                      {!(v.status === "EXPIRED" && v.renewalCount >= 2) && (
+                        <Link href={`/perfil/editar/${v.id}`} className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant" aria-label="Editar anúncio">
+                          <Icon name="edit" className="text-lg" />
+                        </Link>
+                      )}
 
                       {/* Publicar rascunho */}
                       {v.status === "DRAFT" && (
@@ -288,15 +289,24 @@ export default function MeusAnunciosPage() {
                         </button>
                       )}
 
-                      {/* Renovar */}
-                      {v.status === "EXPIRED" && (
+                      {/* Renovar / Impulsionar (expirado) */}
+                      {v.status === "EXPIRED" && v.renewalCount < 2 && (
                         <button
                           onClick={() => renewVehicle(v.id)}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
                         >
                           <Icon name="refresh" className="text-sm" />
-                          Renovar
+                          Renovar {v.renewalCount === 1 ? "(último período)" : ""}
                         </button>
+                      )}
+                      {v.status === "EXPIRED" && v.renewalCount >= 2 && (
+                        <Link
+                          href={`/perfil/impulsionar/${v.id}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500 text-white text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
+                        >
+                          <Icon name="rocket_launch" className="text-sm" />
+                          Impulsionar para reativar
+                        </Link>
                       )}
 
                       {/* Marcar como Vendido */}

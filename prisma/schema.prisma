@@ -120,6 +120,7 @@ model Vehicle {
   boostPlan         BoostPlan        @default(NONE)
   boostTopUntil     DateTime?
   expiresAt         DateTime?
+  renewalCount      Int              @default(0)
   conversations     Conversation[]
   favorites         Favorite[]
   payments          Payment[]

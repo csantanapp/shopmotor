@@ -140,6 +140,7 @@ export async function POST(req: NextRequest) {
 
   // Limite por tipo de conta + assinatura de loja
   const u = user as any;
+  // PF: 3 grátis / PREMIUM: 20. PJ: 20 base + bônus do plano de loja
   let limit = u.accountType === "PJ" ? 20 : user.plan === "PREMIUM" ? 20 : 3;
   if (u.accountType === "PJ") {
     const now = new Date();
@@ -150,7 +151,8 @@ export async function POST(req: NextRequest) {
     if (activeSub) {
       const { STORE_PLANS } = await import("@/lib/store-plans");
       const planConfig = STORE_PLANS[activeSub.plan as keyof typeof STORE_PLANS];
-      if (planConfig) limit = planConfig.anunciosTotal;
+      // 20 base + extras do plano (STARTER+5, PRO+15, ELITE+30)
+      if (planConfig) limit = 20 + planConfig.anunciosExtras;
     }
   }
   const activeCount = await prisma.vehicle.count({
@@ -192,6 +194,8 @@ export async function POST(req: NextRequest) {
         vehicleType:  body.vehicleType  ?? "CAR",
         motoType:     body.motoType     || null,
         cylindercc:   body.cylindercc   ? Number(body.cylindercc) : null,
+        expiresAt:    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        renewalCount: 0,
         fipeBrandCode: body.fipeBrandCode ?? null,
         fipeModelCode: body.fipeModelCode ?? null,
         fipeYearCode:  body.fipeYearCode  ?? null,
