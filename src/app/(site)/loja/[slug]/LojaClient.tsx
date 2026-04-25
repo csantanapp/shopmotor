@@ -21,7 +21,10 @@ interface Vehicle {
   id: string; brand: string; model: string; version: string | null;
   yearFab: number; yearModel: number; km: number; price: number;
   city: string; state: string; condition: string;
+  fuel: string; transmission: string; color: string;
+  armored: boolean; auction: boolean; vehicleType: string;
   previousPrice: number | null; fipePrice: number | null;
+  boostLevel: string;
   photos: { url: string }[];
 }
 
@@ -46,6 +49,11 @@ const brandOptions = [
   "Mitsubishi","Nissan","Omoda","Peugeot","Porsche","RAM","Renault","Riddara","Rolls-Royce",
   "Shineray","Tesla","Toyota","Volkswagen","Volvo","Zeekr","Outros",
 ];
+const fuelOptions         = ["Todos","Flex","Gasolina","Diesel","Elétrico","Híbrido","GNV"];
+const bodyOptions         = ["Todos","Hatch","Sedã","SUV","Picape","Minivan","Esportivo","Conversível"];
+const motoTypeOptions     = ["Todos","Street","Naked","Esportiva","Trail/Adventure","Custom/Cruiser","Scooter","Enduro/Motocross","Touring"];
+const transmissionOptions = ["Todos","Automático","Manual","CVT","Automatizado"];
+const colorOptions        = ["Todas","Branco","Preto","Prata","Cinza","Vermelho","Azul","Verde","Amarelo","Laranja","Marrom","Bege","Dourado","Outro"];
 
 const CURRENT_YEAR = new Date().getFullYear();
 const selectCls = "w-full bg-surface-container-low border-0 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-primary-container outline-none";
@@ -58,19 +66,25 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  // Filtros
-  const [search, setSearch]           = useState("");
-  const [brand, setBrand]             = useState("Todas");
-  const [condition, setCondition]     = useState("Todos");
-  const [vehicleType, setVehicleType] = useState("Todos");
-  const [priceMin, setPriceMin]       = useState("");
-  const [priceMax, setPriceMax]       = useState("");
-  const [kmMin, setKmMin]             = useState("");
-  const [kmMax, setKmMax]             = useState("");
-  const [yearMin, setYearMin]         = useState("");
-  const [yearMax, setYearMax]         = useState("");
-  const [sort, setSort]               = useState("createdAt_desc");
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [search, setSearch]                   = useState("");
+  const [brand, setBrand]                     = useState("Todas");
+  const [fuel, setFuel]                       = useState("Todos");
+  const [body, setBody]                       = useState("Todos");
+  const [transmission, setTransmission]       = useState("Todos");
+  const [color, setColor]                     = useState("Todas");
+  const [condition, setCondition]             = useState("Todos");
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState("Todos");
+  const [motoType, setMotoType]               = useState("Todos");
+  const [priceMin, setPriceMin]               = useState("");
+  const [priceMax, setPriceMax]               = useState("");
+  const [kmMin, setKmMin]                     = useState("");
+  const [kmMax, setKmMax]                     = useState("");
+  const [yearMin, setYearMin]                 = useState("");
+  const [yearMax, setYearMax]                 = useState("");
+  const [armored, setArmored]                 = useState(false);
+  const [auction, setAuction]                 = useState(false);
+  const [sort, setSort]                       = useState("createdAt_desc");
+  const [filtersOpen, setFiltersOpen]         = useState(false);
 
   useEffect(() => {
     fetch(`/api/loja/${slug}`).then(async r => {
@@ -93,9 +107,7 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
       <Icon name="store_off" className="text-6xl text-outline" />
       <h1 className="text-2xl font-black text-on-surface">Loja não encontrada</h1>
       <p className="text-on-surface-variant text-sm">Esta loja pode ter sido removida ou o link está incorreto.</p>
-      <Link href="/busca" className="bg-primary-container text-on-primary-container font-black px-8 py-3 rounded-full text-sm uppercase tracking-widest">
-        Ver veículos
-      </Link>
+      <Link href="/busca" className="bg-primary-container text-on-primary-container font-black px-8 py-3 rounded-full text-sm uppercase tracking-widest">Ver veículos</Link>
     </div>
   );
 
@@ -105,26 +117,36 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
   const socialLinks = store.social ? SOCIAL_ICONS.filter(s => store.social![s.key]) : [];
 
   const resetFilters = () => {
-    setBrand("Todas"); setCondition("Todos"); setVehicleType("Todos");
-    setPriceMin(""); setPriceMax(""); setKmMin(""); setKmMax(""); setYearMin(""); setYearMax(""); setSearch("");
+    setBrand("Todas"); setFuel("Todos"); setBody("Todos"); setTransmission("Todos");
+    setColor("Todas"); setCondition("Todos"); setVehicleTypeFilter("Todos"); setMotoType("Todos");
+    setPriceMin(""); setPriceMax(""); setKmMin(""); setKmMax(""); setYearMin(""); setYearMax("");
+    setArmored(false); setAuction(false); setSearch("");
   };
 
   const activeFiltersCount = [
-    brand !== "Todas", condition !== "Todos", vehicleType !== "Todos",
-    !!priceMin, !!priceMax, !!kmMin, !!kmMax, !!yearMin, !!yearMax,
+    brand !== "Todas", fuel !== "Todos", body !== "Todos", transmission !== "Todos",
+    color !== "Todas", condition !== "Todos", vehicleTypeFilter !== "Todos", motoType !== "Todos",
+    !!priceMin, !!priceMax, !!kmMin, !!kmMax, !!yearMin, !!yearMax, armored, auction,
   ].filter(Boolean).length;
 
   const filtered = vehicles.filter(v => {
     if (search && !`${v.brand} ${v.model} ${v.version ?? ""}`.toLowerCase().includes(search.toLowerCase())) return false;
     if (brand !== "Todas" && v.brand !== brand) return false;
+    if (fuel !== "Todos" && v.fuel !== fuel) return false;
+    if (transmission !== "Todos" && v.transmission !== transmission) return false;
+    if (color !== "Todas" && v.color !== color) return false;
     if (condition === "Novo"  && v.condition !== "NEW")  return false;
     if (condition === "Usado" && v.condition !== "USED") return false;
+    if (vehicleTypeFilter === "CAR"  && v.vehicleType !== "CAR")  return false;
+    if (vehicleTypeFilter === "MOTO" && v.vehicleType !== "MOTO") return false;
     if (priceMin && v.price < Number(priceMin.replace(/\D/g, ""))) return false;
     if (priceMax && v.price > Number(priceMax.replace(/\D/g, ""))) return false;
     if (kmMin && v.km < Number(kmMin.replace(/\D/g, ""))) return false;
     if (kmMax && v.km > Number(kmMax.replace(/\D/g, ""))) return false;
     if (yearMin && v.yearModel < Number(yearMin)) return false;
     if (yearMax && v.yearModel > Number(yearMax)) return false;
+    if (armored && !v.armored) return false;
+    if (auction && !v.auction) return false;
     return true;
   }).sort((a, b) => {
     if (sort === "price_asc")  return a.price - b.price;
@@ -137,11 +159,8 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
     <div className="space-y-5">
       <div className="relative">
         <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg" />
-        <input
-          value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Marca, modelo..."
-          className="w-full pl-10 pr-4 py-3 bg-surface-container-lowest border-0 rounded-xl text-sm shadow-sm focus:ring-2 focus:ring-primary-container outline-none"
-        />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Marca, modelo..."
+          className="w-full pl-10 pr-4 py-3 bg-surface-container-lowest border-0 rounded-xl text-sm shadow-sm focus:ring-2 focus:ring-primary-container outline-none" />
       </div>
 
       <div className="bg-surface-container-lowest rounded-2xl shadow-sm p-5 space-y-5">
@@ -158,8 +177,8 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
           <div className="flex gap-2">
             {[{ value: "CAR", label: "Carros", icon: "directions_car" }, { value: "MOTO", label: "Motos", icon: "two_wheeler" }].map(opt => (
               <button key={opt.value}
-                onClick={() => setVehicleType(v => v === opt.value ? "Todos" : opt.value)}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${vehicleType === opt.value ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container"}`}>
+                onClick={() => setVehicleTypeFilter(v => v === opt.value ? "Todos" : opt.value)}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${vehicleTypeFilter === opt.value ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container"}`}>
                 <Icon name={opt.icon} className="text-base" />{opt.label}
               </button>
             ))}
@@ -200,6 +219,53 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
             <input value={kmMax} onChange={e => setKmMax(e.target.value)} placeholder="KM máx." className={inputCls} />
           </div>
         </FilterSection>
+
+        {vehicleTypeFilter !== "MOTO" && (
+          <FilterSection label="Carroceria">
+            <div className="flex flex-wrap gap-1.5">
+              {bodyOptions.map(b => <ChipBtn key={b} label={b} active={body === b} onClick={() => setBody(b)} />)}
+            </div>
+          </FilterSection>
+        )}
+
+        {vehicleTypeFilter === "MOTO" && (
+          <FilterSection label="Tipo de moto">
+            <div className="flex flex-wrap gap-1.5">
+              {motoTypeOptions.map(t => <ChipBtn key={t} label={t} active={motoType === t} onClick={() => setMotoType(t)} />)}
+            </div>
+          </FilterSection>
+        )}
+
+        <FilterSection label="Combustível">
+          <div className="flex flex-wrap gap-1.5">
+            {fuelOptions.map(f => <ChipBtn key={f} label={f} active={fuel === f} onClick={() => setFuel(f)} />)}
+          </div>
+        </FilterSection>
+
+        <FilterSection label="Câmbio">
+          <div className="flex flex-wrap gap-1.5">
+            {transmissionOptions.map(t => <ChipBtn key={t} label={t} active={transmission === t} onClick={() => setTransmission(t)} />)}
+          </div>
+        </FilterSection>
+
+        <FilterSection label="Cor">
+          <select value={color} onChange={e => setColor(e.target.value)} className={selectCls}>
+            {colorOptions.map(c => <option key={c}>{c}</option>)}
+          </select>
+        </FilterSection>
+
+        <FilterSection label="Outras opções">
+          <div className="space-y-2">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={armored} onChange={e => setArmored(e.target.checked)} className="w-4 h-4 accent-yellow-500 rounded" />
+              <span className="text-sm font-semibold text-on-surface">Blindado</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={auction} onChange={e => setAuction(e.target.checked)} className="w-4 h-4 accent-yellow-500 rounded" />
+              <span className="text-sm font-semibold text-on-surface">Leilão</span>
+            </label>
+          </div>
+        </FilterSection>
       </div>
     </div>
   );
@@ -211,24 +277,20 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
       <div className="relative bg-zinc-900 overflow-hidden">
         <div className="absolute inset-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDehxNs9I9ak52LfvX_Zc3BVGNcPeZ1FnK3XDjiLtGXZpa8_S7fs9ePvOMwHIMiWFG1MPgWz_J1MhDiXcMV3kWnIN33Y1Ax_jyj6riWUhcLHJFWN2upxKz16lyPpVDyryAsfcodfBkdqXYPgR-GSTeLhBIGITS1-SjCZKAyMu_7hWkDEJFVxesHEpPQXR7YwOEozTX6cZxyBvPl78nytBKtX_iQcHHyN5V6epMv-4viGLiRp8Bj5gkmWv064nm8rRhpNpvZNuqVXsI"
-            alt="" className="w-full h-full object-cover opacity-20 blur-[2px] scale-105"
-          />
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDehxNs9I9ak52LfvX_Zc3BVGNcPeZ1FnK3XDjiLtGXZpa8_S7fs9ePvOMwHIMiWFG1MPgWz_J1MhDiXcMV3kWnIN33Y1Ax_jyj6riWUhcLHJFWN2upxKz16lyPpVDyryAsfcodfBkdqXYPgR-GSTeLhBIGITS1-SjCZKAyMu_7hWkDEJFVxesHEpPQXR7YwOEozTX6cZxyBvPl78nytBKtX_iQcHHyN5V6epMv-4viGLiRp8Bj5gkmWv064nm8rRhpNpvZNuqVXsI"
+            alt="" className="w-full h-full object-cover opacity-20 blur-[2px] scale-105" />
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/60 via-zinc-900/75 to-zinc-900" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
           <div className="flex flex-col md:flex-row md:items-center gap-8">
 
-            {/* ESQUERDA — logo + info */}
+            {/* ESQUERDA */}
             <div className="flex items-center gap-5 flex-1">
               <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-2 border-white/10 bg-white/10 overflow-hidden flex items-center justify-center shadow-2xl flex-shrink-0">
-                {store.avatarUrl ? (
-                  <img src={store.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-3xl font-black text-white">{displayName.charAt(0).toUpperCase()}</span>
-                )}
+                {store.avatarUrl
+                  ? <img src={store.avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  : <span className="text-3xl font-black text-white">{displayName.charAt(0).toUpperCase()}</span>}
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -238,16 +300,13 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
                     </span>
                   )}
                   {badge && (
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide ${badge.cls}`}>
-                      {badge.label}
-                    </span>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide ${badge.cls}`}>{badge.label}</span>
                   )}
                 </div>
                 <h1 className="text-2xl md:text-3xl font-black text-white leading-tight">{displayName}</h1>
                 {store.city && store.state && (
                   <div className="flex items-center gap-1 text-zinc-400 text-sm mt-1.5">
-                    <Icon name="location_on" className="text-sm text-zinc-500" />
-                    {store.city}, {store.state}
+                    <Icon name="location_on" className="text-sm text-zinc-500" />{store.city}, {store.state}
                   </div>
                 )}
                 {store.storeDescription && (
@@ -256,7 +315,7 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
               </div>
             </div>
 
-            {/* DIREITA — stats + CTAs */}
+            {/* DIREITA */}
             <div className="flex flex-col items-start md:items-end gap-4">
               <div className="flex items-center gap-6">
                 <div className="text-center">
@@ -269,11 +328,9 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
                   <p className="text-[11px] text-zinc-500 uppercase tracking-wider">Na ShopMotor</p>
                 </div>
               </div>
-
-              <div className="flex flex-wrap gap-3 justify-start md:justify-end">
+              <div className="flex flex-wrap gap-3">
                 {store.whatsapp && (
-                  <a
-                    href={`https://wa.me/55${store.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Vim pelo site Shopmotor e gostaria de informações sobre a loja e os carros.")}`}
+                  <a href={`https://wa.me/55${store.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Vim pelo site Shopmotor e gostaria de informações sobre a loja e os carros.")}`}
                     target="_blank" rel="noreferrer"
                     onClick={() => fetch(`/api/loja/${slug}/wa-click`, { method: "POST", headers: { "x-session-id": sessionStorage.getItem("sm_sid") ?? "" } }).catch(() => null)}
                     className="inline-flex items-center gap-2 bg-green-600 text-white font-black px-6 py-3 rounded-full text-sm hover:bg-green-500 transition-colors shadow-lg">
@@ -288,7 +345,6 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
                   </a>
                 )}
               </div>
-
               {socialLinks.length > 0 && (
                 <div className="flex items-center gap-2">
                   {socialLinks.map(s => store.social![s.key] && (
@@ -305,9 +361,9 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
         </div>
       </div>
 
-      {/* ── ESTOQUE + SIDEBAR ── */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+      {/* ── ESTOQUE ── */}
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Estoque</h2>
             <p className="text-on-surface-variant text-sm mt-0.5">{filtered.length} {filtered.length === 1 ? "veículo encontrado" : "veículos encontrados"}</p>
@@ -403,23 +459,35 @@ function ChipBtn({ label, active, onClick }: { label: string; active: boolean; o
 }
 
 function VehicleCard({ v }: { v: Vehicle }) {
-  const price  = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
-  const km     = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
-  const cover  = v.photos[0]?.url ?? null;
+  const price = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+  const km    = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
+  const cover = v.photos[0]?.url ?? null;
 
   return (
-    <div className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-md hover:-translate-y-0.5 transition-all">
+    <div className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm flex flex-col group relative hover:shadow-md hover:-translate-y-0.5 transition-all">
+      {v.boostLevel === "DESTAQUE" && (
+        <span className="absolute top-3 right-3 z-10 text-[10px] font-black uppercase tracking-widest bg-primary-container text-on-primary-container px-2 py-0.5 rounded-full">Destaque</span>
+      )}
+      {v.boostLevel === "ELITE" && (
+        <span className="absolute top-3 right-3 z-10 text-[10px] font-black uppercase tracking-widest bg-inverse-surface text-inverse-on-surface px-2 py-0.5 rounded-full flex items-center gap-1">
+          <Icon name="stars" className="text-yellow-400 text-[10px]" />Elite
+        </span>
+      )}
       <Link href={`/carro/${v.id}`} className="flex-1">
         <div className="h-44 overflow-hidden relative bg-surface-container">
-          {cover ? (
-            <img src={cover} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Icon name="directions_car" className="text-5xl text-outline" />
-            </div>
-          )}
+          {cover
+            ? <img src={cover} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            : <div className="w-full h-full flex items-center justify-center"><Icon name="directions_car" className="text-5xl text-outline" /></div>}
           {v.condition === "NEW" && (
             <div className="absolute top-3 left-3 bg-primary-container text-on-primary-container text-[10px] font-black px-2 py-1 uppercase rounded">0 km</div>
+          )}
+          {v.auction && (
+            <div className="absolute top-3 left-3 bg-error text-white text-[10px] font-black px-2 py-1 uppercase rounded">Leilão</div>
+          )}
+          {v.armored && (
+            <div className="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-black px-2 py-1 uppercase rounded flex items-center gap-1">
+              <Icon name="shield" className="text-xs" />Blindado
+            </div>
           )}
         </div>
         <div className="p-5">
