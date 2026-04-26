@@ -7,6 +7,12 @@ import Icon from "@/components/ui/Icon";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+interface FipeItem { code: string; name: string }
+
+function toTitleCase(s: string) {
+  return s.toLowerCase().replace(/(?:^|\s|-)\w/g, c => c.toUpperCase());
+}
+
 function formatCpf(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 11);
   return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
@@ -33,7 +39,6 @@ function formatCep(v: string) {
   return d.replace(/(\d{5})(\d{0,3})/, "$1-$2");
 }
 
-const ANOS = Array.from({ length: 30 }, (_, i) => String(new Date().getFullYear() + 1 - i));
 const CLASSE_BONUS = Array.from({ length: 10 }, (_, i) => String(i + 1));
 
 // ── Componentes base ──────────────────────────────────────────────────────────
@@ -48,15 +53,13 @@ function Field({ label, children, hint }: { label: string; children: React.React
   );
 }
 
-const inputCls = "w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all bg-surface";
+const inputCls = "w-full border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all bg-surface disabled:opacity-50 disabled:cursor-not-allowed";
+const selectCls = inputCls;
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className="flex items-center justify-between w-full py-3 border-b border-outline-variant/30 last:border-0"
-    >
+    <button type="button" onClick={() => onChange(!checked)}
+      className="flex items-center justify-between w-full py-3 border-b border-outline-variant/30 last:border-0">
       <span className="text-sm text-on-surface">{label}</span>
       <div className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${checked ? "bg-primary" : "bg-outline-variant"}`}>
         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${checked ? "translate-x-5" : ""}`} />
@@ -99,8 +102,7 @@ function Steps({ current }: { current: number }) {
   return (
     <div className="flex items-center justify-center gap-0 mb-10">
       {steps.map((label, i) => {
-        const done   = i < current;
-        const active = i === current;
+        const done = i < current, active = i === current;
         return (
           <div key={label} className="flex items-center">
             <div className="flex flex-col items-center">
@@ -123,7 +125,7 @@ function Steps({ current }: { current: number }) {
   );
 }
 
-// ── Sidebar vantagens ─────────────────────────────────────────────────────────
+// ── Sidebar ───────────────────────────────────────────────────────────────────
 
 function Sidebar() {
   return (
@@ -132,12 +134,12 @@ function Sidebar() {
         <p className="text-xs font-black text-primary uppercase tracking-widest mb-5">Por que ShopMotor Seguros?</p>
         <div className="space-y-4">
           {[
-            { icon: "compare_arrows", text: "Compare seguradoras lado a lado" },
-            { icon: "speed",          text: "Processo rápido e 100% online"   },
-            { icon: "lock",           text: "Dados protegidos com criptografia" },
-            { icon: "handshake",      text: "Sem compromisso de contratação"   },
-            { icon: "star",           text: "Corretoras parceiras certificadas" },
-            { icon: "support_agent",  text: "Consultores especializados"        },
+            { icon: "compare_arrows", text: "Compare seguradoras lado a lado"    },
+            { icon: "speed",          text: "Processo rápido e 100% online"      },
+            { icon: "lock",           text: "Dados protegidos com criptografia"  },
+            { icon: "handshake",      text: "Sem compromisso de contratação"     },
+            { icon: "star",           text: "Corretoras parceiras certificadas"  },
+            { icon: "support_agent",  text: "Consultores especializados"         },
           ].map(item => (
             <div key={item.text} className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-primary-container/20 flex items-center justify-center flex-shrink-0">
@@ -148,21 +150,25 @@ function Sidebar() {
           ))}
         </div>
         <div className="mt-7 pt-5 border-t border-outline-variant/40">
-          <p className="text-xs text-on-surface-variant/60 leading-relaxed">
-            Simulação gratuita · sem consulta ao SPC/Serasa · sem compromisso
-          </p>
+          <p className="text-xs text-on-surface-variant/60 leading-relaxed">Simulação gratuita · sem consulta ao SPC/Serasa · sem compromisso</p>
         </div>
       </div>
     </div>
   );
 }
 
+// ── Spinner inline ────────────────────────────────────────────────────────────
+
+function Spinner() {
+  return <span className="inline-block w-4 h-4 border-2 border-outline-variant border-t-primary rounded-full animate-spin" />;
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 function SegurosContent() {
-  const searchParams = useSearchParams();
-  const storeSlug  = searchParams.get("loja")    ?? undefined;
-  const vehicleId  = searchParams.get("veiculo") ?? undefined;
+  const searchParams  = useSearchParams();
+  const storeSlug     = searchParams.get("loja")    ?? undefined;
+  const vehicleId     = searchParams.get("veiculo") ?? undefined;
 
   const [step, setStep]         = useState(0);
   const [loading, setLoading]   = useState(false);
@@ -171,27 +177,64 @@ function SegurosContent() {
   const [tipoPessoa, setTipoPessoa] = useState<"pf" | "pj">("pf");
   const [faqOpen, setFaqOpen]   = useState<number | null>(null);
 
-  // Step 1
-  const [tipoVeiculo,   setTipoVeiculo]   = useState<"carro" | "moto">("carro");
-  const [zeroKm,        setZeroKm]        = useState<boolean | null>(null);
-  const [placa,         setPlaca]         = useState("");
-  const [ano,           setAno]           = useState("");
-  const [marca,         setMarca]         = useState("");
-  const [modelo,        setModelo]        = useState("");
-  const [versao,        setVersao]        = useState("");
-  const [usoComercial,  setUsoComercial]  = useState(false);
-  const [blindado,      setBlindado]      = useState(false);
-  const [kitGas,        setKitGas]        = useState(false);
+  // ── FIPE state ──────────────────────────────────────────────────────────────
+  const [tipoVeiculo, setTipoVeiculo] = useState<"carro" | "moto">("carro");
+  const fipeType = tipoVeiculo === "moto" ? "MOTO" : "CAR";
+
+  const [fipeBrands,     setFipeBrands]     = useState<FipeItem[]>([]);
+  const [fipeModels,     setFipeModels]     = useState<FipeItem[]>([]);
+  const [loadingBrands,  setLoadingBrands]  = useState(false);
+  const [loadingModels,  setLoadingModels]  = useState(false);
+
+  const [brandCode,  setBrandCode]  = useState("");
+  const [marcaNome,  setMarcaNome]  = useState("");
+  const [modelCode,  setModelCode]  = useState("");
+  const [modeloNome, setModeloNome] = useState("");
+
+  // Carrega marcas quando tipo muda
+  useEffect(() => {
+    setBrandCode(""); setMarcaNome(""); setModelCode(""); setModeloNome("");
+    setFipeBrands([]); setFipeModels([]);
+    setLoadingBrands(true);
+    fetch(`/api/fipe/brands?vehicleType=${fipeType}`)
+      .then(r => r.json())
+      .then(d => setFipeBrands(Array.isArray(d) ? d : []))
+      .finally(() => setLoadingBrands(false));
+  }, [fipeType]);
+
+  async function onBrandChange(code: string, name: string) {
+    setBrandCode(code); setMarcaNome(name);
+    setModelCode(""); setModeloNome("");
+    setFipeModels([]);
+    if (!code) return;
+    setLoadingModels(true);
+    const res  = await fetch(`/api/fipe/brands/${code}/models?vehicleType=${fipeType}`);
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.models ?? []);
+    setFipeModels(list.map((m: FipeItem) => ({ ...m, code: String(m.code) })));
+    setLoadingModels(false);
+  }
+
+  // ── Step 1 ──────────────────────────────────────────────────────────────────
+  const [zeroKm,         setZeroKm]         = useState<boolean | null>(null);
+  const [placa,          setPlaca]          = useState("");
+  const [ano,            setAno]            = useState("");
+  const [versao,         setVersao]         = useState("");
+  const [usoComercial,   setUsoComercial]   = useState(false);
+  const [blindado,       setBlindado]       = useState(false);
+  const [kitGas,         setKitGas]         = useState(false);
   const [beneficioFiscal, setBeneficioFiscal] = useState(false);
 
-  // Step 2
-  const [cep,              setCep]              = useState("");
-  const [condutorJovem,    setCondutorJovem]    = useState<boolean | null>(null);
-  const [possuiSeguro,     setPossuiSeguro]     = useState<boolean | null>(null);
-  const [classeBonus,      setClasseBonus]      = useState("");
-  const [vencimento,       setVencimento]       = useState("");
+  const ANOS = Array.from({ length: 30 }, (_, i) => String(new Date().getFullYear() + 1 - i));
 
-  // Step 3
+  // ── Step 2 ──────────────────────────────────────────────────────────────────
+  const [cep,            setCep]            = useState("");
+  const [condutorJovem,  setCondutorJovem]  = useState<boolean | null>(null);
+  const [possuiSeguro,   setPossuiSeguro]   = useState<boolean | null>(null);
+  const [classeBonus,    setClasseBonus]    = useState("");
+  const [vencimento,     setVencimento]     = useState("");
+
+  // ── Step 3 ──────────────────────────────────────────────────────────────────
   const [nomeSocial,    setNomeSocial]    = useState("");
   const [nome,          setNome]          = useState("");
   const [cpf,           setCpf]           = useState("");
@@ -204,17 +247,17 @@ function SegurosContent() {
   const [principalMotorista, setPrincipalMotorista] = useState(true);
   const [termos,        setTermos]        = useState(false);
 
-  const step1Valid = zeroKm !== null && ano && marca.trim() && modelo.trim();
+  // Validações
+  const step1Valid = zeroKm !== null && brandCode && modelCode && ano;
   const step2Valid = cep.length >= 9 && condutorJovem !== null && possuiSeguro !== null;
   const step3Valid = tipoPessoa === "pf"
     ? nome.trim() && cpf.length >= 14 && email.includes("@") && telefone.length >= 14 && termos
     : razaoSocial.trim() && cnpj.length >= 18 && email.includes("@") && telefone.length >= 14 && termos;
 
-  // Verifica se vencimento é futuro e abre modal
+  // Modal seguro vigente
   useEffect(() => {
     if (vencimento && possuiSeguro) {
-      const d = new Date(vencimento);
-      if (d > new Date()) setShowModal(true);
+      if (new Date(vencimento) > new Date()) setShowModal(true);
     }
   }, [vencimento, possuiSeguro]);
 
@@ -225,7 +268,9 @@ function SegurosContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tipoVeiculo, zeroKm, placa: placa || null, ano, marca, modelo, versao: versao || null,
+          tipoVeiculo, zeroKm, placa: placa || null,
+          ano, marca: toTitleCase(marcaNome), modelo: toTitleCase(modeloNome),
+          versao: versao || null,
           usoComercial, blindado, kitGas, beneficioFiscal,
           cep, condutorJovem, possuiSeguro,
           classeBonus: classeBonus || null, vencimentoSeguro: vencimento || null,
@@ -243,7 +288,7 @@ function SegurosContent() {
     setSubmitted(true);
   }
 
-  // ── Tela de carregamento / resultado ─────────────────────────────────────────
+  // ── Tela de sucesso ─────────────────────────────────────────────────────────
 
   if (submitted) {
     return (
@@ -291,7 +336,7 @@ function SegurosContent() {
     );
   }
 
-  // ── Modal seguro vigente ──────────────────────────────────────────────────────
+  // ── Modal ───────────────────────────────────────────────────────────────────
 
   const Modal = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -324,7 +369,7 @@ function SegurosContent() {
     <div className="min-h-screen bg-surface-container-low">
       {showModal && <Modal />}
 
-      {/* ── Hero ── */}
+      {/* Hero */}
       <div className="bg-inverse-surface text-white py-16 px-4 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5"
           style={{ backgroundImage: "repeating-linear-gradient(45deg,#C9A84C 0,#C9A84C 1px,transparent 0,transparent 50%)", backgroundSize: "20px 20px" }} />
@@ -347,11 +392,9 @@ function SegurosContent() {
         </div>
       </div>
 
-      {/* ── Formulário ── */}
+      {/* Formulário */}
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="flex gap-10 items-start">
-
-          {/* Form */}
           <div className="flex-1 min-w-0">
             <Steps current={step} />
 
@@ -378,21 +421,49 @@ function SegurosContent() {
                       value={placa} onChange={e => setPlaca(e.target.value.toUpperCase())} />
                   </Field>
 
+                  {/* Marca FIPE */}
+                  <Field label={loadingBrands ? "Carregando marcas..." : "Marca *"}>
+                    <div className="relative">
+                      <select className={selectCls} value={brandCode}
+                        disabled={loadingBrands || fipeBrands.length === 0}
+                        onChange={e => {
+                          const opt = fipeBrands.find(b => b.code === e.target.value);
+                          onBrandChange(e.target.value, opt?.name ?? "");
+                        }}>
+                        <option value="">{loadingBrands ? "Carregando..." : "Selecione a marca"}</option>
+                        {fipeBrands.map(b => (
+                          <option key={b.code} value={b.code}>{toTitleCase(b.name)}</option>
+                        ))}
+                      </select>
+                      {loadingBrands && <span className="absolute right-3 top-1/2 -translate-y-1/2"><Spinner /></span>}
+                    </div>
+                  </Field>
+
+                  {/* Modelo FIPE */}
+                  <Field label={loadingModels ? "Carregando modelos..." : "Modelo *"}>
+                    <div className="relative">
+                      <select className={selectCls} value={modelCode}
+                        disabled={!brandCode || loadingModels}
+                        onChange={e => {
+                          const opt = fipeModels.find(m => m.code === e.target.value);
+                          setModelCode(e.target.value);
+                          setModeloNome(opt?.name ?? "");
+                        }}>
+                        <option value="">{!brandCode ? "Selecione a marca primeiro" : loadingModels ? "Carregando..." : "Selecione o modelo"}</option>
+                        {fipeModels.map(m => (
+                          <option key={m.code} value={m.code}>{toTitleCase(m.name)}</option>
+                        ))}
+                      </select>
+                      {loadingModels && <span className="absolute right-3 top-1/2 -translate-y-1/2"><Spinner /></span>}
+                    </div>
+                  </Field>
+
                   <div className="grid grid-cols-2 gap-4">
-                    <Field label="Ano do modelo">
-                      <select className={inputCls} value={ano} onChange={e => setAno(e.target.value)}>
+                    <Field label="Ano do modelo *">
+                      <select className={selectCls} value={ano} onChange={e => setAno(e.target.value)}>
                         <option value="">Selecione</option>
                         {ANOS.map(a => <option key={a}>{a}</option>)}
                       </select>
-                    </Field>
-                    <Field label="Marca">
-                      <input className={inputCls} placeholder="Ex: Toyota" value={marca} onChange={e => setMarca(e.target.value)} />
-                    </Field>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label="Modelo">
-                      <input className={inputCls} placeholder="Ex: Corolla" value={modelo} onChange={e => setModelo(e.target.value)} />
                     </Field>
                     <Field label="Versão">
                       <input className={inputCls} placeholder="Ex: XEi 2.0" value={versao} onChange={e => setVersao(e.target.value)} />
@@ -401,9 +472,9 @@ function SegurosContent() {
 
                   <div className="border border-outline-variant/40 rounded-2xl p-4">
                     <p className="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-3">Detalhes do veículo</p>
-                    <Toggle label="Uso comercial?"    checked={usoComercial}   onChange={setUsoComercial}   />
-                    <Toggle label="Possui blindagem?" checked={blindado}       onChange={setBlindado}       />
-                    <Toggle label="Kit gás?"          checked={kitGas}         onChange={setKitGas}         />
+                    <Toggle label="Uso comercial?"    checked={usoComercial}    onChange={setUsoComercial}    />
+                    <Toggle label="Possui blindagem?" checked={blindado}        onChange={setBlindado}        />
+                    <Toggle label="Kit gás?"          checked={kitGas}          onChange={setKitGas}          />
                     <Toggle label="Benefício fiscal?" checked={beneficioFiscal} onChange={setBeneficioFiscal} />
                   </div>
                 </div>
@@ -422,25 +493,24 @@ function SegurosContent() {
                 <p className="text-sm text-on-surface-variant mb-7">Essas informações impactam diretamente o valor do seguro.</p>
 
                 <div className="space-y-6">
-                  <Field label="CEP onde o veículo pernoita">
+                  <Field label="CEP onde o veículo pernoita *">
                     <input className={inputCls} placeholder="00000-000" inputMode="numeric"
                       value={cep} onChange={e => setCep(formatCep(e.target.value))} />
                   </Field>
 
-                  <Field label="Algum motorista entre 18 e 25 anos mora com você?">
+                  <Field label="Algum motorista entre 18 e 25 anos mora com você? *">
                     <YesNo value={condutorJovem} onChange={setCondutorJovem} />
                   </Field>
 
                   <div className="border border-outline-variant/40 rounded-2xl p-5">
                     <p className="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-4">Seguro atual</p>
-                    <Field label="Já possui seguro?">
+                    <Field label="Já possui seguro? *">
                       <YesNo value={possuiSeguro} onChange={setPossuiSeguro} />
                     </Field>
-
                     {possuiSeguro && (
                       <div className="mt-5 space-y-4">
                         <Field label="Classe de bônus">
-                          <select className={inputCls} value={classeBonus} onChange={e => setClasseBonus(e.target.value)}>
+                          <select className={selectCls} value={classeBonus} onChange={e => setClasseBonus(e.target.value)}>
                             <option value="">Selecione</option>
                             {CLASSE_BONUS.map(c => <option key={c} value={c}>Classe {c}</option>)}
                           </select>
@@ -472,7 +542,6 @@ function SegurosContent() {
                 <h2 className="text-xl font-black text-on-surface mb-1">Sobre você</h2>
                 <p className="text-sm text-on-surface-variant mb-7">Seus dados são usados apenas para enviar as propostas.</p>
 
-                {/* Toggle PF / PJ */}
                 <div className="flex gap-1 mb-7 bg-surface-container rounded-2xl p-1">
                   {(["pf", "pj"] as const).map(t => (
                     <button key={t} type="button" onClick={() => setTipoPessoa(t)}
@@ -529,13 +598,9 @@ function SegurosContent() {
                       value={telefone} onChange={e => setTelefone(formatPhone(e.target.value))} />
                   </Field>
 
-                  <Toggle
-                    label="Você é o principal motorista do veículo?"
-                    checked={principalMotorista}
-                    onChange={setPrincipalMotorista}
-                  />
+                  <Toggle label="Você é o principal motorista do veículo?" checked={principalMotorista} onChange={setPrincipalMotorista} />
 
-                  <label className="flex items-start gap-3 cursor-pointer group">
+                  <label className="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" checked={termos} onChange={e => setTermos(e.target.checked)}
                       className="mt-0.5 w-4 h-4 rounded border-outline-variant accent-primary flex-shrink-0 cursor-pointer" />
                     <span className="text-sm text-on-surface-variant leading-relaxed">
@@ -563,12 +628,11 @@ function SegurosContent() {
             )}
           </div>
 
-          {/* Sidebar */}
           <Sidebar />
         </div>
       </div>
 
-      {/* ── Seguradoras parceiras ── */}
+      {/* Seguradoras */}
       <div className="bg-surface border-t border-outline-variant/40 py-12 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-6">Trabalhamos com as principais seguradoras</p>
@@ -580,7 +644,7 @@ function SegurosContent() {
         </div>
       </div>
 
-      {/* ── Vantagens ── */}
+      {/* Vantagens */}
       <div className="bg-surface-container-low border-t border-outline-variant/40 py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
@@ -589,10 +653,10 @@ function SegurosContent() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: "compare_arrows", title: "Compare propostas",    desc: "Receba ofertas de múltiplas seguradoras e escolha a melhor para você."  },
-              { icon: "speed",          title: "Processo rápido",      desc: "Preencha em minutos e receba retorno de um especialista em breve."       },
-              { icon: "lock",           title: "Dados protegidos",     desc: "Suas informações são tratadas com total sigilo e segurança (LGPD)."      },
-              { icon: "handshake",      title: "Sem compromisso",      desc: "Você recebe as propostas e decide se quer contratar ou não."             },
+              { icon: "compare_arrows", title: "Compare propostas", desc: "Receba ofertas de múltiplas seguradoras e escolha a melhor para você."  },
+              { icon: "speed",          title: "Processo rápido",   desc: "Preencha em minutos e receba retorno de um especialista em breve."       },
+              { icon: "lock",           title: "Dados protegidos",  desc: "Suas informações são tratadas com total sigilo e segurança (LGPD)."      },
+              { icon: "handshake",      title: "Sem compromisso",   desc: "Você recebe as propostas e decide se quer contratar ou não."             },
             ].map(v => (
               <div key={v.title} className="text-center p-6 rounded-2xl bg-surface-container-lowest border border-outline-variant/40 shadow-sm">
                 <div className="w-12 h-12 bg-primary-container/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -606,21 +670,20 @@ function SegurosContent() {
         </div>
       </div>
 
-      {/* ── FAQ ── */}
+      {/* FAQ */}
       <div className="bg-surface border-t border-outline-variant/40 py-16 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-black text-on-surface mb-2">Perguntas frequentes</h2>
-            <p className="text-on-surface-variant text-sm">Tudo que você precisa saber sobre seguro auto.</p>
           </div>
           <div className="space-y-3">
             {[
-              { q: "A simulação tem algum custo?",             a: "Não. A simulação é totalmente gratuita e sem compromisso de contratação." },
-              { q: "A simulação consulta SPC ou Serasa?",      a: "Não. Apenas coletamos seus dados para conectar você com corretoras parceiras. Nenhuma consulta de crédito é realizada." },
-              { q: "Quanto tempo para receber as propostas?",  a: "Um consultor especializado entrará em contato em até 1 dia útil com as melhores opções para o seu perfil." },
-              { q: "Posso cotar para moto também?",            a: "Sim! Nossa simulação atende tanto carros quanto motos." },
-              { q: "Meus dados ficam seguros?",                a: "Sim. Todos os dados são tratados conforme a LGPD e utilizados exclusivamente para envio das propostas de seguro." },
-              { q: "Posso cancelar meu seguro atual?",         a: "Nossa equipe pode orientar sobre portabilidade ou cancelamento. Fale com um consultor após receber as propostas." },
+              { q: "A simulação tem algum custo?",            a: "Não. A simulação é totalmente gratuita e sem compromisso de contratação." },
+              { q: "A simulação consulta SPC ou Serasa?",     a: "Não. Apenas coletamos seus dados para conectar você com corretoras parceiras. Nenhuma consulta de crédito é realizada." },
+              { q: "Quanto tempo para receber as propostas?", a: "Um consultor especializado entrará em contato em até 1 dia útil com as melhores opções para o seu perfil." },
+              { q: "Posso cotar para moto também?",           a: "Sim! Nossa simulação atende tanto carros quanto motos." },
+              { q: "Meus dados ficam seguros?",               a: "Sim. Todos os dados são tratados conforme a LGPD e utilizados exclusivamente para envio das propostas de seguro." },
+              { q: "Posso cancelar meu seguro atual?",        a: "Nossa equipe pode orientar sobre portabilidade ou cancelamento. Fale com um consultor após receber as propostas." },
             ].map((faq, i) => (
               <div key={i} className="border border-outline-variant/40 rounded-2xl overflow-hidden bg-surface-container-lowest">
                 <button onClick={() => setFaqOpen(faqOpen === i ? null : i)}
@@ -639,11 +702,11 @@ function SegurosContent() {
         </div>
       </div>
 
-      {/* ── CTA final ── */}
+      {/* CTA final */}
       <div className="bg-inverse-surface text-white py-16 px-4 text-center">
         <h2 className="text-3xl font-black mb-3">Pronto para proteger seu veículo?</h2>
         <p className="text-neutral-400 mb-8 max-w-md mx-auto text-sm">Faça sua simulação agora e receba propostas personalizadas sem compromisso.</p>
-        <button onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); }}
+        <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="bg-primary-container text-on-primary-container font-black px-10 py-4 rounded-full text-sm uppercase tracking-widest hover:-translate-y-0.5 transition-all">
           Simular agora — é grátis
         </button>
@@ -653,9 +716,5 @@ function SegurosContent() {
 }
 
 export default function SegurosPage() {
-  return (
-    <Suspense>
-      <SegurosContent />
-    </Suspense>
-  );
+  return <Suspense><SegurosContent /></Suspense>;
 }
