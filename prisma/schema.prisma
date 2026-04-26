@@ -401,3 +401,50 @@ model PageView {
   @@index([path])
   @@map("page_views")
 }
+
+model SeguroLead {
+  id               String   @id @default(cuid())
+  // Veículo
+  tipoVeiculo      String   // "carro" | "moto"
+  zeroKm           Boolean  @default(false)
+  placa            String?
+  ano              String
+  marca            String
+  modelo           String
+  versao           String?
+  usoComercial     Boolean  @default(false)
+  blindado         Boolean  @default(false)
+  kitGas           Boolean  @default(false)
+  beneficioFiscal  Boolean  @default(false)
+  // Uso
+  cep              String
+  condutorJovem    Boolean  @default(false)
+  possuiSeguro     Boolean  @default(false)
+  classeBonus      String?
+  vencimentoSeguro String?
+  // Pessoa
+  tipoPessoa       String   @default("pf") // "pf" | "pj"
+  nomeSocial       String?
+  nome             String
+  cpfCnpj          String
+  razaoSocial      String?
+  nomeFantasia     String?
+  nascimento       String?
+  email            String
+  telefone         String
+  principalMotorista Boolean @default(true)
+  // Meta
+  status           String   @default("novo") // "novo" | "contatado" | "convertido" | "descartado"
+  leadTipo         String   @default("comum") // "comum" | "lojista" | "premium"
+  storeSlug        String?
+  storeUserId      String?
+  vehicleId        String?
+  origem           String   @default("ShopMotor Seguro")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
+  @@map("seguro_leads")
+}

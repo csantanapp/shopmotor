@@ -17,6 +17,7 @@ const nav = [
   { href: "/admin/assinaturas", icon: "card_membership", label: "Assinaturas"     },
   { href: "/admin/seo",       icon: "travel_explore", label: "SEO"             },
   { href: "/admin/scripts",   icon: "code",           label: "Pixel & Scripts" },
+  { href: "/admin/seguros",  icon: "shield",         label: "Leads Seguro"    },
   { href: "/admin/lgpd",     icon: "gavel",          label: "LGPD"            },
 ];
 
