@@ -554,7 +554,7 @@ function FinanciamentoContent() {
             <div className="lg:w-80 flex-shrink-0">
               <div className="relative rounded-3xl overflow-hidden" style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.15)" }}>
                 <img
-                  src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=600&q=85"
+                  src="/images/img_financiamento_faq.webp"
                   alt="Casal feliz com chave do carro"
                   className="w-full object-cover"
                   style={{ height: 360 }}
