@@ -450,37 +450,13 @@ function FinanciamentoContent() {
             <div className="hidden lg:flex flex-col gap-4 w-[260px] flex-shrink-0 pt-[72px]">
               {/* Card consultor */}
               <div className="flex flex-col gap-4">
-                {/* Card escuro full-width + imagem sobreposta à direita */}
-                <div className="relative" style={{ height: 260 }}>
-                  {/* Card: ocupa toda a largura, texto apenas na metade esquerda */}
-                  <div className="absolute inset-x-0 bottom-0 rounded-3xl p-5"
-                    style={{ top: 20, background: "#1e2230", boxShadow: "0 8px 32px rgba(0,0,0,0.28)" }}>
-                    <div style={{ width: "52%" }}>
-                      <h3 className="text-white font-black text-sm leading-snug mb-2">
-                        Aqui você tem<br />mais vantagem!
-                      </h3>
-                      <p className="text-[11px] leading-relaxed mb-4" style={{ color: "#9ca3af" }}>
-                        Trabalhamos com as principais financeiras do país para garantir as melhores condições para você.
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                          style={{ borderColor: "#EAB308" }}>
-                          <Icon name="check" className="text-yellow-400 text-[9px]" />
-                        </div>
-                        <div className="flex-1 h-px" style={{ background: "rgba(234,179,8,0.35)" }} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Imagem sobreposta sobre a metade direita do card */}
-                  <div className="absolute top-0 right-0 bottom-0 pointer-events-none"
-                    style={{ width: "54%", zIndex: 10 }}>
-                    <img
-                      src="/images/consultor.png"
-                      alt="Especialista financeiro"
-                      className="w-full h-full object-contain object-bottom"
-                    />
-                  </div>
+                {/* Imagem consultor */}
+                <div className="rounded-3xl overflow-hidden" style={{ height: 320 }}>
+                  <img
+                    src="/images/consultor.webp"
+                    alt="Especialista financeiro"
+                    className="w-full h-full object-cover object-top"
+                  />
                 </div>
 
                 {/* Checklist abaixo do card */}
