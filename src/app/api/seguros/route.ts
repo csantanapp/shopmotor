@@ -1,9 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+async function getStorePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE" | null> {
+  const sub = await (prisma as any).storeSubscription.findFirst({
+    where: { userId, status: "active", endsAt: { gt: new Date() } },
+    select: { plan: true },
+  });
+  return sub?.plan ?? null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    let storeUserId: string | null = null;
+    let leadTipo = "comum";
+
+    if (body.storeSlug) {
+      const store = await (prisma as any).user.findFirst({ where: { storeSlug: body.storeSlug }, select: { id: true } });
+      storeUserId = store?.id ?? null;
+      if (storeUserId) {
+        const plan = await getStorePlan(storeUserId);
+        if (plan === "ELITE") {
+          leadTipo = "premium";
+        } else {
+          storeUserId = null;
+          leadTipo = "comum";
+        }
+      }
+    }
 
     const lead = await (prisma as any).seguroLead.create({
       data: {
@@ -33,9 +58,9 @@ export async function POST(req: NextRequest) {
         email:              body.email              ?? "",
         telefone:           body.telefone           ?? "",
         principalMotorista: body.principalMotorista ?? true,
-        leadTipo:           body.storeSlug ? "lojista" : "comum",
+        leadTipo,
         storeSlug:          body.storeSlug          || null,
-        storeUserId:        body.storeUserId        || null,
+        storeUserId,
         vehicleId:          body.vehicleId          || null,
       },
     });

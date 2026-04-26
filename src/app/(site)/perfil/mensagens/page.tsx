@@ -6,7 +6,7 @@ import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 
-interface ConvUser { id: string; name: string; avatarUrl: string | null; email: string; phone: string | null; sharePhone: boolean; }
+interface ConvUser { id: string; name: string; avatarUrl: string | null; email: string | null; phone: string | null; sharePhone: boolean; }
 interface Vehicle { id: string; brand: string; model: string; photos: { url: string }[]; }
 interface MsgSender { id: string; name: string; avatarUrl: string | null; }
 interface Message { id: string; text: string; senderId: string; createdAt: string; sender: MsgSender; }
@@ -40,10 +40,66 @@ function formatTime(iso: string) {
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
+// ── Componente de contato do comprador ───────────────────────────────────────
+
+function BuyerContact({ other, canSeeContact, isSeller, isPJ }: {
+  other: ConvUser;
+  canSeeContact: boolean;
+  isSeller: boolean;
+  isPJ: boolean;
+}) {
+  // Só lojistas PJ veem dados de contato (ou o aviso de bloqueio)
+  if (!isSeller || !isPJ) return null;
+
+  if (!canSeeContact) {
+    return (
+      <div className="flex items-center gap-1.5 mt-1 bg-surface-container rounded-lg px-3 py-1.5 w-fit">
+        <Icon name="lock" className="text-xs text-outline" />
+        <span className="text-[11px] text-outline">
+          E-mail e telefone disponíveis nos planos{" "}
+          <Link href="/planos" className="text-primary font-semibold underline underline-offset-2">PRO e ELITE</Link>
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+      {other.email && (
+        <a href={`mailto:${other.email}`}
+          className="text-[11px] text-on-surface-variant flex items-center gap-1 hover:text-primary transition-colors">
+          <Icon name="email" className="text-xs" />{other.email}
+        </a>
+      )}
+      {other.sharePhone && other.phone && (
+        <span className="flex items-center gap-1.5">
+          <span className="text-[11px] text-on-surface-variant flex items-center gap-1">
+            <Icon name="phone" className="text-xs" />{other.phone}
+          </span>
+          <a
+            href={`https://wa.me/55${other.phone.replace(/\D/g, "")}?text=Olá! Vi sua mensagem no ShopMotor sobre o veículo anunciado.`}
+            target="_blank"
+            title="Chamar no WhatsApp"
+            className="flex items-center justify-center w-6 h-6 rounded-full bg-green-500/15 hover:bg-green-500/30 transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-green-500">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.558 4.14 1.533 5.874L0 24l6.343-1.516A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.213-3.736.893.953-3.625-.235-.374A9.818 9.818 0 1112 21.818z"/>
+            </svg>
+          </a>
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── Página principal ──────────────────────────────────────────────────────────
+
 export default function MensagensPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [canSeeContact, setCanSeeContact] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -57,6 +113,8 @@ export default function MensagensPage() {
 
   const activeConv = conversations.find(c => c.id === activeId) ?? null;
   const other = activeConv ? (activeConv.buyer.id === user?.id ? activeConv.seller : activeConv.buyer) : null;
+  const isSeller = activeConv ? activeConv.seller.id === user?.id : false;
+  const isPJ = user?.accountType === "PJ";
 
   const activeIdRef = useRef<string | null>(null);
   activeIdRef.current = activeId;
@@ -67,6 +125,7 @@ export default function MensagensPage() {
       const d = await r.json();
       const convs: Conversation[] = d.conversations ?? [];
       setConversations(convs);
+      setCanSeeContact(d.canSeeContact ?? false);
       if (initial && convs.length > 0) setActiveId(convs[0].id);
     } catch (err) {
       console.error("[conversations]", err);
@@ -82,9 +141,7 @@ export default function MensagensPage() {
       const incoming: Message[] = d.messages ?? [];
       setMessages(prev => {
         if (silent && prev.length === incoming.length) return prev;
-        const shouldScroll = silent
-          ? incoming.length > prev.length
-          : true;
+        const shouldScroll = silent ? incoming.length > prev.length : true;
         if (shouldScroll) setTimeout(() => {
           const c = messagesContainerRef.current;
           if (c) c.scrollTop = c.scrollHeight;
@@ -96,7 +153,6 @@ export default function MensagensPage() {
     }
   }, []);
 
-  // Carga inicial
   useEffect(() => {
     if (authLoading || !user) return;
     fetchConversations(true);
@@ -168,7 +224,7 @@ export default function MensagensPage() {
             </div>
           ) : (
             conversations.map(conv => {
-              const other = conv.buyer.id === user?.id ? conv.seller : conv.buyer;
+              const convOther = conv.buyer.id === user?.id ? conv.seller : conv.buyer;
               const lastMsg = conv.messages[0];
               return (
                 <button
@@ -176,10 +232,10 @@ export default function MensagensPage() {
                   onClick={() => setActiveId(conv.id)}
                   className={`w-full flex items-start gap-3 px-4 py-4 text-left transition-colors border-b border-outline-variant/10 ${activeId === conv.id ? "bg-primary-container/15" : "hover:bg-surface-container"}`}
                 >
-                  <Avatar user={other} size={10} />
+                  <Avatar user={convOther} size={10} />
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-sm text-on-surface truncate">{other.name}</span>
+                      <span className="font-bold text-sm text-on-surface truncate">{convOther.name}</span>
                       {lastMsg && <span className="text-[10px] text-outline ml-2 flex-shrink-0">{formatTime(lastMsg.createdAt)}</span>}
                     </div>
                     <p className="text-[10px] text-primary font-semibold truncate">{conv.vehicle.brand} {conv.vehicle.model}</p>
@@ -203,16 +259,7 @@ export default function MensagensPage() {
               <Link href={`/carro/${activeConv.vehicle.id}`} className="text-[10px] text-primary font-semibold hover:underline block truncate">
                 {activeConv.vehicle.brand} {activeConv.vehicle.model}
               </Link>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
-                <span className="text-[11px] text-on-surface-variant flex items-center gap-1">
-                  <Icon name="email" className="text-xs" />{other.email}
-                </span>
-                {other.sharePhone && other.phone && (
-                  <span className="text-[11px] text-on-surface-variant flex items-center gap-1">
-                    <Icon name="phone" className="text-xs" />{other.phone}
-                  </span>
-                )}
-              </div>
+              <BuyerContact other={other} canSeeContact={canSeeContact} isSeller={isSeller} isPJ={isPJ} />
             </div>
           </div>
 

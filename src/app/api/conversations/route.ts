@@ -2,10 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
+// Retorna o plano ativo de um userId lojista (null se sem plano ativo)
+async function getActivePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE" | null> {
+  const sub = await (prisma as any).storeSubscription.findFirst({
+    where: { userId, status: "active", endsAt: { gt: new Date() } },
+    select: { plan: true },
+  });
+  return sub?.plan ?? null;
+}
+
+// Mascara email/phone para quem não tem plano PRO ou ELITE
+function maskContact(user: { id: string; name: string; avatarUrl: string | null; email: string; phone: string | null; sharePhone: boolean }, canSeeContact: boolean) {
+  if (canSeeContact) return user;
+  return { ...user, email: null, phone: null, sharePhone: false };
+}
+
 /* GET — lista conversas do usuário logado */
 export async function GET() {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser() as any;
     if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
     const conversations = await prisma.conversation.findMany({
@@ -13,13 +28,36 @@ export async function GET() {
       orderBy: { updatedAt: "desc" },
       include: {
         vehicle: { select: { id: true, brand: true, model: true, photos: { where: { isCover: true }, take: 1 } } },
-        buyer:  { select: { id: true, name: true, avatarUrl: true, email: true, phone: true, sharePhone: true } },
-        seller: { select: { id: true, name: true, avatarUrl: true, email: true, phone: true, sharePhone: true } },
+        buyer:   { select: { id: true, name: true, avatarUrl: true, email: true, phone: true, sharePhone: true } },
+        seller:  { select: { id: true, name: true, avatarUrl: true, email: true, phone: true, sharePhone: true } },
         messages: { orderBy: { createdAt: "desc" }, take: 1 },
       },
     });
 
-    return NextResponse.json({ conversations });
+    // Determina se o usuário logado (quando é vendedor/lojista PJ) pode ver contatos
+    // PRO e ELITE podem ver — STARTER e PF não
+    let canSeeContact = false;
+    if (user.accountType === "PJ") {
+      const plan = await getActivePlan(user.id);
+      canSeeContact = plan === "PRO" || plan === "ELITE";
+    }
+
+    // Aplica máscara: vendedor vê contato do comprador conforme plano
+    // Comprador sempre vê contato do vendedor normalmente
+    const masked = conversations.map(conv => {
+      const isSeller = conv.sellerId === user.id;
+      return {
+        ...conv,
+        // Vendedor: mascara buyer se não tem plano habilitado
+        // Comprador: vê seller sem restrição
+        buyer:  isSeller ? maskContact(conv.buyer as any, canSeeContact) : conv.buyer,
+        seller: conv.seller,
+        // Expõe o plano do vendedor para o frontend saber se deve exibir badge
+        sellerPlan: isSeller ? (canSeeContact ? "PRO_OR_ELITE" : "STARTER") : null,
+      };
+    });
+
+    return NextResponse.json({ conversations: masked, canSeeContact });
   } catch (err) {
     console.error("[GET /api/conversations]", err);
     return NextResponse.json({ error: "Erro interno.", detail: String(err) }, { status: 500 });
@@ -39,7 +77,6 @@ export async function POST(req: NextRequest) {
 
   if (vehicle.userId === user.id) return NextResponse.json({ error: "Você não pode enviar proposta para seu próprio anúncio." }, { status: 400 });
 
-  // Cria ou reutiliza conversa existente
   const conversation = await prisma.conversation.upsert({
     where: { vehicleId_buyerId: { vehicleId, buyerId: user.id } },
     create: { vehicleId, buyerId: user.id, sellerId: vehicle.userId },

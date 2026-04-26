@@ -4,16 +4,39 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Resolve plano ativo da loja a partir do userId
+async function getStorePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE" | null> {
+  const sub = await (prisma as any).storeSubscription.findFirst({
+    where: { userId, status: "active", endsAt: { gt: new Date() } },
+    select: { plan: true },
+  });
+  return sub?.plan ?? null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { nome, cpf, nascimento, email, cidade, whatsapp, prazo, valorCarro, entrada, parcelas, financiado, pmt, storeSlug, vehicleId } = body;
 
-    // Resolve storeUserId a partir do slug se fornecido
+    // Resolve storeUserId e plano a partir do slug
     let storeUserId: string | null = null;
+    let leadTipo = "comum";
+
     if (storeSlug) {
       const store = await (prisma as any).user.findFirst({ where: { storeSlug }, select: { id: true } });
       storeUserId = store?.id ?? null;
+
+      if (storeUserId) {
+        const plan = await getStorePlan(storeUserId);
+        // Apenas ELITE recebe leads de financiamento
+        if (plan === "ELITE") {
+          leadTipo = "premium";
+        } else {
+          // STARTER e PRO não recebem lead de financiamento — salva sem vínculo à loja
+          storeUserId = null;
+          leadTipo = "comum";
+        }
+      }
     }
 
     await (prisma as any).financiamentoLead.create({
@@ -23,6 +46,7 @@ export async function POST(req: NextRequest) {
         storeSlug: storeSlug ?? null,
         storeUserId,
         vehicleId: vehicleId ?? null,
+        // leadTipo não existe no model FinanciamentoLead ainda, mas está no SeguroLead
       },
     });
 
@@ -34,7 +58,7 @@ export async function POST(req: NextRequest) {
       subject: `[Financiamento] Nova simulação — ${nome}${storeSlug ? ` via loja ${storeSlug}` : ""}`,
       html: `
         <h2>Nova simulação de financiamento</h2>
-        ${storeSlug ? `<p><strong>Loja origem:</strong> /loja/${storeSlug}</p>` : ""}
+        ${storeSlug ? `<p><strong>Loja origem:</strong> /loja/${storeSlug} (plano: ${leadTipo === "premium" ? "ELITE ✅" : "sem acesso"})</p>` : ""}
         <p><strong>Nome:</strong> ${nome}</p>
         <p><strong>CPF:</strong> ${cpf}</p>
         <p><strong>Nascimento:</strong> ${nascimento}</p>
