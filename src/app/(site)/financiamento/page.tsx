@@ -551,23 +551,12 @@ function FinanciamentoContent() {
           <div className="flex flex-col lg:flex-row gap-12 items-center">
 
             {/* Foto emocional */}
-            <div className="lg:w-80 flex-shrink-0">
-              <div className="relative rounded-3xl overflow-hidden" style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.15)" }}>
-                <img
-                  src="/images/img_financiamento_faq.webp"
-                  alt="Casal feliz com chave do carro"
-                  className="w-full object-cover"
-                  style={{ height: 360 }}
-                />
-                <div className="absolute inset-0"
-                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }} />
-                <div className="absolute bottom-5 left-5 right-5">
-                  <div className="rounded-2xl px-4 py-3" style={{ background: "#EAB308" }}>
-                    <p className="font-black text-black text-sm">Aprovação em até 24h</p>
-                    <p className="text-xs mt-0.5" style={{ color: "rgba(0,0,0,0.65)" }}>Sem sair de casa, sem burocracia</p>
-                  </div>
-                </div>
-              </div>
+            <div className="lg:w-80 flex-shrink-0 flex items-center justify-center">
+              <img
+                src="/images/img_financiamento_faq.webp"
+                alt="Casal feliz com chave do carro"
+                className="w-full h-auto object-contain"
+              />
             </div>
 
             {/* FAQ accordion */}
