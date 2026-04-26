@@ -463,7 +463,7 @@ function FinanciamentoContent() {
                 <div>
                   <p className="text-sm font-black mb-3 text-zinc-800">Sua simulação é:</p>
                   <div className="space-y-2">
-                    {["100% gratuita", "Sem consulta ao SPC/Serasa", "Resposta rápida", "Atendimento humanizado"].map(t => (
+                    {["100% gratuita", "Resposta rápida", "Atendimento humanizado"].map(t => (
                       <div key={t} className="flex items-center gap-2.5">
                         <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                           style={{ background: "rgba(234,179,8,0.15)" }}>
@@ -604,7 +604,7 @@ function FinanciamentoContent() {
       <section className="relative overflow-hidden" style={{ minHeight: 360 }}>
         {/* Foto de fundo */}
         <img
-          src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80"
+          src="/images/banner_car.webp"
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
         />
