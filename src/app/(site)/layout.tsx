@@ -4,6 +4,7 @@ import BottomNav from "@/components/layout/BottomNav";
 import TopBar from "@/components/ads/TopBar";
 import AdPopup from "@/components/ads/AdPopup";
 import CookieConsent from "@/components/layout/CookieConsent";
+import CookieManager from "@/components/layout/CookieManager";
 import { AuthProvider } from "@/context/AuthContext";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -16,6 +17,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <BottomNav />
       <AdPopup />
       <CookieConsent />
+      <CookieManager />
     </AuthProvider>
   );
 }
