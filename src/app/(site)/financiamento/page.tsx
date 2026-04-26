@@ -484,7 +484,7 @@ function FinanciamentoContent() {
                 <div className="absolute top-0 right-0 bottom-0 w-44 overflow-hidden pointer-events-none"
                   style={{ zIndex: 10 }}>
                   <img
-                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=90"
+                    src="/images/consultor.png"
                     alt="Especialista financeiro"
                     className="absolute bottom-0 right-0 h-full w-auto object-contain object-bottom"
                     style={{ maxWidth: "none" }}
