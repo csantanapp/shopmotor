@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 
+
 const whyShopMotor = [
   { icon: "ads_click",   title: "Alto alcance",           desc: "Dezenas de milhares de compradores navegando todos os meses em busca do veículo ideal." },
   { icon: "psychology",  title: "Intenção de compra real", desc: "Quem está no ShopMotor já decidiu comprar. Sua marca aparece no exato momento da decisão." },
@@ -64,7 +65,7 @@ export default async function AdsPage() {
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-6">
               <span className="w-8 h-0.5 bg-primary-container" />
-              <span className="text-primary-container text-xs font-black uppercase tracking-widest">ShopMotors Ads</span>
+              <span className="text-primary-container text-xs font-black uppercase tracking-widest">ShopMotor Ads</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-none uppercase mb-6">
@@ -77,13 +78,13 @@ export default async function AdsPage() {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <a
-                href="mailto:publicidade@shopmotor.com.br"
+              <Link
+                href="/contato"
                 className="flex items-center gap-2 bg-primary-container text-on-primary-container font-black px-8 py-4 rounded-full text-sm uppercase tracking-widest hover:-translate-y-0.5 transition-all"
               >
                 <Icon name="mail" className="text-lg" />
                 Fale com a gente
-              </a>
+              </Link>
               <Link
                 href="/perfil/meus-anuncios"
                 className="flex items-center gap-2 border border-white/20 text-white font-black px-8 py-4 rounded-full text-sm uppercase tracking-widest hover:bg-white/10 transition-all"
@@ -117,7 +118,7 @@ export default async function AdsPage() {
       <section className="max-w-screen-2xl mx-auto px-6 py-20">
         <div className="text-center mb-14">
           <p className="text-xs font-black uppercase tracking-widest text-primary mb-2">Vantagem competitiva</p>
-          <h2 className="text-4xl font-black tracking-tighter text-on-surface uppercase">Por que ShopMotors Ads?</h2>
+          <h2 className="text-4xl font-black tracking-tighter text-on-surface uppercase">Por que ShopMotor Ads?</h2>
           <p className="text-on-surface-variant mt-3 max-w-xl mx-auto text-sm leading-relaxed">
             Enquanto outras plataformas apostam em alcance genérico, nós entregamos atenção qualificada — usuários com intenção real de compra.
           </p>
@@ -148,7 +149,7 @@ export default async function AdsPage() {
           {[
             { step: "01", icon: "person_add", title: "Crie sua conta", desc: "Cadastre-se como vendedor gratuitamente em menos de 2 minutos." },
             { step: "02", icon: "add_circle", title: "Anuncie seu veículo", desc: "Publique seu anúncio com fotos, descrição e preço." },
-            { step: "03", icon: "rocket_launch", title: "Escolha o plano", desc: "Selecione Push, Destaque ou Elite conforme seu objetivo." },
+            { step: "03", icon: "rocket_launch", title: "Escolha o plano", desc: "Selecione Turbo, Destaque ou Super Destaque conforme seu objetivo." },
             { step: "04", icon: "visibility", title: "Apareça mais", desc: "Seu anúncio sobe imediatamente para o topo e ganha o selo do plano." },
           ].map((item) => (
             <div key={item.step} className="text-center group">
