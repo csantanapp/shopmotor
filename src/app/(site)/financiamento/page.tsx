@@ -459,37 +459,14 @@ function FinanciamentoContent() {
           {/* Card lateral — consultor */}
           {step < 2 && (
             <div className="hidden lg:flex flex-col gap-4 w-[260px] flex-shrink-0 pt-[72px]">
-              {/* Card consultor — layout: card escuro + pessoa saindo do card */}
-              <div className="relative" style={{ height: 340 }}>
-                {/* Card escuro (fundo) */}
-                <div className="absolute bottom-0 left-0 right-0 rounded-3xl p-5 pb-6"
-                  style={{ background: "#1e2230", top: 40, boxShadow: "0 8px 40px rgba(0,0,0,0.25)" }}>
-                  <h3 className="text-white font-black text-lg leading-tight mb-3">
-                    Aqui você tem<br />mais vantagem!
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-5" style={{ color: "#9ca3af" }}>
-                    Trabalhamos com as principais financeiras do país para garantir as melhores condições para você.
-                  </p>
-                  {/* Ícone check + linha */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                      style={{ borderColor: "#EAB308" }}>
-                      <Icon name="check" className="text-yellow-400 text-sm" />
-                    </div>
-                    <div className="flex-1 h-px" style={{ background: "rgba(234,179,8,0.4)" }} />
-                  </div>
-                </div>
-
-                {/* Foto do consultor saindo pelo lado direito */}
-                <div className="absolute top-0 right-0 bottom-0 w-44 overflow-hidden pointer-events-none"
-                  style={{ zIndex: 10 }}>
-                  <img
-                    src="/images/consultor.png"
-                    alt="Especialista financeiro"
-                    className="absolute bottom-0 right-0 h-full w-auto object-contain object-bottom"
-                    style={{ maxWidth: "none" }}
-                  />
-                </div>
+              {/* Card consultor — apenas imagem */}
+              <div className="flex justify-center">
+                <img
+                  src="/images/consultor.png"
+                  alt="Especialista financeiro"
+                  className="w-full object-contain"
+                  style={{ maxHeight: 380 }}
+                />
               </div>
 
               {/* Checklist abaixo do card */}
