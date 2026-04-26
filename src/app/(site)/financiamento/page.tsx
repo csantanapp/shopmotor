@@ -532,7 +532,7 @@ function FinanciamentoContent() {
                 className="group rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
                 style={{ background: "#f9f9f9", border: "1px solid #efefef", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
                 {/* Imagem */}
-                <div className="h-36 overflow-hidden relative">
+                <div className="overflow-hidden relative" style={{ height: 300 }}>
                   <img src={v.img} alt={v.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   <div className="absolute inset-0"
