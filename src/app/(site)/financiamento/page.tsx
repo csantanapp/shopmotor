@@ -84,25 +84,25 @@ const VANTAGENS = [
     icon: "speed",
     title: "Aprovação rápida",
     desc: "Análise em até 24h com retorno pelo WhatsApp.",
-    img: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?auto=format&fit=crop&w=500&q=85",
+    img: "/images/aprovacao.webp",
   },
   {
     icon: "percent",
     title: "Taxas competitivas",
     desc: "Trabalhamos com as melhores financeiras do país.",
-    img: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=500&q=85",
+    img: "/images/taxas.webp",
   },
   {
     icon: "shield",
     title: "Dados protegidos",
     desc: "Suas informações são tratadas com total sigilo e segurança.",
-    img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=500&q=85",
+    img: "/images/dados-protegidos.webp",
   },
   {
     icon: "support_agent",
     title: "Consultoria gratuita",
     desc: "Especialistas disponíveis para tirar todas as suas dúvidas.",
-    img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=85",
+    img: "/images/consultora_gratuita.webp",
   },
 ];
 
