@@ -11,7 +11,10 @@ function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") ?? "/perfil";
+  const rawRedirect = searchParams.get("redirect") ?? "/perfil";
+  // Se o redirect for para uma subrota admin inexistente, cai no dashboard admin
+  const VALID_ADMIN_ROUTES = ["/admin", "/admin/receita", "/admin/anuncios", "/admin/usuarios", "/admin/lojas", "/admin/mensagens", "/admin/faq", "/admin/analytics", "/admin/leads", "/admin/assinaturas", "/admin/seo", "/admin/scripts", "/admin/seguros", "/admin/lgpd"];
+  const redirect = rawRedirect.startsWith("/admin") && !VALID_ADMIN_ROUTES.includes(rawRedirect) ? "/admin" : rawRedirect;
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
