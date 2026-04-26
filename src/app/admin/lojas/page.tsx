@@ -13,8 +13,9 @@ interface Store {
   id: string; name: string; email: string; phone: string | null; sharePhone: boolean;
   tradeName: string | null; companyName: string | null; cnpj: string | null;
   city: string | null; state: string | null; address: string | null; zipCode: string | null;
-  plan: string; storeSlug: string | null; avatarUrl: string | null;
-  bio: string | null; website: string | null; instagram: string | null;
+  plan: string; storeSlug: string | null; avatarUrl: string | null; storeBannerUrl: string | null;
+  storeDescription: string | null; socialInstagram: string | null; socialFacebook: string | null;
+  socialYoutube: string | null; socialTiktok: string | null;
   createdAt: string; lastSeenAt: string | null;
   _count: { vehicles: number };
   storeSubscriptions: Subscription[];
@@ -292,8 +293,10 @@ export default function AdminLojas() {
                     <Row label="E-mail" value={selected.email} />
                     <Row label="Telefone" value={selected.phone} />
                     <Row label="Telefone público" value={selected.sharePhone ? "Sim" : "Não"} />
-                    <Row label="Website" value={selected.website} />
-                    <Row label="Instagram" value={selected.instagram} />
+                    <Row label="Instagram" value={selected.socialInstagram} />
+                    <Row label="Facebook" value={selected.socialFacebook} />
+                    <Row label="YouTube" value={selected.socialYoutube} />
+                    <Row label="TikTok" value={selected.socialTiktok} />
                   </div>
                 </div>
 
@@ -309,11 +312,11 @@ export default function AdminLojas() {
                 </div>
 
                 {/* Bio */}
-                {selected.bio && (
+                {selected.storeDescription && (
                   <div>
                     <p className="text-xs font-black uppercase tracking-widest text-neutral-500 mb-3">Descrição da Loja</p>
                     <div className="bg-white/[0.03] rounded-xl p-4">
-                      <p className="text-sm text-neutral-300 whitespace-pre-wrap">{selected.bio}</p>
+                      <p className="text-sm text-neutral-300 whitespace-pre-wrap">{selected.storeDescription}</p>
                     </div>
                   </div>
                 )}

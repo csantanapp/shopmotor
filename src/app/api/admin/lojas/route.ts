@@ -35,8 +35,9 @@ export async function GET(req: NextRequest) {
         id: true, name: true, email: true, phone: true, sharePhone: true,
         tradeName: true, companyName: true, cnpj: true,
         city: true, state: true, address: true, zipCode: true,
-        plan: true, storeSlug: true, avatarUrl: true,
-        bio: true, website: true, instagram: true,
+        plan: true, storeSlug: true, avatarUrl: true, storeBannerUrl: true,
+        storeDescription: true, socialInstagram: true, socialFacebook: true,
+        socialYoutube: true, socialTiktok: true,
         createdAt: true, lastSeenAt: true,
         _count: { select: { vehicles: true } },
         storeSubscriptions: {
