@@ -182,29 +182,31 @@ function FinanciamentoContent() {
       {/* ════════════════════════════════════════════
           HERO
       ════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0a0a0a 0%, #111111 50%, #0d0d0d 100%)", minHeight: 480 }}>
+      <section className="relative overflow-hidden" style={{ minHeight: 480 }}>
 
-        {/* Cidade ao fundo */}
-        <div className="absolute inset-0 opacity-20">
+        {/* Banner de fundo */}
+        <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1600&q=60"
+            src="/images/banner_financiamento.webp"
             alt=""
             className="w-full h-full object-cover object-center"
           />
+          {/* Overlay escuro para legibilidade */}
+          <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.2) 100%)" }} />
         </div>
 
         {/* Glow dourado inferior */}
         <div className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse 80% 60% at 35% 120%, rgba(234,179,8,0.22) 0%, transparent 70%)" }} />
+          style={{ background: "radial-gradient(ellipse 80% 60% at 35% 120%, rgba(234,179,8,0.18) 0%, transparent 70%)" }} />
 
         {/* Linha dourada superior */}
         <div className="absolute top-0 left-0 right-0 h-px"
           style={{ background: "linear-gradient(90deg, transparent, rgba(234,179,8,0.5), transparent)" }} />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 py-16 lg:py-20 flex flex-col lg:flex-row items-center gap-8">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-16 lg:py-20 flex flex-col items-start gap-8">
 
-          {/* Texto esquerda */}
-          <div className="flex-1 text-white">
+          {/* Texto */}
+          <div className="text-white max-w-xl">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest"
               style={{ background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.3)", color: "#EAB308" }}>
@@ -217,7 +219,7 @@ function FinanciamentoContent() {
               com as <span style={{ color: "#EAB308" }}>melhores taxas</span>
             </h1>
 
-            <p className="mb-8 leading-relaxed" style={{ color: "#9ca3af", maxWidth: 480, fontSize: 15 }}>
+            <p className="mb-8 leading-relaxed" style={{ color: "#d1d5db", maxWidth: 480, fontSize: 15 }}>
               Simule agora em segundos e receba o contato de um especialista com as condições personalizadas para o seu perfil.
             </p>
 
@@ -235,19 +237,6 @@ function FinanciamentoContent() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Carro direita */}
-          <div className="flex-1 flex justify-center lg:justify-end relative">
-            {/* Glow sob o carro */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-10 rounded-full blur-3xl"
-              style={{ background: "rgba(234,179,8,0.25)" }} />
-            <img
-              src="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=900&q=85"
-              alt="SUV premium"
-              className="relative z-10 w-full drop-shadow-2xl"
-              style={{ maxHeight: 340, objectFit: "contain" }}
-            />
           </div>
         </div>
 
