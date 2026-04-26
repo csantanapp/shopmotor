@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 
-// ── Config interno ────────────────────────────────────────────────────────────
+// ── Config ────────────────────────────────────────────────────────────────────
 const TAXA_MENSAL = 0.0179;
 const PARCELAS_OPCOES = [12, 24, 36, 48, 60];
 
@@ -13,35 +13,30 @@ function calcPMT(pv: number, i: number, n: number) {
   if (i === 0) return pv / n;
   return (pv * i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);
 }
-
 function fmt(v: number) {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 }
-
 function fmtInput(raw: string) {
-  const digits = raw.replace(/\D/g, "");
-  if (!digits) return "";
-  return (Number(digits) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+  const d = raw.replace(/\D/g, "");
+  if (!d) return "";
+  return (Number(d) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 }
-
 function parseVal(s: string) {
   return parseFloat(s.replace(/\./g, "").replace(",", ".")) || 0;
 }
-
 function formatCpf(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 11);
   return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
           .replace(/(\d{3})(\d{3})(\d{3})/, "$1.$2.$3")
           .replace(/(\d{3})(\d{3})/, "$1.$2");
 }
-
 function formatPhone(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 11);
   if (d.length <= 10) return d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
   return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
 }
 
-// ── Step indicator ────────────────────────────────────────────────────────────
+// ── Steps ─────────────────────────────────────────────────────────────────────
 function Steps({ current }: { current: number }) {
   const steps = ["Veículo", "Dados pessoais", "Resultado"];
   return (
@@ -56,7 +51,8 @@ function Steps({ current }: { current: number }) {
                 ${done ? "bg-yellow-500 text-black" : active ? "bg-zinc-900 text-white ring-4 ring-yellow-400/30" : "bg-zinc-100 text-zinc-400"}`}>
                 {done ? <Icon name="check" className="text-base" /> : i + 1}
               </div>
-              <span className={`text-[11px] mt-1.5 font-bold uppercase tracking-wider whitespace-nowrap ${active ? "text-zinc-900" : done ? "text-yellow-600" : "text-zinc-400"}`}>
+              <span className={`text-[11px] mt-1.5 font-bold uppercase tracking-wider whitespace-nowrap
+                ${active ? "text-zinc-900" : done ? "text-yellow-600" : "text-zinc-400"}`}>
                 {label}
               </span>
             </div>
@@ -84,19 +80,39 @@ const inputCls = "w-full border border-zinc-200 rounded-xl px-4 py-3 text-sm tex
 
 // ── Dados estáticos ───────────────────────────────────────────────────────────
 const VANTAGENS = [
-  { icon: "speed",         title: "Aprovação rápida",    desc: "Análise em até 24h com retorno pelo WhatsApp.",                        img: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=400&q=80" },
-  { icon: "percent",       title: "Taxas competitivas",  desc: "Trabalhamos com as melhores financeiras do país.",                     img: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=400&q=80" },
-  { icon: "lock",          title: "Dados protegidos",    desc: "Suas informações são tratadas com total sigilo e segurança.",          img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=80" },
-  { icon: "support_agent", title: "Consultoria gratuita",desc: "Especialistas disponíveis para tirar todas as suas dúvidas.",          img: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=400&q=80" },
+  {
+    icon: "speed",
+    title: "Aprovação rápida",
+    desc: "Análise em até 24h com retorno pelo WhatsApp.",
+    img: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?auto=format&fit=crop&w=500&q=85",
+  },
+  {
+    icon: "percent",
+    title: "Taxas competitivas",
+    desc: "Trabalhamos com as melhores financeiras do país.",
+    img: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=500&q=85",
+  },
+  {
+    icon: "shield",
+    title: "Dados protegidos",
+    desc: "Suas informações são tratadas com total sigilo e segurança.",
+    img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=500&q=85",
+  },
+  {
+    icon: "support_agent",
+    title: "Consultoria gratuita",
+    desc: "Especialistas disponíveis para tirar todas as suas dúvidas.",
+    img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=85",
+  },
 ];
 
 const FINANCEIRAS = [
-  { name: "Banco do Brasil",         emoji: "🏦" },
-  { name: "Bradesco Financiamentos", emoji: "🔴" },
-  { name: "Santander Auto",          emoji: "🔥" },
-  { name: "Itaú Unibanco",           emoji: "🟠" },
-  { name: "BV Financeira",           emoji: "🔵" },
-  { name: "Caixa Econômica",         emoji: "✖️" },
+  { name: "Banco do Brasil",         bg: "#F9D72F", color: "#003882", abbr: "BB"  },
+  { name: "Bradesco",                bg: "#CC0000", color: "#fff",    abbr: "BD"  },
+  { name: "Santander Auto",          bg: "#EC0000", color: "#fff",    abbr: "SAN" },
+  { name: "Itaú Unibanco",           bg: "#EC7000", color: "#fff",    abbr: "ITÁ" },
+  { name: "BV Financeira",           bg: "#1A237E", color: "#fff",    abbr: "BV"  },
+  { name: "Caixa Econômica",         bg: "#005CA9", color: "#fff",    abbr: "CEF" },
 ];
 
 const FAQS_FIN = [
@@ -108,35 +124,35 @@ const FAQS_FIN = [
   { q: "A taxa de juros pode mudar?", a: "Sim. A taxa da simulação é estimada com base nas médias de mercado. A taxa final é definida pela financeira após análise de crédito." },
 ];
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────────────────────
 function FinanciamentoContent() {
   const searchParams = useSearchParams();
   const storeSlug = searchParams.get("loja") ?? undefined;
   const vehicleId = searchParams.get("veiculo") ?? undefined;
 
-  const [step, setStep] = useState(0);
+  const [step, setStep]       = useState(0);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
 
   // Step 1
   const [valorCarro, setValorCarro] = useState("");
-  const [parcelas, setParcelas] = useState<number>(48);
-  const [entrada, setEntrada] = useState("");
+  const [parcelas, setParcelas]     = useState<number>(48);
+  const [entrada, setEntrada]       = useState("");
 
   // Step 2
-  const [nome, setNome] = useState("");
-  const [cpf, setCpf] = useState("");
+  const [nome, setNome]           = useState("");
+  const [cpf, setCpf]             = useState("");
   const [nascimento, setNascimento] = useState("");
-  const [email, setEmail] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [prazo, setPrazo] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail]         = useState("");
+  const [cidade, setCidade]       = useState("");
+  const [whatsapp, setWhatsapp]   = useState("");
+  const [prazo, setPrazo]         = useState("");
+  const [loading, setLoading]     = useState(false);
 
-  const veiculo = parseVal(valorCarro);
+  const veiculo    = parseVal(valorCarro);
   const entradaVal = parseVal(entrada);
   const financiado = Math.max(veiculo - entradaVal, 0);
-  const pmt = calcPMT(financiado, TAXA_MENSAL, parcelas);
-  const totalPago = pmt * parcelas;
+  const pmt        = calcPMT(financiado, TAXA_MENSAL, parcelas);
+  const totalPago  = pmt * parcelas;
   const jurosTotal = totalPago - financiado;
 
   const step1Valid = veiculo >= 5000 && parcelas > 0 && entradaVal >= 0 && entradaVal < veiculo;
@@ -161,68 +177,98 @@ function FinanciamentoContent() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen" style={{ fontFamily: "'Inter', sans-serif", background: "#f5f5f5" }}>
 
-      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
-      <div className="relative bg-[#0d0d0d] overflow-hidden">
-        {/* Glow dourado */}
-        <div className="absolute bottom-0 left-1/4 w-[600px] h-[300px] bg-yellow-500/20 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-yellow-600/10 rounded-full blur-[100px] pointer-events-none" />
+      {/* ════════════════════════════════════════════
+          HERO
+      ════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0a0a0a 0%, #111111 50%, #0d0d0d 100%)", minHeight: 480 }}>
 
-        <div className="relative max-w-6xl mx-auto px-4 py-16 lg:py-20 flex flex-col lg:flex-row items-center gap-10">
-          {/* Texto */}
-          <div className="flex-1 text-white z-10">
-            <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-6">
-              <Icon name="verified" className="text-sm" /> Simulação gratuita · sem consulta ao SPC
+        {/* Cidade ao fundo */}
+        <div className="absolute inset-0 opacity-20">
+          <img
+            src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1600&q=60"
+            alt=""
+            className="w-full h-full object-cover object-center"
+          />
+        </div>
+
+        {/* Glow dourado inferior */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse 80% 60% at 35% 120%, rgba(234,179,8,0.22) 0%, transparent 70%)" }} />
+
+        {/* Linha dourada superior */}
+        <div className="absolute top-0 left-0 right-0 h-px"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(234,179,8,0.5), transparent)" }} />
+
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-16 lg:py-20 flex flex-col lg:flex-row items-center gap-8">
+
+          {/* Texto esquerda */}
+          <div className="flex-1 text-white">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest"
+              style={{ background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.3)", color: "#EAB308" }}>
+              <Icon name="verified" className="text-sm" />
+              Simulação gratuita · Sem consulta ao SPC
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-5 leading-[1.05] tracking-tight">
-              Financie seu veículo<br/>com as <span className="text-yellow-400">melhores taxas</span>
+
+            <h1 className="font-black leading-[1.05] tracking-tight mb-5" style={{ fontSize: "clamp(2rem,4.5vw,3.5rem)" }}>
+              Financie seu veículo<br />
+              com as <span style={{ color: "#EAB308" }}>melhores taxas</span>
             </h1>
-            <p className="text-zinc-400 max-w-lg mb-8 leading-relaxed">
+
+            <p className="mb-8 leading-relaxed" style={{ color: "#9ca3af", maxWidth: 480, fontSize: 15 }}>
               Simule agora em segundos e receba o contato de um especialista com as condições personalizadas para o seu perfil.
             </p>
+
+            {/* Benefits grid */}
             <div className="grid grid-cols-2 gap-3 max-w-sm">
-              {["Sem compromisso", "Análise em 24h", "100% gratuito", "Mais de 6 financeiras parceiras"].map(t => (
-                <span key={t} className="flex items-center gap-2 text-sm text-zinc-300">
-                  <span className="w-5 h-5 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                    <Icon name="check" className="text-yellow-400 text-xs" />
-                  </span>
-                  {t}
-                </span>
+              {[
+                { icon: "check_circle", label: "Sem compromisso" },
+                { icon: "schedule",     label: "Análise em 24h" },
+                { icon: "favorite",     label: "100% gratuito" },
+                { icon: "account_balance", label: "Mais de 6 financeiras" },
+              ].map(b => (
+                <div key={b.label} className="flex items-center gap-2">
+                  <Icon name={b.icon} className="text-base flex-shrink-0 text-yellow-400" />
+                  <span className="text-sm font-medium" style={{ color: "#d1d5db" }}>{b.label}</span>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Imagem do carro */}
+          {/* Carro direita */}
           <div className="flex-1 flex justify-center lg:justify-end relative">
-            <div className="relative w-full max-w-lg">
-              {/* Glow sob o carro */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-yellow-400/30 blur-2xl rounded-full" />
-              <img
-                src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=900&q=85"
-                alt="Veículo de luxo"
-                className="w-full object-contain drop-shadow-2xl relative z-10"
-                style={{ maxHeight: 340 }}
-              />
-            </div>
+            {/* Glow sob o carro */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-10 rounded-full blur-3xl"
+              style={{ background: "rgba(234,179,8,0.25)" }} />
+            <img
+              src="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=900&q=85"
+              alt="SUV premium"
+              className="relative z-10 w-full drop-shadow-2xl"
+              style={{ maxHeight: 340, objectFit: "contain" }}
+            />
           </div>
         </div>
 
         {/* Linha decorativa inferior */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-500/40 to-transparent" />
-      </div>
+        <div className="absolute bottom-0 left-0 right-0 h-px"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(234,179,8,0.3), transparent)" }} />
+      </section>
 
-      {/* ── SIMULADOR ────────────────────────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-4 py-14">
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+      {/* ════════════════════════════════════════════
+          SIMULADOR
+      ════════════════════════════════════════════ */}
+      <section style={{ background: "#f5f5f5", padding: "56px 16px" }}>
+        <div className="max-w-5xl mx-auto flex flex-col lg:flex-row gap-8 items-start">
 
-          {/* Coluna do formulário */}
+          {/* Formulário */}
           <div className="flex-1 min-w-0">
             <Steps current={step} />
 
             {/* STEP 1 */}
             {step === 0 && (
-              <div className="bg-white rounded-3xl shadow-sm border border-zinc-100 p-8">
+              <div className="bg-white rounded-3xl p-8" style={{ boxShadow: "0 4px 32px rgba(0,0,0,0.08)", border: "1px solid #f0f0f0" }}>
                 <h2 className="text-xl font-black text-zinc-900 mb-1">Dados do veículo</h2>
                 <p className="text-sm text-zinc-400 mb-7">Informe o valor do veículo, entrada e prazo desejado.</p>
 
@@ -267,7 +313,8 @@ function FinanciamentoContent() {
                 </div>
 
                 <button onClick={() => setStep(1)} disabled={!step1Valid}
-                  className="mt-8 w-full bg-zinc-900 text-white font-black py-4 rounded-full text-sm uppercase tracking-widest hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                  className="mt-8 w-full font-black py-4 rounded-full text-sm uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5"
+                  style={{ background: "#111", color: "#fff" }}>
                   Continuar
                 </button>
               </div>
@@ -275,7 +322,7 @@ function FinanciamentoContent() {
 
             {/* STEP 2 */}
             {step === 1 && (
-              <div className="bg-white rounded-3xl shadow-sm border border-zinc-100 p-8">
+              <div className="bg-white rounded-3xl p-8" style={{ boxShadow: "0 4px 32px rgba(0,0,0,0.08)", border: "1px solid #f0f0f0" }}>
                 <h2 className="text-xl font-black text-zinc-900 mb-1">Seus dados</h2>
                 <p className="text-sm text-zinc-400 mb-7">Preencha para receber sua simulação personalizada. Não fazemos consulta ao SPC/Serasa.</p>
 
@@ -321,7 +368,8 @@ function FinanciamentoContent() {
                     Voltar
                   </button>
                   <button onClick={handleSubmit} disabled={!step2Valid || loading}
-                    className="flex-1 bg-zinc-900 text-white font-black py-4 rounded-full text-sm uppercase tracking-widest hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    className="flex-1 font-black py-4 rounded-full text-sm uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                    style={{ background: "#111", color: "#fff" }}>
                     {loading && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                     Ver resultado
                   </button>
@@ -333,44 +381,45 @@ function FinanciamentoContent() {
             {/* STEP 3 — Resultado */}
             {step === 2 && (
               <div className="space-y-5">
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-                  <Icon name="info" className="text-amber-500 text-lg flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-700 leading-relaxed">
+                <div className="rounded-2xl p-4 flex gap-3" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
+                  <Icon name="info" className="text-lg flex-shrink-0 mt-0.5 text-amber-600" />
+                  <p className="text-xs leading-relaxed" style={{ color: "#92400e" }}>
                     <strong>Simulação indicativa estimada e sujeita à análise de crédito.</strong> Taxas podem variar conforme financeiras. O valor final depende da análise de crédito e condições da instituição financeira parceira.
                   </p>
                 </div>
 
-                <div className="bg-zinc-900 rounded-3xl p-8 text-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent pointer-events-none" />
-                  <p className="text-zinc-400 text-xs uppercase tracking-widest mb-2 relative z-10">Parcela estimada a partir de</p>
-                  <p className="text-5xl font-black text-yellow-400 relative z-10">{fmt(pmt)}</p>
-                  <p className="text-yellow-500/70 text-sm mt-1 relative z-10">por mês</p>
-                  <p className="text-zinc-500 text-xs mt-3 relative z-10">{parcelas} parcelas · taxa estimada 1,79% a.m.</p>
+                <div className="rounded-3xl p-8 text-center relative overflow-hidden" style={{ background: "#111" }}>
+                  <div className="absolute inset-0 pointer-events-none"
+                    style={{ background: "radial-gradient(ellipse at 50% 100%, rgba(234,179,8,0.15) 0%, transparent 70%)" }} />
+                  <p className="text-xs uppercase tracking-widest mb-2 relative z-10" style={{ color: "#6b7280" }}>Parcela estimada a partir de</p>
+                  <p className="text-5xl font-black relative z-10" style={{ color: "#EAB308" }}>{fmt(pmt)}</p>
+                  <p className="text-sm mt-1 relative z-10" style={{ color: "rgba(234,179,8,0.6)" }}>por mês</p>
+                  <p className="text-xs mt-3 relative z-10" style={{ color: "#4b5563" }}>{parcelas} parcelas · taxa estimada 1,79% a.m.</p>
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-sm border border-zinc-100 p-6">
+                <div className="bg-white rounded-3xl p-6" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.06)", border: "1px solid #f0f0f0" }}>
                   <p className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-5">Detalhamento da simulação</p>
                   <div className="space-y-0">
                     {[
-                      { label: "Valor do veículo",              value: fmt(veiculo) },
-                      { label: "Entrada",                        value: fmt(entradaVal) },
-                      { label: "Valor financiado",               value: fmt(financiado) },
-                      { label: "Taxa estimada",                  value: "1,79% a.m. · 23,65% a.a." },
-                      { label: "Número de parcelas",             value: `${parcelas}x` },
-                      { label: "Valor de cada parcela",          value: fmt(pmt),           highlight: true },
-                      { label: "Total de juros estimado",        value: fmt(jurosTotal),    red: true },
-                      { label: "Total financiado + juros",       value: fmt(totalPago),     bold: true },
-                      { label: "Total geral (entrada + financ.)",value: fmt(totalPago + entradaVal), bold: true },
+                      { label: "Valor do veículo",               value: fmt(veiculo) },
+                      { label: "Entrada",                         value: fmt(entradaVal) },
+                      { label: "Valor financiado",                value: fmt(financiado) },
+                      { label: "Taxa estimada",                   value: "1,79% a.m. · 23,65% a.a." },
+                      { label: "Número de parcelas",              value: `${parcelas}x` },
+                      { label: "Valor de cada parcela",           value: fmt(pmt),          highlight: true },
+                      { label: "Total de juros estimado",         value: fmt(jurosTotal),   red: true },
+                      { label: "Total financiado + juros",        value: fmt(totalPago),    bold: true },
+                      { label: "Total geral (entrada + financ.)", value: fmt(totalPago + entradaVal), bold: true },
                     ].map(row => (
                       <div key={row.label} className={`flex justify-between py-3 border-b border-zinc-100 last:border-0 ${row.bold ? "pt-4" : ""}`}>
                         <span className={`text-sm ${row.bold ? "font-black text-zinc-900" : "text-zinc-500"}`}>{row.label}</span>
-                        <span className={`text-sm font-black ${row.red ? "text-red-500" : row.highlight ? "text-yellow-600" : row.bold ? "text-zinc-900" : "text-zinc-900"}`}>{row.value}</span>
+                        <span className={`text-sm font-black ${row.red ? "text-red-500" : row.highlight ? "text-yellow-600" : "text-zinc-900"}`}>{row.value}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-sm border border-zinc-100 p-6">
+                <div className="bg-white rounded-3xl p-6" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.06)", border: "1px solid #f0f0f0" }}>
                   <p className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-5">O que acontece agora?</p>
                   <div className="space-y-4">
                     {[
@@ -380,8 +429,8 @@ function FinanciamentoContent() {
                       { icon: "task_alt",        text: "Sem compromisso — você decide se quer avançar ou não." },
                     ].map((item, i) => (
                       <div key={i} className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                          <Icon name={item.icon} className="text-yellow-600 text-base" />
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(234,179,8,0.12)" }}>
+                          <Icon name={item.icon} className="text-base text-yellow-600" />
                         </div>
                         <p className="text-sm text-zinc-600 leading-relaxed pt-1">{item.text}</p>
                       </div>
@@ -389,12 +438,13 @@ function FinanciamentoContent() {
                   </div>
                 </div>
 
-                <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
+                <div className="rounded-2xl p-6 text-center" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
                   <p className="font-black text-zinc-900 mb-1">Quer falar com um especialista agora?</p>
                   <p className="text-sm text-zinc-500 mb-4">Tire suas dúvidas diretamente pelo WhatsApp.</p>
                   <a href={`https://wa.me/5500000000000?text=Olá! Simulei um financiamento de ${fmt(veiculo)} no ShopMotor e gostaria de mais informações.`}
                     target="_blank"
-                    className="inline-flex items-center gap-2 bg-green-600 text-white font-black px-6 py-3 rounded-full text-sm hover:bg-green-700 transition-colors">
+                    className="inline-flex items-center gap-2 text-white font-black px-6 py-3 rounded-full text-sm hover:opacity-90 transition-opacity"
+                    style={{ background: "#16a34a" }}>
                     <Icon name="chat" className="text-base" /> Falar no WhatsApp
                   </a>
                 </div>
@@ -406,67 +456,88 @@ function FinanciamentoContent() {
             )}
           </div>
 
-          {/* Coluna lateral — card publicitário (apenas desktop, fora do step 2+) */}
+          {/* Card lateral — consultor */}
           {step < 2 && (
-            <div className="hidden lg:flex flex-col gap-5 w-72 flex-shrink-0 pt-14">
+            <div className="hidden lg:flex flex-col gap-4 w-[260px] flex-shrink-0 pt-[72px]">
               {/* Card consultor */}
-              <div className="bg-zinc-900 rounded-3xl overflow-hidden shadow-xl">
-                <div className="relative h-44 overflow-hidden">
+              <div className="rounded-3xl overflow-hidden" style={{ background: "#111", boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}>
+                {/* Foto consultor */}
+                <div className="relative h-52 overflow-hidden">
                   <img
-                    src="https://images.unsplash.com/photo-1560472355-536de3962603?auto=format&fit=crop&w=500&q=80"
+                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=500&q=85"
                     alt="Especialista financeiro"
                     className="w-full h-full object-cover object-top"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent" />
-                  <div className="absolute bottom-3 left-4 right-4">
-                    <p className="text-white font-black text-sm leading-tight">Aqui você tem<br/>mais vantagem!</p>
+                  <div className="absolute inset-0"
+                    style={{ background: "linear-gradient(to top, #111 15%, rgba(17,17,17,0.3) 60%, transparent 100%)" }} />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <p className="text-white font-black text-base leading-tight">
+                      Aqui você tem<br />mais vantagem!
+                    </p>
                   </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-zinc-400 text-xs leading-relaxed mb-4">
+
+                {/* Conteúdo */}
+                <div className="p-4 pb-5">
+                  <p className="text-xs leading-relaxed mb-4" style={{ color: "#9ca3af" }}>
                     Trabalhamos com as principais financeiras do país para garantir as melhores condições para você.
                   </p>
+                  <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "#6b7280" }}>Sua simulação é:</p>
                   <div className="space-y-2">
-                    {["Sua simulação é:", "100% gratuita", "Sem consulta ao SPC/Serasa", "Resposta rápida", "Atendimento humanizado"].map((t, i) => (
-                      i === 0
-                        ? <p key={t} className="text-white font-black text-xs uppercase tracking-widest">{t}</p>
-                        : <div key={t} className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                              <Icon name="check" className="text-yellow-400" style={{ fontSize: 10 }} />
-                            </span>
-                            <span className="text-zinc-300 text-xs">{t}</span>
-                          </div>
+                    {["100% gratuita", "Sem consulta ao SPC/Serasa", "Resposta rápida", "Atendimento humanizado"].map(t => (
+                      <div key={t} className="flex items-center gap-2.5">
+                        <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ background: "rgba(234,179,8,0.15)" }}>
+                          <Icon name="check" className="text-yellow-400 text-[10px]" />
+                        </div>
+                        <span className="text-xs font-medium" style={{ color: "#d1d5db" }}>{t}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
               </div>
 
               {/* Card segurança */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
-                <Icon name="verified_user" className="text-yellow-600 text-2xl mb-3 block" />
-                <p className="font-black text-zinc-900 text-sm mb-1">Seus dados estão seguros</p>
-                <p className="text-xs text-zinc-500 leading-relaxed">Criptografia de ponta a ponta. Nunca compartilhamos seus dados sem autorização.</p>
+              <div className="rounded-2xl p-4" style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.2)" }}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(234,179,8,0.15)" }}>
+                    <Icon name="verified_user" className="text-base text-yellow-400" />
+                  </div>
+                  <p className="font-black text-zinc-900 text-sm">Dados 100% seguros</p>
+                </div>
+                <p className="text-xs text-zinc-500 leading-relaxed">Criptografia de ponta a ponta. Nunca compartilhamos seus dados.</p>
               </div>
             </div>
           )}
         </div>
-      </div>
+      </section>
 
-      {/* ── VANTAGENS ────────────────────────────────────────────────────────── */}
-      <div className="bg-white border-t border-zinc-100 py-20 px-4">
+      {/* ════════════════════════════════════════════
+          VANTAGENS
+      ════════════════════════════════════════════ */}
+      <section style={{ background: "#fff", borderTop: "1px solid #f0f0f0", padding: "80px 16px" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <p className="text-xs font-black uppercase tracking-widest text-yellow-600 mb-2">Por que nos escolher</p>
+            <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "#ca8a04" }}>Por que nos escolher</p>
             <h2 className="text-3xl font-black text-zinc-900 mb-3">Por que financiar pela ShopMotor?</h2>
-            <p className="text-zinc-500 text-sm max-w-sm mx-auto">Facilitamos todo o processo para você comprar com segurança.</p>
+            <p className="text-sm text-zinc-500 max-w-sm mx-auto">Facilitamos todo o processo para você comprar com segurança.</p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {VANTAGENS.map(v => (
-              <div key={v.title} className="group rounded-2xl overflow-hidden shadow-sm border border-zinc-100 bg-zinc-50 hover:shadow-md transition-shadow">
+              <div key={v.title}
+                className="group rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
+                style={{ background: "#f9f9f9", border: "1px solid #efefef", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+                {/* Imagem */}
                 <div className="h-36 overflow-hidden relative">
-                  <img src={v.img} alt={v.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <div className="absolute bottom-3 left-3 w-9 h-9 bg-yellow-500 rounded-xl flex items-center justify-center">
+                  <img src={v.img} alt={v.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0"
+                    style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
+                  {/* Ícone badge */}
+                  <div className="absolute bottom-3 left-3 w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{ background: "#EAB308" }}>
                     <Icon name={v.icon} className="text-black text-lg" />
                   </div>
                 </div>
@@ -478,54 +549,72 @@ function FinanciamentoContent() {
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── FINANCEIRAS ──────────────────────────────────────────────────────── */}
-      <div className="bg-zinc-900 py-14 px-4">
+      {/* ════════════════════════════════════════════
+          FINANCEIRAS
+      ════════════════════════════════════════════ */}
+      <section style={{ background: "#0d0d0d", padding: "56px 16px" }}>
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-8">Trabalhamos com as principais financeiras</p>
+          <p className="text-xs font-black uppercase tracking-widest mb-8" style={{ color: "#4b5563" }}>
+            Trabalhamos com as principais financeiras
+          </p>
           <div className="flex flex-wrap justify-center gap-3">
             {FINANCEIRAS.map(f => (
-              <span key={f.name} className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm font-bold px-5 py-2.5 rounded-full flex items-center gap-2 hover:border-yellow-500/50 transition-colors">
-                <span>{f.emoji}</span> {f.name}
-              </span>
+              <div key={f.name}
+                className="flex items-center gap-2.5 px-5 py-3 rounded-full transition-all hover:scale-105"
+                style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+                {/* Logo colorida */}
+                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-black"
+                  style={{ background: f.bg, color: f.color }}>
+                  {f.abbr.slice(0, 2)}
+                </div>
+                <span className="text-sm font-bold" style={{ color: "#d1d5db" }}>{f.name}</span>
+              </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── FAQ ──────────────────────────────────────────────────────────────── */}
-      <div className="bg-zinc-50 border-t border-zinc-100 py-20 px-4">
+      {/* ════════════════════════════════════════════
+          FAQ
+      ════════════════════════════════════════════ */}
+      <section style={{ background: "#f5f5f5", borderTop: "1px solid #ebebeb", padding: "80px 16px" }}>
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-12 items-center">
-            {/* Foto */}
+
+            {/* Foto emocional */}
             <div className="lg:w-80 flex-shrink-0">
-              <div className="relative rounded-3xl overflow-hidden shadow-xl">
+              <div className="relative rounded-3xl overflow-hidden" style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.15)" }}>
                 <img
                   src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=600&q=85"
-                  alt="Família feliz com carro"
-                  className="w-full h-72 lg:h-96 object-cover"
+                  alt="Casal feliz com chave do carro"
+                  className="w-full object-cover"
+                  style={{ height: 360 }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute inset-0"
+                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }} />
                 <div className="absolute bottom-5 left-5 right-5">
-                  <div className="bg-yellow-500 rounded-2xl px-4 py-3">
+                  <div className="rounded-2xl px-4 py-3" style={{ background: "#EAB308" }}>
                     <p className="font-black text-black text-sm">Aprovação em até 24h</p>
-                    <p className="text-black/70 text-xs mt-0.5">Sem sair de casa, sem burocracia</p>
+                    <p className="text-xs mt-0.5" style={{ color: "rgba(0,0,0,0.65)" }}>Sem sair de casa, sem burocracia</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* FAQ */}
+            {/* FAQ accordion */}
             <div className="flex-1">
-              <p className="text-xs font-black uppercase tracking-widest text-yellow-600 mb-2">Tire suas dúvidas</p>
+              <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "#ca8a04" }}>Tire suas dúvidas</p>
               <h2 className="text-3xl font-black text-zinc-900 mb-2">Perguntas frequentes</h2>
-              <p className="text-zinc-500 text-sm mb-8">Tudo que você precisa saber sobre financiamento de veículos.</p>
+              <p className="text-sm text-zinc-500 mb-8">Tudo que você precisa saber sobre financiamento de veículos.</p>
+
               <div className="space-y-3">
                 {FAQS_FIN.map((faq, i) => (
-                  <div key={i} className="border border-zinc-200 rounded-2xl overflow-hidden bg-white">
+                  <div key={i} className="rounded-2xl overflow-hidden transition-all"
+                    style={{ border: "1px solid #e5e5e5", background: "#fff" }}>
                     <button onClick={() => setFaqOpen(faqOpen === i ? null : i)}
-                      className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-zinc-50 transition-colors">
+                      className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors hover:bg-zinc-50">
                       <span className="font-bold text-zinc-900 text-sm pr-4">{faq.q}</span>
                       <Icon name={faqOpen === i ? "expand_less" : "expand_more"} className="text-zinc-400 flex-shrink-0" />
                     </button>
@@ -540,33 +629,46 @@ function FinanciamentoContent() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── CTA FINAL ────────────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden">
+      {/* ════════════════════════════════════════════
+          CTA FINAL
+      ════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden" style={{ minHeight: 360 }}>
+        {/* Foto de fundo */}
         <img
           src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80"
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-zinc-900/85" />
-        <div className="absolute inset-0 bg-gradient-to-r from-zinc-900/60 via-transparent to-zinc-900/60" />
+        {/* Overlay escuro */}
+        <div className="absolute inset-0" style={{ background: "rgba(10,10,10,0.82)" }} />
         {/* Glow dourado central */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-yellow-500/20 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
+          style={{ width: 600, height: 200, background: "radial-gradient(ellipse, rgba(234,179,8,0.2) 0%, transparent 70%)", filter: "blur(20px)" }} />
+        {/* Linhas douradas decorativas */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute bottom-0 left-0 right-0 h-px"
+            style={{ background: "linear-gradient(90deg, transparent 0%, rgba(234,179,8,0.6) 30%, rgba(234,179,8,0.6) 70%, transparent 100%)" }} />
+        </div>
 
-        <div className="relative z-10 text-white py-20 px-4 text-center">
-          <p className="text-xs font-black uppercase tracking-widest text-yellow-400 mb-3">Dê o próximo passo</p>
-          <h2 className="text-4xl font-black mb-4 tracking-tight">Pronto para dar o <span className="text-yellow-400">próximo passo?</span></h2>
-          <p className="text-zinc-400 mb-10 max-w-md mx-auto leading-relaxed">
+        <div className="relative z-10 text-center py-20 px-4">
+          <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "#EAB308" }}>Dê o próximo passo</p>
+          <h2 className="font-black text-white mb-4 tracking-tight" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", lineHeight: 1.1 }}>
+            Pronto para dar o{" "}
+            <span style={{ color: "#EAB308" }}>próximo passo?</span>
+          </h2>
+          <p className="mb-10 max-w-md mx-auto leading-relaxed" style={{ color: "#9ca3af", fontSize: 15 }}>
             Faça sua simulação agora e receba uma proposta personalizada sem compromisso.
           </p>
           <button
             onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setStep(0); }}
-            className="bg-yellow-500 text-black font-black px-10 py-4 rounded-full text-sm uppercase tracking-widest hover:bg-yellow-400 hover:-translate-y-0.5 transition-all shadow-lg shadow-yellow-500/30">
+            className="font-black px-10 py-4 rounded-full text-sm uppercase tracking-widest transition-all hover:-translate-y-0.5 hover:opacity-90"
+            style={{ background: "#EAB308", color: "#000", boxShadow: "0 8px 32px rgba(234,179,8,0.35)" }}>
             Simular agora — é grátis
           </button>
         </div>
-      </div>
+      </section>
 
     </div>
   );
