@@ -459,54 +459,53 @@ function FinanciamentoContent() {
           {/* Card lateral — consultor */}
           {step < 2 && (
             <div className="hidden lg:flex flex-col gap-4 w-[260px] flex-shrink-0 pt-[72px]">
-              {/* Card consultor */}
-              <div className="rounded-3xl overflow-hidden" style={{ background: "#111", boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}>
-                {/* Foto consultor */}
-                <div className="relative h-52 overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=500&q=85"
-                    alt="Especialista financeiro"
-                    className="w-full h-full object-cover object-top"
-                  />
-                  <div className="absolute inset-0"
-                    style={{ background: "linear-gradient(to top, #111 15%, rgba(17,17,17,0.3) 60%, transparent 100%)" }} />
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <p className="text-white font-black text-base leading-tight">
-                      Aqui você tem<br />mais vantagem!
-                    </p>
+              {/* Card consultor — layout: card escuro + pessoa saindo do card */}
+              <div className="relative" style={{ height: 340 }}>
+                {/* Card escuro (fundo) */}
+                <div className="absolute bottom-0 left-0 right-0 rounded-3xl p-5 pb-6"
+                  style={{ background: "#1e2230", top: 40, boxShadow: "0 8px 40px rgba(0,0,0,0.25)" }}>
+                  <h3 className="text-white font-black text-lg leading-tight mb-3">
+                    Aqui você tem<br />mais vantagem!
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-5" style={{ color: "#9ca3af" }}>
+                    Trabalhamos com as principais financeiras do país para garantir as melhores condições para você.
+                  </p>
+                  {/* Ícone check + linha */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                      style={{ borderColor: "#EAB308" }}>
+                      <Icon name="check" className="text-yellow-400 text-sm" />
+                    </div>
+                    <div className="flex-1 h-px" style={{ background: "rgba(234,179,8,0.4)" }} />
                   </div>
                 </div>
 
-                {/* Conteúdo */}
-                <div className="p-4 pb-5">
-                  <p className="text-xs leading-relaxed mb-4" style={{ color: "#9ca3af" }}>
-                    Trabalhamos com as principais financeiras do país para garantir as melhores condições para você.
-                  </p>
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "#6b7280" }}>Sua simulação é:</p>
-                  <div className="space-y-2">
-                    {["100% gratuita", "Sem consulta ao SPC/Serasa", "Resposta rápida", "Atendimento humanizado"].map(t => (
-                      <div key={t} className="flex items-center gap-2.5">
-                        <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
-                          style={{ background: "rgba(234,179,8,0.15)" }}>
-                          <Icon name="check" className="text-yellow-400 text-[10px]" />
-                        </div>
-                        <span className="text-xs font-medium" style={{ color: "#d1d5db" }}>{t}</span>
-                      </div>
-                    ))}
-                  </div>
+                {/* Foto do consultor saindo pelo lado direito */}
+                <div className="absolute top-0 right-0 bottom-0 w-44 overflow-hidden pointer-events-none"
+                  style={{ zIndex: 10 }}>
+                  <img
+                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=90"
+                    alt="Especialista financeiro"
+                    className="absolute bottom-0 right-0 h-full w-auto object-contain object-bottom"
+                    style={{ maxWidth: "none" }}
+                  />
                 </div>
               </div>
 
-              {/* Card segurança */}
-              <div className="rounded-2xl p-4" style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.2)" }}>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(234,179,8,0.15)" }}>
-                    <Icon name="verified_user" className="text-base text-yellow-400" />
-                  </div>
-                  <p className="font-black text-zinc-900 text-sm">Dados 100% seguros</p>
+              {/* Checklist abaixo do card */}
+              <div className="rounded-2xl p-4" style={{ background: "#fff", border: "1px solid #f0f0f0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+                <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "#9ca3af" }}>Sua simulação é:</p>
+                <div className="space-y-2">
+                  {["100% gratuita", "Sem consulta ao SPC/Serasa", "Resposta rápida", "Atendimento humanizado"].map(t => (
+                    <div key={t} className="flex items-center gap-2.5">
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: "rgba(234,179,8,0.15)" }}>
+                        <Icon name="check" className="text-yellow-400 text-[10px]" />
+                      </div>
+                      <span className="text-xs font-medium text-zinc-600">{t}</span>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-xs text-zinc-500 leading-relaxed">Criptografia de ponta a ponta. Nunca compartilhamos seus dados.</p>
               </div>
             </div>
           )}
