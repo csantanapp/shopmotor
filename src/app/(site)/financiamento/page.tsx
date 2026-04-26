@@ -459,29 +459,58 @@ function FinanciamentoContent() {
           {/* Card lateral — consultor */}
           {step < 2 && (
             <div className="hidden lg:flex flex-col gap-4 w-[260px] flex-shrink-0 pt-[72px]">
-              {/* Card consultor — apenas imagem */}
-              <div className="flex justify-center">
-                <img
-                  src="/images/consultor.png"
-                  alt="Especialista financeiro"
-                  className="w-full object-contain"
-                  style={{ maxHeight: 380 }}
-                />
-              </div>
-
-              {/* Checklist abaixo do card */}
-              <div className="rounded-2xl p-4" style={{ background: "#fff", border: "1px solid #f0f0f0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-                <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "#9ca3af" }}>Sua simulação é:</p>
-                <div className="space-y-2">
-                  {["100% gratuita", "Sem consulta ao SPC/Serasa", "Resposta rápida", "Atendimento humanizado"].map(t => (
-                    <div key={t} className="flex items-center gap-2.5">
-                      <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ background: "rgba(234,179,8,0.15)" }}>
-                        <Icon name="check" className="text-yellow-400 text-[10px]" />
+              {/* Card consultor — card escuro + imagem saindo por cima/direita */}
+              <div className="flex flex-col gap-4">
+                <div className="relative" style={{ height: 300 }}>
+                  {/* Card escuro (fundo, alinhado à esquerda e base) */}
+                  <div className="absolute left-0 bottom-0 rounded-3xl p-5 pb-6"
+                    style={{
+                      background: "#1e2230",
+                      top: 32,
+                      right: "20%",
+                      boxShadow: "0 8px 40px rgba(0,0,0,0.3)",
+                    }}>
+                    <h3 className="text-white font-black text-base leading-snug mb-3">
+                      Aqui você tem<br />mais vantagem!
+                    </h3>
+                    <p className="text-xs leading-relaxed mb-5" style={{ color: "#9ca3af" }}>
+                      Trabalhamos com as principais financeiras do país para garantir as melhores condições para você.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                        style={{ borderColor: "#EAB308" }}>
+                        <Icon name="check" className="text-yellow-400 text-xs" />
                       </div>
-                      <span className="text-xs font-medium text-zinc-600">{t}</span>
+                      <div className="flex-1 h-px" style={{ background: "rgba(234,179,8,0.35)" }} />
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Imagem do consultor saindo pelo lado direito e topo */}
+                  <div className="absolute top-0 right-0 bottom-0 pointer-events-none"
+                    style={{ width: "55%", zIndex: 10 }}>
+                    <img
+                      src="/images/consultor.png"
+                      alt="Especialista financeiro"
+                      className="absolute bottom-0 right-0 h-full w-auto object-contain object-bottom"
+                      style={{ maxWidth: "none" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Checklist abaixo */}
+                <div>
+                  <p className="text-xs font-black mb-3 text-zinc-700">Sua simulação é:</p>
+                  <div className="space-y-2">
+                    {["100% gratuita", "Sem consulta ao SPC/Serasa", "Resposta rápida", "Atendimento humanizado"].map(t => (
+                      <div key={t} className="flex items-center gap-2.5">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ background: "rgba(234,179,8,0.15)" }}>
+                          <Icon name="check" className="text-yellow-500 text-[10px]" />
+                        </div>
+                        <span className="text-sm font-medium text-zinc-600">{t}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
