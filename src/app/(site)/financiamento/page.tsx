@@ -459,47 +459,44 @@ function FinanciamentoContent() {
           {/* Card lateral — consultor */}
           {step < 2 && (
             <div className="hidden lg:flex flex-col gap-4 w-[260px] flex-shrink-0 pt-[72px]">
-              {/* Card consultor — card escuro + imagem saindo por cima/direita */}
+              {/* Card consultor */}
               <div className="flex flex-col gap-4">
-                <div className="relative" style={{ height: 300 }}>
-                  {/* Card escuro (fundo, alinhado à esquerda e base) */}
-                  <div className="absolute left-0 bottom-0 rounded-3xl p-5 pb-6"
-                    style={{
-                      background: "#1e2230",
-                      top: 32,
-                      right: "20%",
-                      boxShadow: "0 8px 40px rgba(0,0,0,0.3)",
-                    }}>
-                    <h3 className="text-white font-black text-base leading-snug mb-3">
-                      Aqui você tem<br />mais vantagem!
-                    </h3>
-                    <p className="text-xs leading-relaxed mb-5" style={{ color: "#9ca3af" }}>
-                      Trabalhamos com as principais financeiras do país para garantir as melhores condições para você.
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                        style={{ borderColor: "#EAB308" }}>
-                        <Icon name="check" className="text-yellow-400 text-xs" />
+                {/* Card escuro full-width + imagem sobreposta à direita */}
+                <div className="relative" style={{ height: 260 }}>
+                  {/* Card: ocupa toda a largura, texto apenas na metade esquerda */}
+                  <div className="absolute inset-x-0 bottom-0 rounded-3xl p-5"
+                    style={{ top: 20, background: "#1e2230", boxShadow: "0 8px 32px rgba(0,0,0,0.28)" }}>
+                    <div style={{ width: "52%" }}>
+                      <h3 className="text-white font-black text-sm leading-snug mb-2">
+                        Aqui você tem<br />mais vantagem!
+                      </h3>
+                      <p className="text-[11px] leading-relaxed mb-4" style={{ color: "#9ca3af" }}>
+                        Trabalhamos com as principais financeiras do país para garantir as melhores condições para você.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0"
+                          style={{ borderColor: "#EAB308" }}>
+                          <Icon name="check" className="text-yellow-400 text-[9px]" />
+                        </div>
+                        <div className="flex-1 h-px" style={{ background: "rgba(234,179,8,0.35)" }} />
                       </div>
-                      <div className="flex-1 h-px" style={{ background: "rgba(234,179,8,0.35)" }} />
                     </div>
                   </div>
 
-                  {/* Imagem do consultor saindo pelo lado direito e topo */}
+                  {/* Imagem sobreposta sobre a metade direita do card */}
                   <div className="absolute top-0 right-0 bottom-0 pointer-events-none"
-                    style={{ width: "55%", zIndex: 10 }}>
+                    style={{ width: "54%", zIndex: 10 }}>
                     <img
                       src="/images/consultor.png"
                       alt="Especialista financeiro"
-                      className="absolute bottom-0 right-0 h-full w-auto object-contain object-bottom"
-                      style={{ maxWidth: "none" }}
+                      className="w-full h-full object-contain object-bottom"
                     />
                   </div>
                 </div>
 
-                {/* Checklist abaixo */}
+                {/* Checklist abaixo do card */}
                 <div>
-                  <p className="text-xs font-black mb-3 text-zinc-700">Sua simulação é:</p>
+                  <p className="text-sm font-black mb-3 text-zinc-800">Sua simulação é:</p>
                   <div className="space-y-2">
                     {["100% gratuita", "Sem consulta ao SPC/Serasa", "Resposta rápida", "Atendimento humanizado"].map(t => (
                       <div key={t} className="flex items-center gap-2.5">
