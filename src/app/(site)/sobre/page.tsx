@@ -89,7 +89,7 @@ export default async function SobrePage() {
           {[
             { icon: "search", title: "Busca inteligente", desc: "Filtros avançados por marca, modelo, ano, preço, km, tipo de combustível e muito mais." },
             { icon: "price_check", title: "Comparação FIPE", desc: "Cada anúncio mostra o valor FIPE para que você saiba se está pagando um preço justo." },
-            { icon: "campaign", title: "Impulsionamento", desc: "Destaque seu anúncio com os planos Destaque e Elite para mais visibilidade e contatos." },
+            { icon: "campaign", title: "Impulsionamento", desc: "Destaque seu anúncio com os planos Turbo, Destaque e Super Destaque para mais visibilidade e contatos." },
             { icon: "storefront", title: "Lojas e revendas", desc: "Empresas podem criar páginas personalizadas com vitrine de veículos e identidade de marca." },
             { icon: "chat", title: "Chat integrado", desc: "Compradores e vendedores se comunicam com segurança dentro da plataforma." },
             { icon: "star", title: "Sistema de avaliações", desc: "Avalie e seja avaliado para construir uma reputação confiável na plataforma." },
