@@ -203,7 +203,7 @@ function FinanciamentoContent() {
             <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest"
               style={{ background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.3)", color: "#EAB308" }}>
               <Icon name="verified" className="text-sm" />
-              Simulação gratuita · Sem consulta ao SPC
+              Simulação gratuita
             </div>
 
             <h1 className="font-black leading-[1.05] tracking-tight mb-5" style={{ fontSize: "clamp(2rem,4.5vw,3.5rem)" }}>
