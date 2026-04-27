@@ -46,11 +46,6 @@ const faqs = [
   },
   {
     category: "Pagamentos",
-    question: "Como funciona o Plano Premium?",
-    answer: "O Plano Premium destaca seus anúncios nos resultados de busca e oferece estatísticas detalhadas de visualizações e contatos. Entre em contato com nosso suporte para ativar.",
-  },
-  {
-    category: "Pagamentos",
     question: "O cadastro é gratuito?",
     answer: "Sim, o cadastro e a publicação de anúncios são totalmente gratuitos. O Plano Premium é opcional e oferece recursos adicionais.",
   },
