@@ -375,15 +375,15 @@ function SegurosContent() {
           <img src="/images/banner_seguro.webp" alt="" className="w-full h-full object-cover object-center" />
           <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.25) 100%)" }} />
         </div>
-        <div className="relative max-w-4xl mx-auto text-center">
+        <div className="relative max-w-4xl mx-auto text-left">
           <div className="inline-flex items-center gap-2 bg-primary-container/20 border border-primary-container/30 text-primary-container text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-5">
             <Icon name="verified" className="text-sm" /> Simulação gratuita · sem consulta ao SPC
           </div>
           <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">Proteja seu veículo<br/>com o melhor seguro</h1>
-          <p className="text-neutral-400 max-w-xl mx-auto mb-8 text-sm leading-relaxed">
+          <p className="text-neutral-400 max-w-xl mb-8 text-sm leading-relaxed">
             Compare seguradoras, receba propostas personalizadas e contrate 100% online. Rápido, gratuito e sem compromisso.
           </p>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-neutral-400">
+          <div className="flex flex-wrap justify-start gap-6 text-sm text-neutral-400">
             {["Sem compromisso", "Corretoras certificadas", "100% gratuito", "Processo digital"].map(t => (
               <span key={t} className="flex items-center gap-1.5">
                 <Icon name="check_circle" className="text-primary-container text-base" />{t}
