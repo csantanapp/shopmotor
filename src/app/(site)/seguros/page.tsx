@@ -370,10 +370,11 @@ function SegurosContent() {
       {showModal && <Modal />}
 
       {/* Hero */}
-      <div className="bg-inverse-surface text-white py-16 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5"
-          style={{ backgroundImage: "repeating-linear-gradient(45deg,#C9A84C 0,#C9A84C 1px,transparent 0,transparent 50%)", backgroundSize: "20px 20px" }} />
-        <div className="absolute inset-0 bg-gradient-to-r from-inverse-surface via-inverse-surface/95 to-inverse-surface/70" />
+      <div className="text-white py-16 px-4 relative overflow-hidden" style={{ minHeight: 340 }}>
+        <div className="absolute inset-0">
+          <img src="/images/banner_seguro.webp" alt="" className="w-full h-full object-cover object-center" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.25) 100%)" }} />
+        </div>
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-primary-container/20 border border-primary-container/30 text-primary-container text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-5">
             <Icon name="verified" className="text-sm" /> Simulação gratuita · sem consulta ao SPC
