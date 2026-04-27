@@ -398,7 +398,7 @@ export default async function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
               /* oculto: { icon: "tire_repair", title: "Acessórios", desc: "Personalize seu veículo com o que há de mais moderno em tecnologia e design." } */
-              { icon: "security",       title: "Simule Seguro", desc: "Proteção total para sua nova conquista com as melhores taxas do mercado.",    highlight: true, href: "/seguros"  },
+              { icon: "security",       title: "Simule Seguro", desc: "Proteção total para sua nova conquista com as melhores taxas do mercado.",    highlight: false, href: "/seguros"  },
               { icon: "account_balance", title: "Financiamento", desc: "Aprovação rápida e parcelas que cabem no seu planejamento financeiro.", highlight: false, href: "/financiamento" },
             ].map((s) => (
               <div
