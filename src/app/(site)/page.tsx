@@ -406,9 +406,9 @@ export default async function Home() {
             <p className="text-xs font-black uppercase tracking-widest text-primary mb-2">Ecossistema completo</p>
             <h2 className="text-3xl font-black tracking-tighter uppercase">Além da compra e venda</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
-              { icon: "tire_repair",    title: "Acessórios",    desc: "Personalize seu veículo com o que há de mais moderno em tecnologia e design.", highlight: false },
+              /* oculto: { icon: "tire_repair", title: "Acessórios", desc: "Personalize seu veículo com o que há de mais moderno em tecnologia e design." } */
               { icon: "security",       title: "Simule Seguro", desc: "Proteção total para sua nova conquista com as melhores taxas do mercado.",    highlight: true, href: "/seguros"  },
               { icon: "account_balance", title: "Financiamento", desc: "Aprovação rápida e parcelas que cabem no seu planejamento financeiro.", highlight: false, href: "/financiamento" },
             ].map((s) => (
