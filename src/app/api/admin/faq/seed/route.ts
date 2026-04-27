@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/admin-auth";
 
 const FAQS = [
   { categoria: "Geral", pergunta: "O que é a ShopMotor?", resposta: "A ShopMotor é uma plataforma online de compra e venda de veículos que conecta compradores e vendedores em todo o Brasil, com ferramentas como comparação FIPE, impulsionamento de anúncios e chat integrado.", pagina: "faq", ordem: 1 },
@@ -23,12 +24,10 @@ const FAQS = [
 ];
 
 export async function POST(req: NextRequest) {
-  const secret = req.headers.get("x-seed-secret");
-  if (secret !== (process.env.JWT_SECRET ?? "shopmotor_secret_2024_xK9mP2qR")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const err = await requireAdmin(req);
+  if (err) return err;
 
-  const db = prisma;
+  const db = prisma as any;
   const existing = await db.faqItem.count();
   if (existing > 0) {
     return NextResponse.json({ ok: true, message: `Já existem ${existing} FAQs. Nada inserido.` });
