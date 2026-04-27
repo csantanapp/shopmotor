@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { mpPayment } from "@/lib/mercadopago";
 import { createHmac } from "crypto";
+import type { BoostPlan } from "@prisma/client";
 
 const PLANS: Record<string, { days: number; boostLevel: "DESTAQUE" | "ELITE" }> = {
   TURBO:         { days: 7,  boostLevel: "DESTAQUE" },
@@ -11,11 +12,14 @@ const PLANS: Record<string, { days: number; boostLevel: "DESTAQUE" | "ELITE" }> 
 
 // Valida assinatura HMAC-SHA256 enviada pelo Mercado Pago
 // Docs: https://www.mercadopago.com.br/developers/pt/docs/your-integrations/notifications/webhooks
-function validateSignature(req: NextRequest, rawBody: string): boolean {
+function validateSignature(req: NextRequest): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET;
   if (!secret) {
-    // Em desenvolvimento sem secret configurado, pula validação
-    console.warn("[webhook MP] MP_WEBHOOK_SECRET não configurado — validação de assinatura pulada");
+    if (process.env.NODE_ENV === "production") {
+      console.error("[webhook MP] MP_WEBHOOK_SECRET não configurado em produção — requisição rejeitada");
+      return false;
+    }
+    console.warn("[webhook MP] MP_WEBHOOK_SECRET não configurado — validação pulada (apenas dev)");
     return true;
   }
 
@@ -43,7 +47,7 @@ export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text();
 
-    if (!validateSignature(req, rawBody)) {
+    if (!validateSignature(req)) {
       console.warn("[webhook MP] Assinatura inválida — requisição rejeitada");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
@@ -93,7 +97,7 @@ export async function POST(req: NextRequest) {
             where: { id: paymentRecord.vehicleId },
             data: {
               boostLevel:    plan.boostLevel,
-              boostPlan:     paymentRecord.plan,
+              boostPlan:     paymentRecord.plan as BoostPlan,
               boostUntil,
               boostTopUntil: boostUntil,
             },
