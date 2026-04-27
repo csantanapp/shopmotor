@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 
@@ -103,6 +103,8 @@ const PLANS: {
 
 export default function ImpulsionarPage() {
   const { id } = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const isNovo = searchParams.get("novo") === "1";
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<PlanKey | null>(null);
@@ -156,6 +158,23 @@ export default function ImpulsionarPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
+
+      {/* Banner de celebração (só após publicar) */}
+      {isNovo && (
+        <div className="rounded-2xl px-6 py-5 flex items-center gap-4"
+          style={{ background: "linear-gradient(135deg, #1a2a1a 0%, #0f1f0f 100%)", border: "1px solid rgba(74,222,128,0.25)" }}>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(74,222,128,0.15)" }}>
+            <Icon name="check_circle" className="text-3xl text-green-400" />
+          </div>
+          <div>
+            <p className="font-black text-white text-base">Anúncio publicado com sucesso!</p>
+            <p className="text-sm mt-0.5" style={{ color: "#9ca3af" }}>
+              Impulsione agora e apareça no topo das buscas — mais visibilidade, mais contatos.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center gap-4">
@@ -269,15 +288,23 @@ export default function ImpulsionarPage() {
             <p className="text-on-surface-variant text-sm">Selecione um plano acima para continuar</p>
           )}
         </div>
-        <button
-          onClick={handleBoost}
-          disabled={!selected || processing}
-          className="flex items-center gap-2 bg-primary-container text-on-primary-container font-black px-8 py-3 rounded-full text-sm uppercase tracking-widest hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
-        >
-          {processing && <span className="w-4 h-4 border-2 border-on-primary-container/30 border-t-on-primary-container rounded-full animate-spin" />}
-          <Icon name="rocket_launch" className="text-lg" />
-          Impulsionar agora
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          <button
+            onClick={handleBoost}
+            disabled={!selected || processing}
+            className="flex items-center gap-2 bg-primary-container text-on-primary-container font-black px-8 py-3 rounded-full text-sm uppercase tracking-widest hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+          >
+            {processing && <span className="w-4 h-4 border-2 border-on-primary-container/30 border-t-on-primary-container rounded-full animate-spin" />}
+            <Icon name="rocket_launch" className="text-lg" />
+            Impulsionar agora
+          </button>
+          {isNovo && (
+            <Link href="/perfil/meus-anuncios"
+              className="text-xs text-on-surface-variant/50 hover:text-on-surface-variant transition-colors">
+              Continuar sem impulsionar
+            </Link>
+          )}
+        </div>
       </div>
 
     </div>

@@ -160,7 +160,7 @@ export default function CadastrarPage() {
     }
     if (step === 3) {
       await uploadPhotos();
-      router.push("/perfil/meus-anuncios");
+      router.push(`/perfil/impulsionar/${vehicleId}?novo=1`);
       return;
     }
     setStep(s => s + 1);
