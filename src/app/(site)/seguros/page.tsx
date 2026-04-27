@@ -707,13 +707,19 @@ function SegurosContent() {
       </div>
 
       {/* CTA final */}
-      <div className="bg-inverse-surface text-white py-16 px-4 text-center">
-        <h2 className="text-3xl font-black mb-3">Pronto para proteger seu veículo?</h2>
-        <p className="text-neutral-400 mb-8 max-w-md mx-auto text-sm">Faça sua simulação agora e receba propostas personalizadas sem compromisso.</p>
-        <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="bg-primary-container text-on-primary-container font-black px-10 py-4 rounded-full text-sm uppercase tracking-widest hover:-translate-y-0.5 transition-all">
-          Simular agora — é grátis
-        </button>
+      <div className="relative overflow-hidden text-white py-20 px-4" style={{ minHeight: 320 }}>
+        <div className="absolute inset-0">
+          <img src="/images/banner_seguro_footer.webp" alt="" className="w-full h-full object-cover object-center" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.2) 100%)" }} />
+        </div>
+        <div className="relative max-w-4xl mx-auto text-left">
+          <h2 className="text-3xl font-black mb-3">Pronto para proteger seu veículo?</h2>
+          <p className="mb-8 max-w-md text-sm" style={{ color: "#d1d5db" }}>Faça sua simulação agora e receba propostas personalizadas sem compromisso.</p>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="bg-primary-container text-on-primary-container font-black px-10 py-4 rounded-full text-sm uppercase tracking-widest hover:-translate-y-0.5 transition-all">
+            Simular agora — é grátis
+          </button>
+        </div>
       </div>
     </div>
   );
