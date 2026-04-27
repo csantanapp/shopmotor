@@ -106,14 +106,6 @@ const VANTAGENS = [
   },
 ];
 
-const FINANCEIRAS = [
-  { name: "Banco do Brasil",         bg: "#F9D72F", color: "#003882", abbr: "BB"  },
-  { name: "Bradesco",                bg: "#CC0000", color: "#fff",    abbr: "BD"  },
-  { name: "Santander Auto",          bg: "#EC0000", color: "#fff",    abbr: "SAN" },
-  { name: "Itaú Unibanco",           bg: "#EC7000", color: "#fff",    abbr: "ITÁ" },
-  { name: "BV Financeira",           bg: "#1A237E", color: "#fff",    abbr: "BV"  },
-  { name: "Caixa Econômica",         bg: "#005CA9", color: "#fff",    abbr: "CEF" },
-];
 
 const FAQS_FIN = [
   { q: "Quem pode fazer a simulação?", a: "Qualquer pessoa maior de 18 anos com CPF válido pode simular. A aprovação final depende da análise de crédito da financeira parceira." },
@@ -518,30 +510,6 @@ function FinanciamentoContent() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════
-          FINANCEIRAS
-      ════════════════════════════════════════════ */}
-      <section style={{ background: "#0d0d0d", padding: "56px 16px" }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-black uppercase tracking-widest mb-8" style={{ color: "#4b5563" }}>
-            Trabalhamos com as principais financeiras
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {FINANCEIRAS.map(f => (
-              <div key={f.name}
-                className="flex items-center gap-2.5 px-5 py-3 rounded-full transition-all hover:scale-105"
-                style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
-                {/* Logo colorida */}
-                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-black"
-                  style={{ background: f.bg, color: f.color }}>
-                  {f.abbr.slice(0, 2)}
-                </div>
-                <span className="text-sm font-bold" style={{ color: "#d1d5db" }}>{f.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ════════════════════════════════════════════
           FAQ
