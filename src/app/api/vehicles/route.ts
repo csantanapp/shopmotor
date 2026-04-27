@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
   let limit = u.accountType === "PJ" ? 20 : user.plan === "PREMIUM" ? 20 : 3;
   if (u.accountType === "PJ") {
     const now = new Date();
-    const activeSub = await (prisma as any).storeSubscription.findFirst({
+    const activeSub = await prisma.storeSubscription.findFirst({
       where: { userId: user.id, status: "active", endsAt: { gt: now } },
       orderBy: { endsAt: "desc" },
     });
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const vehicle = await (prisma.vehicle.create as any)({
+    const vehicle = await prisma.vehicle.create({
       data: {
         userId:       user.id,
         status:       "DRAFT",

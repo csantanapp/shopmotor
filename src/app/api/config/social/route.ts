@@ -6,7 +6,7 @@ const SOCIAL_KEYS = ["social_facebook", "social_instagram", "social_youtube", "s
 export const revalidate = 3600;
 
 export async function GET() {
-  const rows = await (prisma.siteConfig as any).findMany({ where: { key: { in: SOCIAL_KEYS } } });
+  const rows = await prisma.siteConfig.findMany({ where: { key: { in: SOCIAL_KEYS } } });
   const config = Object.fromEntries(rows.map((r: { key: string; value: string }) => [r.key, r.value]));
   return NextResponse.json(config);
 }

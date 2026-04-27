@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 
-  const payment = await (prisma.payment as any).create({
+  const payment = await prisma.payment.create({
     data: {
       userId: user.id,
       vehicleId: vehicle.id,
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  await (prisma.payment as any).update({
+  await prisma.payment.update({
     where: { id: payment.id },
     data: { mpPreferenceId: preference.id },
   });

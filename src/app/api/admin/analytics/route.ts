@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const err = await requireAdmin(req);
   if (err) return err;
 
-  const db = prisma as any;
+  const db = prisma;
   const now = new Date();
   const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 

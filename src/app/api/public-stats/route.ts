@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export const revalidate = 3600; // cache por 1h
 
 export async function GET() {
-  const db = prisma as any;
+  const db = prisma;
   const [totalVehicles, totalUsers, totalStores] = await Promise.all([
     prisma.vehicle.count({ where: { status: "ACTIVE" } }),
     db.user.count(),

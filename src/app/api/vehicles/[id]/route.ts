@@ -30,7 +30,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       }),
       prisma.vehicle.count({ where: { userId: vehicle.userId, status: "ACTIVE" } }),
       prisma.vehicle.count({ where: { userId: vehicle.userId } }),
-      (prisma as any).storeSubscription.findFirst({
+      prisma.storeSubscription.findFirst({
         where: { userId: vehicle.userId, status: "active", endsAt: { gt: now } },
         orderBy: { endsAt: "desc" },
         select: { plan: true },
@@ -73,7 +73,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   try {
-    const updated = await (prisma.vehicle.update as any)({
+    const updated = await prisma.vehicle.update({
       where: { id },
       data: {
         ...(expiresAt !== undefined && { expiresAt }),

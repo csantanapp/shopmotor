@@ -12,12 +12,12 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ ok: true });
 
   // Invalidate previous tokens
-  await (prisma.passwordReset as any).deleteMany({ where: { userId: user.id } });
+  await prisma.passwordReset.deleteMany({ where: { userId: user.id } });
 
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1h
 
-  await (prisma.passwordReset as any).create({
+  await prisma.passwordReset.create({
     data: { userId: user.id, token, expiresAt },
   });
 

@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 // Retorna o plano ativo de um userId lojista (null se sem plano ativo)
 async function getActivePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE" | null> {
-  const sub = await (prisma as any).storeSubscription.findFirst({
+  const sub = await prisma.storeSubscription.findFirst({
     where: { userId, status: "active", endsAt: { gt: new Date() } },
     select: { plan: true },
   });

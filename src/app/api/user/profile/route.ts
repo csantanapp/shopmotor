@@ -73,7 +73,7 @@ export async function PATCH(req: NextRequest) {
     if (body.nickname     !== undefined) data.nickname     = body.nickname || null;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (prisma.user.update as any)({ where: { id: user.id }, data });
+    await prisma.user.update({ where: { id: user.id }, data });
 
     return NextResponse.json({ user: { id: user.id } });
   } catch (err) {

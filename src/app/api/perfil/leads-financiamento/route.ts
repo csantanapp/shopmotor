@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
   // Verifica plano Elite ativo
   const now = new Date();
-  const activeSub = await (prisma as any).storeSubscription.findFirst({
+  const activeSub = await prisma.storeSubscription.findFirst({
     where: { userId: user.id, status: "active", endsAt: { gt: now } },
   });
   if (activeSub?.plan !== "ELITE") return NextResponse.json({ error: "Plano Elite necessário" }, { status: 403 });
@@ -24,13 +24,13 @@ export async function GET(req: NextRequest) {
   if (status) where.status = status;
 
   const [items, total] = await Promise.all([
-    (prisma as any).financiamentoLead.findMany({
+    prisma.financiamentoLead.findMany({
       where,
       orderBy: { createdAt: "desc" },
       skip,
       take: limit,
     }),
-    (prisma as any).financiamentoLead.count({ where }),
+    prisma.financiamentoLead.count({ where }),
   ]);
 
   return NextResponse.json({ items, total, pages: Math.ceil(total / limit) });
@@ -44,9 +44,9 @@ export async function PATCH(req: NextRequest) {
   const allowed = ["novo", "contatado", "convertido", "descartado"];
   if (!allowed.includes(status)) return NextResponse.json({ error: "Status inválido" }, { status: 400 });
 
-  const lead = await (prisma as any).financiamentoLead.findUnique({ where: { id }, select: { storeUserId: true } });
+  const lead = await prisma.financiamentoLead.findUnique({ where: { id }, select: { storeUserId: true } });
   if (lead?.storeUserId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  await (prisma as any).financiamentoLead.update({ where: { id }, data: { status } });
+  await prisma.financiamentoLead.update({ where: { id }, data: { status } });
   return NextResponse.json({ ok: true });
 }

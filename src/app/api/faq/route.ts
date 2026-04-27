@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const pagina = req.nextUrl.searchParams.get("pagina") ?? "faq";
-  const db = prisma as any;
+  const db = prisma;
 
   const items = await db.faqItem.findMany({
     where: { ativo: true, OR: [{ pagina }, { pagina: "ambas" }] },

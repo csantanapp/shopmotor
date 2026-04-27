@@ -16,13 +16,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const err = await requireAdmin(req);
   if (err) return err;
   const body = sanitize(await req.json());
-  const ad = await (prisma as any).partnerAd.update({ where: { id: params.id }, data: body });
+  const ad = await prisma.partnerAd.update({ where: { id: params.id }, data: body });
   return NextResponse.json(ad);
 }
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const err = await requireAdmin(req);
   if (err) return err;
-  await (prisma as any).partnerAd.delete({ where: { id: params.id } });
+  await prisma.partnerAd.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });
 }

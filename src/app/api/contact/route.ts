@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const db = prisma as any;
+    const db = prisma;
 
     // Salvar no banco
     await db.contactMessage.create({

@@ -7,7 +7,7 @@ export async function POST(
 ) {
   const { slug } = await params;
   try {
-    await (prisma as any).pageView.create({
+    await prisma.pageView.create({
       data: {
         path: `/loja/${slug}/whatsapp`,
         device: req.headers.get("user-agent")?.toLowerCase().includes("mobile") ? "Mobile" : "Desktop",

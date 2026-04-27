@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { createSession, COOKIE_NAME } from "@/lib/auth";
+import { createSession, COOKIE_NAME, SECURE_COOKIE_OPTIONS } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,13 +27,7 @@ export async function POST(req: NextRequest) {
       user: { id: user.id, name: user.name, email: user.email, role: user.role, plan: user.plan, avatarUrl: user.avatarUrl },
     });
 
-    response.cookies.set(COOKIE_NAME, token, {
-      httpOnly: true,
-      secure:   process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      expires:  expiresAt,
-      path:     "/",
-    });
+    response.cookies.set(COOKIE_NAME, token, { ...SECURE_COOKIE_OPTIONS, expires: expiresAt });
 
     return response;
   } catch (err) {

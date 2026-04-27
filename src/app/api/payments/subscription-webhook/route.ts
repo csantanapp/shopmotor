@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const subId = payment.external_reference;
     if (!subId) return NextResponse.json({ ok: true });
 
-    const db = prisma as any;
+    const db = prisma;
     const sub = await db.storeSubscription.findUnique({ where: { id: subId } });
     if (!sub) return NextResponse.json({ ok: true });
 

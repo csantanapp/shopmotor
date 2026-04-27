@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Resolve plano ativo da loja a partir do userId
 async function getStorePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE" | null> {
-  const sub = await (prisma as any).storeSubscription.findFirst({
+  const sub = await prisma.storeSubscription.findFirst({
     where: { userId, status: "active", endsAt: { gt: new Date() } },
     select: { plan: true },
   });
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     let leadTipo = "comum";
 
     if (storeSlug) {
-      const store = await (prisma as any).user.findFirst({ where: { storeSlug }, select: { id: true } });
+      const store = await prisma.user.findFirst({ where: { storeSlug }, select: { id: true } });
       storeUserId = store?.id ?? null;
 
       if (storeUserId) {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    await (prisma as any).financiamentoLead.create({
+    await prisma.financiamentoLead.create({
       data: {
         nome, cpf: encrypt(cpf), nascimento, email, cidade, whatsapp, prazo,
         valorCarro, entrada, financiado, parcelas, pmt,

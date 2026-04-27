@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const db = prisma as any;
+  const db = prisma;
   const existing = await db.faqItem.count();
   if (existing > 0) {
     return NextResponse.json({ ok: true, message: `Já existem ${existing} FAQs. Nada inserido.` });

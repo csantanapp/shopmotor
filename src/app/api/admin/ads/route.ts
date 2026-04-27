@@ -17,7 +17,7 @@ function sanitize(body: any) {
 export async function GET(req: Request) {
   const err = await requireAdmin(req);
   if (err) return err;
-  const ads = await (prisma as any).partnerAd.findMany({ orderBy: { updatedAt: "desc" } });
+  const ads = await prisma.partnerAd.findMany({ orderBy: { updatedAt: "desc" } });
   return NextResponse.json(ads);
 }
 
@@ -25,6 +25,6 @@ export async function POST(req: Request) {
   const err = await requireAdmin(req);
   if (err) return err;
   const body = sanitize(await req.json());
-  const ad = await (prisma as any).partnerAd.create({ data: body });
+  const ad = await prisma.partnerAd.create({ data: body });
   return NextResponse.json(ad);
 }

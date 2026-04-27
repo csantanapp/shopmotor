@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { uploadToR2, deleteFromR2 } from "@/lib/r2";
+import { validateImageUpload } from "@/lib/upload";
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -30,19 +30,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const uploaded: { url: string; filename: string }[] = [];
 
   for (const file of files) {
-    if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: `Arquivo ${file.name} excede 10MB.` }, { status: 400 });
+    const validated = await validateImageUpload(file, { maxBytes: MAX_SIZE });
+    if ("error" in validated) {
+      return NextResponse.json({ error: validated.error }, { status: validated.status });
     }
 
-    const ext     = path.extname(file.name).toLowerCase();
-    const allowed = [".jpg", ".jpeg", ".png", ".webp"];
-    if (!allowed.includes(ext)) {
-      return NextResponse.json({ error: `Formato ${ext} não permitido.` }, { status: 400 });
-    }
-
+    const { buffer, ext, mime } = validated;
     const filename = `vehicles/${id}-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
-    const buffer   = Buffer.from(await file.arrayBuffer());
-    const url      = await uploadToR2(filename, buffer, file.type || "image/jpeg");
+    const url      = await uploadToR2(filename, buffer, mime);
 
     uploaded.push({ url, filename });
   }

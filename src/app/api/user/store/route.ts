@@ -56,7 +56,7 @@ export async function PATCH(req: NextRequest) {
   if (body.social?.youtube   !== undefined) data.socialYoutube   = body.social.youtube   || null;
   if (body.social?.tiktok    !== undefined) data.socialTiktok    = body.social.tiktok    || null;
 
-  await (prisma.user.update as any)({ where: { id: user.id }, data });
+  await prisma.user.update({ where: { id: user.id }, data });
   return NextResponse.json({ ok: true });
 }
 
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
   await fs.writeFile(path.join(uploadDir, filename), buffer);
 
   const storeBannerUrl = `${process.env.NEXT_PUBLIC_UPLOAD_URL ?? "/uploads"}/${filename}`;
-  await (prisma.user.update as any)({ where: { id: user.id }, data: { storeBannerUrl } });
+  await prisma.user.update({ where: { id: user.id }, data: { storeBannerUrl } });
 
   return NextResponse.json({ storeBannerUrl });
 }

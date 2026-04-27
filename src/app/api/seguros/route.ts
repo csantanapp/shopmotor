@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { encrypt } from "@/lib/crypto";
 
 async function getStorePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE" | null> {
-  const sub = await (prisma as any).storeSubscription.findFirst({
+  const sub = await prisma.storeSubscription.findFirst({
     where: { userId, status: "active", endsAt: { gt: new Date() } },
     select: { plan: true },
   });
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     let leadTipo = "comum";
 
     if (body.storeSlug) {
-      const store = await (prisma as any).user.findFirst({ where: { storeSlug: body.storeSlug }, select: { id: true } });
+      const store = await prisma.user.findFirst({ where: { storeSlug: body.storeSlug }, select: { id: true } });
       storeUserId = store?.id ?? null;
       if (storeUserId) {
         const plan = await getStorePlan(storeUserId);
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const lead = await (prisma as any).seguroLead.create({
+    const lead = await prisma.seguroLead.create({
       data: {
         tipoVeiculo:        body.tipoVeiculo        ?? "carro",
         zeroKm:             body.zeroKm             ?? false,

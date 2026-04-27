@@ -4,7 +4,7 @@ import { STORE_PLANS, StorePlan } from "@/lib/store-plans";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const db = prisma as any;
+  const db = prisma;
 
   const store = await db.user.findFirst({
     where: { storeSlug: slug, accountType: "PJ" },

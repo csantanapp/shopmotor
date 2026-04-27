@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get("status") ?? "";
   const take = 20;
   const skip = (page - 1) * take;
-  const db = prisma as any;
+  const db = prisma;
 
   const where: any = {};
   if (plan) where.plan = plan;
@@ -52,7 +52,7 @@ export async function PATCH(req: NextRequest) {
   if (err) return err;
 
   const { id, status } = await req.json();
-  const db = prisma as any;
+  const db = prisma;
 
   const data: any = { status };
   if (status === "active" && !data.startsAt) {

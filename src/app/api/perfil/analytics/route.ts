@@ -9,7 +9,7 @@ export async function GET() {
 
   // Verifica plano Pro+ ativo
   const now = new Date();
-  const db = prisma as any;
+  const db = prisma;
   const activeSub = await db.storeSubscription.findFirst({
     where: { userId: user.id, status: "active", endsAt: { gt: now } },
     select: { plan: true },

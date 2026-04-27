@@ -12,7 +12,7 @@ export async function GET(req: Request) {
       ? ["lgpd_termos", "lgpd_termos_updated"]
       : ["lgpd_privacidade", "lgpd_privacidade_updated", "lgpd_termos", "lgpd_termos_updated"];
 
-  const rows = await (prisma.siteConfig as any).findMany({ where: { key: { in: keys } } });
+  const rows = await prisma.siteConfig.findMany({ where: { key: { in: keys } } });
   const config = Object.fromEntries(rows.map((r: { key: string; value: string }) => [r.key, r.value]));
   return NextResponse.json(config, { headers: { "Cache-Control": "s-maxage=300, stale-while-revalidate" } });
 }

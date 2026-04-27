@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get("status") ?? "";
   const take = 20;
   const skip = (page - 1) * take;
-  const db = prisma as any;
+  const db = prisma;
 
   const where: any = {};
   if (search) where.OR = [
@@ -39,7 +39,7 @@ export async function PATCH(req: NextRequest) {
   if (err) return err;
 
   const { id, status } = await req.json();
-  await (prisma as any).financiamentoLead.update({ where: { id }, data: { status } });
+  await prisma.financiamentoLead.update({ where: { id }, data: { status } });
   return NextResponse.json({ ok: true });
 }
 
@@ -50,6 +50,6 @@ export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
-  await (prisma as any).financiamentoLead.delete({ where: { id } });
+  await prisma.financiamentoLead.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }

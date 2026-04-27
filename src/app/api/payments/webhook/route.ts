@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     if (mpData.status !== "approved") {
       const extRef = mpData.external_reference;
       if (extRef) {
-        await (prisma.payment as any).updateMany({
+        await prisma.payment.updateMany({
           where: { id: extRef },
           data: { status: mpData.status ?? "pending", mpPaymentId: mpId },
         });
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    const paymentRecord = await (prisma.payment as any).findUnique({
+    const paymentRecord = await prisma.payment.findUnique({
       where: { id: mpData.external_reference! },
     });
     if (!paymentRecord) return NextResponse.json({ ok: true });
@@ -84,12 +84,12 @@ export async function POST(req: NextRequest) {
     const boostUntil = new Date(Date.now() + plan.days * 86400000);
 
     await Promise.all([
-      (prisma.payment as any).update({
+      prisma.payment.update({
         where: { id: paymentRecord.id },
         data: { status: "approved", mpPaymentId: mpId },
       }),
       paymentRecord.vehicleId
-        ? (prisma.vehicle as any).update({
+        ? prisma.vehicle.update({
             where: { id: paymentRecord.vehicleId },
             data: {
               boostLevel:    plan.boostLevel,

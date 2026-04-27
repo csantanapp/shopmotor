@@ -14,13 +14,13 @@ export async function GET(req: NextRequest) {
   const where = status ? { status } : {};
 
   const [items, total] = await Promise.all([
-    (prisma as any).seguroLead.findMany({
+    prisma.seguroLead.findMany({
       where,
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * take,
       take,
     }),
-    (prisma as any).seguroLead.count({ where }),
+    prisma.seguroLead.count({ where }),
   ]);
 
   return NextResponse.json({ items, total, page, pages: Math.ceil(total / take) });
@@ -31,6 +31,6 @@ export async function PATCH(req: NextRequest) {
   if (err) return err;
 
   const { id, status } = await req.json();
-  await (prisma as any).seguroLead.update({ where: { id }, data: { status } });
+  await prisma.seguroLead.update({ where: { id }, data: { status } });
   return NextResponse.json({ ok: true });
 }

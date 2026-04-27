@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const plan = STORE_PLANS[planKey as StorePlan];
   if (!plan) return NextResponse.json({ error: "Plano inválido." }, { status: 400 });
 
-  const db = prisma as any;
+  const db = prisma;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 
   const sub = await db.storeSubscription.create({
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const db = prisma as any;
+  const db = prisma;
   const now = new Date();
 
   const active = await db.storeSubscription.findFirst({

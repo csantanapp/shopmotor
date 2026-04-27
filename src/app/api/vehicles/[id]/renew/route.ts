@@ -13,7 +13,7 @@ export async function POST(
 
   const { id } = await params;
 
-  const vehicle = await (prisma.vehicle as any).findUnique({
+  const vehicle = await prisma.vehicle.findUnique({
     where: { id },
     select: { id: true, userId: true, status: true, renewalCount: true },
   });
@@ -29,7 +29,7 @@ export async function POST(
       { status: 403 }
     );
 
-  const updated = await (prisma.vehicle as any).update({
+  const updated = await prisma.vehicle.update({
     where: { id },
     data: {
       status: "ACTIVE",

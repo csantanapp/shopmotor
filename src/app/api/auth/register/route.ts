@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { createSession, COOKIE_NAME } from "@/lib/auth";
+import { createSession, COOKIE_NAME, SECURE_COOKIE_OPTIONS } from "@/lib/auth";
 import { sendWelcomeEmail } from "@/lib/mailer";
 import { encrypt } from "@/lib/crypto";
 
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
       const cnpjClean = cnpj.replace(/\D/g, "");
       const cnpjEncrypted = encrypt(cnpjClean);
-      const cnpjExists = await (prisma.user as any).findFirst({ where: { cnpj: cnpjEncrypted } });
+      const cnpjExists = await prisma.user.findFirst({ where: { cnpj: cnpjEncrypted } });
       if (cnpjExists) return NextResponse.json({ error: "CNPJ já cadastrado." }, { status: 409 });
     }
 
@@ -60,13 +60,13 @@ export async function POST(req: NextRequest) {
       let slug = base;
       let attempt = 0;
       while (true) {
-        const taken = await (prisma.user as any).findFirst({ where: { storeSlug: slug } });
+        const taken = await prisma.user.findFirst({ where: { storeSlug: slug } });
         if (!taken) { storeSlug = slug; break; }
         slug = `${base}-${++attempt}`;
       }
     }
 
-    const user = await (prisma.user.create as any)({
+    const user = await prisma.user.create({
       data: {
         name,
         email,
@@ -90,13 +90,7 @@ export async function POST(req: NextRequest) {
     const { token, expiresAt } = await createSession(user.id, user.email, user.role);
 
     const response = NextResponse.json({ user }, { status: 201 });
-    response.cookies.set(COOKIE_NAME, token, {
-      httpOnly: true,
-      secure:   process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      expires:  expiresAt,
-      path:     "/",
-    });
+    response.cookies.set(COOKIE_NAME, token, { ...SECURE_COOKIE_OPTIONS, expires: expiresAt });
 
     sendWelcomeEmail(user.email, user.name).catch(() => null);
 

@@ -15,6 +15,6 @@ export async function GET(req: Request) {
   };
   if (slot) where.slot = slot;
 
-  const ads = await (prisma as any).partnerAd.findMany({ where, orderBy: { updatedAt: "desc" } });
+  const ads = await prisma.partnerAd.findMany({ where, orderBy: { updatedAt: "desc" } });
   return NextResponse.json(ads);
 }

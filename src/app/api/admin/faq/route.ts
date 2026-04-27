@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 export async function GET(req: NextRequest) {
   const err = await requireAdmin(req);
   if (err) return err;
-  const db = prisma as any;
+  const db = prisma;
   const items = await db.faqItem.findMany({
     orderBy: [{ pagina: "asc" }, { categoria: "asc" }, { ordem: "asc" }],
   });
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const err = await requireAdmin(req);
   if (err) return err;
-  const db = prisma as any;
+  const db = prisma;
   const body = await req.json();
   const item = await db.faqItem.create({
     data: {
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const err = await requireAdmin(req);
   if (err) return err;
-  const db = prisma as any;
+  const db = prisma;
   const { id, ...data } = await req.json();
   if (data.ordem !== undefined) data.ordem = Number(data.ordem);
   const item = await db.faqItem.update({ where: { id }, data });
@@ -43,7 +43,7 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const err = await requireAdmin(req);
   if (err) return err;
-  const db = prisma as any;
+  const db = prisma;
   const { id } = await req.json();
   await db.faqItem.delete({ where: { id } });
   return NextResponse.json({ ok: true });

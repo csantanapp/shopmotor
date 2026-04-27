@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       city = geo.city ?? null;
     }
 
-    await (prisma as any).pageView.create({
+    await prisma.pageView.create({
       data: { path: path ?? "/", referrer: referrer || null, device, country, region, city, sessionId: sessionId || null },
     });
   } catch {

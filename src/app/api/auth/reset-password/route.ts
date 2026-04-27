@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   if (password.length < 8)
     return NextResponse.json({ error: "A senha deve ter no minimo 8 caracteres." }, { status: 400 });
 
-  const reset = await (prisma.passwordReset as any).findUnique({ where: { token } });
+  const reset = await prisma.passwordReset.findUnique({ where: { token } });
 
   if (!reset || reset.usedAt || new Date() > new Date(reset.expiresAt))
     return NextResponse.json({ error: "Link invalido ou expirado. Solicite um novo." }, { status: 400 });
@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
   const passwordHash = await bcrypt.hash(password, 12);
 
   await prisma.$transaction([
-    (prisma.user as any).update({ where: { id: reset.userId }, data: { passwordHash } }),
-    (prisma.passwordReset as any).update({ where: { token }, data: { usedAt: new Date() } }),
+    prisma.user.update({ where: { id: reset.userId }, data: { passwordHash } }),
+    prisma.passwordReset.update({ where: { token }, data: { usedAt: new Date() } }),
     prisma.session.deleteMany({ where: { userId: reset.userId } }),
   ]);
 

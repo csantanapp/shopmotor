@@ -6,7 +6,7 @@ export async function GET(req: Request) {
   const err = await requireAdmin(req);
   if (err) return err;
 
-  const db = prisma as any;
+  const db = prisma;
 
   const [
     totalPF, totalPJ,

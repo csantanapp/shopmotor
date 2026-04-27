@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const err = await requireAdmin(req);
   if (err) return err;
 
-  const db = prisma as any;
+  const db = prisma;
   const { searchParams } = new URL(req.url);
   const q      = searchParams.get("q") ?? "";
   const page   = Math.max(1, Number(searchParams.get("page") ?? "1"));
@@ -47,7 +47,7 @@ export async function PATCH(req: NextRequest) {
   const err = await requireAdmin(req);
   if (err) return err;
 
-  const db = prisma as any;
+  const db = prisma;
   const { id, ...data } = await req.json();
   if (!id) return NextResponse.json({ error: "ID obrigatório." }, { status: 400 });
 
@@ -59,7 +59,7 @@ export async function DELETE(req: NextRequest) {
   const err = await requireAdmin(req);
   if (err) return err;
 
-  const db = prisma as any;
+  const db = prisma;
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "ID obrigatório." }, { status: 400 });
 
