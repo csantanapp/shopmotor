@@ -339,16 +339,6 @@ export default function MeusAnunciosPage() {
                         </button>
                       )}
 
-                      {/* Pausar/Ativar */}
-                      {(v.status === "ACTIVE" || v.status === "PAUSED") && (
-                        <button
-                          onClick={() => toggleStatus(v.id, v.status)}
-                          className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"
-                          aria-label={v.status === "ACTIVE" ? "Pausar anúncio" : "Ativar anúncio"}
-                        >
-                          <Icon name={v.status === "ACTIVE" ? "pause" : "play_arrow"} className="text-lg" />
-                        </button>
-                      )}
 
                       {/* Excluir */}
                       <button
