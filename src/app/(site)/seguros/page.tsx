@@ -150,7 +150,7 @@ function Sidebar() {
           ))}
         </div>
         <div className="mt-7 pt-5 border-t border-outline-variant/40">
-          <p className="text-xs text-on-surface-variant/60 leading-relaxed">Simulação gratuita · sem consulta ao SPC/Serasa · sem compromisso</p>
+          <p className="text-xs text-on-surface-variant/60 leading-relaxed">Simulação gratuita · sem compromisso</p>
         </div>
       </div>
     </div>
