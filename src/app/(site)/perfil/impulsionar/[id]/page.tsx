@@ -105,6 +105,7 @@ export default function ImpulsionarPage() {
   const { id } = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const isNovo = searchParams.get("novo") === "1";
+  const isUpgrade = searchParams.get("upgrade") === "1";
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<PlanKey | null>(null);
@@ -159,8 +160,25 @@ export default function ImpulsionarPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
 
-      {/* Banner de celebração (só após publicar) */}
-      {isNovo && (
+      {/* Banner de upgrade (limite de anúncios grátis atingido) */}
+      {isUpgrade && (
+        <div className="rounded-2xl px-6 py-5 flex items-center gap-4"
+          style={{ background: "linear-gradient(135deg, #2a1a0a 0%, #1f0f00 100%)", border: "1px solid rgba(251,146,60,0.3)" }}>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(251,146,60,0.15)" }}>
+            <Icon name="workspace_premium" className="text-3xl text-orange-400" />
+          </div>
+          <div>
+            <p className="font-black text-white text-base">Você já atingiu o limite de anúncios grátis!</p>
+            <p className="text-sm mt-0.5" style={{ color: "#9ca3af" }}>
+              Impulsione seu próximo anúncio para que ele seja publicado. Sem impulsionamento, o anúncio ficará nos Incompletos.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Banner de celebração (só após publicar sem upgrade) */}
+      {isNovo && !isUpgrade && (
         <div className="rounded-2xl px-6 py-5 flex items-center gap-4"
           style={{ background: "linear-gradient(135deg, #1a2a1a 0%, #0f1f0f 100%)", border: "1px solid rgba(74,222,128,0.25)" }}>
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
@@ -298,10 +316,16 @@ export default function ImpulsionarPage() {
             <Icon name="rocket_launch" className="text-lg" />
             Impulsionar agora
           </button>
-          {isNovo && (
+          {isNovo && !isUpgrade && (
             <Link href="/perfil/meus-anuncios"
               className="text-xs text-on-surface-variant/50 hover:text-on-surface-variant transition-colors">
               Continuar sem impulsionar
+            </Link>
+          )}
+          {isUpgrade && (
+            <Link href="/perfil/meus-anuncios?tab=incompletos"
+              className="text-xs text-on-surface-variant/50 hover:text-on-surface-variant transition-colors">
+              Salvar como incompleto
             </Link>
           )}
         </div>

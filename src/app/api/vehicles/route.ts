@@ -156,9 +156,11 @@ export async function POST(req: NextRequest) {
     }
   }
   const activeCount = await prisma.vehicle.count({
-    where: { userId: user.id, status: { in: ["ACTIVE", "DRAFT", "PAUSED"] } },
+    where: { userId: user.id, status: "ACTIVE" },
   });
-  if (activeCount >= limit)
+  // PF: allow DRAFT creation even over limit; limit is enforced at publish time
+  const isPF = (u.accountType ?? "PF") !== "PJ";
+  if (!isPF && activeCount >= limit)
     return NextResponse.json(
       { error: `Limite de ${limit} anúncios atingido para o seu plano.` },
       { status: 403 }

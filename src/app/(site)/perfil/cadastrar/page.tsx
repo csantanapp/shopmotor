@@ -160,7 +160,13 @@ export default function CadastrarPage() {
     }
     if (step === 3) {
       await uploadPhotos();
-      router.push(`/perfil/impulsionar/${vehicleId}?novo=1`);
+      const limitRes = await fetch("/api/vehicles/check-limit");
+      const { overLimit } = await limitRes.json();
+      if (overLimit) {
+        router.push(`/perfil/impulsionar/${vehicleId}?novo=1&upgrade=1`);
+      } else {
+        router.push(`/perfil/impulsionar/${vehicleId}?novo=1`);
+      }
       return;
     }
     setStep(s => s + 1);

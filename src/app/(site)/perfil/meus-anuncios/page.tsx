@@ -57,12 +57,20 @@ export default function MeusAnunciosPage() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("ativos");
+  const [overLimit, setOverLimit] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/vehicles/mine");
-    if (res.ok) {
-      const data = await res.json();
+    const [mineRes, limitRes] = await Promise.all([
+      fetch("/api/vehicles/mine"),
+      fetch("/api/vehicles/check-limit"),
+    ]);
+    if (mineRes.ok) {
+      const data = await mineRes.json();
       setVehicles(data.vehicles);
+    }
+    if (limitRes.ok) {
+      const d = await limitRes.json();
+      setOverLimit(d.overLimit ?? false);
     }
     setLoading(false);
   }, []);
@@ -278,15 +286,25 @@ export default function MeusAnunciosPage() {
                         </Link>
                       )}
 
-                      {/* Publicar rascunho */}
+                      {/* Publicar / Impulsionar rascunho */}
                       {v.status === "DRAFT" && (
-                        <button
-                          onClick={() => toggleStatus(v.id, v.status)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
-                        >
-                          <Icon name="publish" className="text-sm" />
-                          Publicar
-                        </button>
+                        overLimit && v.photos.length > 0 ? (
+                          <Link
+                            href={`/perfil/impulsionar/${v.id}?upgrade=1`}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500 text-white text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
+                          >
+                            <Icon name="rocket_launch" className="text-sm" />
+                            Impulsionar para publicar
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={() => toggleStatus(v.id, v.status)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
+                          >
+                            <Icon name="publish" className="text-sm" />
+                            Publicar
+                          </button>
+                        )
                       )}
 
                       {/* Renovar / Impulsionar (expirado) */}

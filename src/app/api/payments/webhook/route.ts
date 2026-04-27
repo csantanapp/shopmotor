@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
         ? prisma.vehicle.update({
             where: { id: paymentRecord.vehicleId },
             data: {
+              status:        "ACTIVE",
               boostLevel:    plan.boostLevel,
               boostPlan:     paymentRecord.plan as BoostPlan,
               boostUntil,
