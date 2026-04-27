@@ -674,10 +674,10 @@ function SegurosContent() {
       {/* FAQ */}
       <div className="bg-surface border-t border-outline-variant/40 py-16 px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col lg:flex-row gap-12 items-center">
+          <div className="flex flex-col lg:flex-row gap-10 items-center">
 
             {/* Imagem lateral */}
-            <div className="lg:w-80 flex-shrink-0 flex items-center justify-center">
+            <div className="flex-shrink-0 flex items-center justify-center" style={{ width: 420 }}>
               <img
                 src="/images/seguro_faq.webp"
                 alt="Seguro de veículo"
@@ -686,7 +686,7 @@ function SegurosContent() {
             </div>
 
             {/* Accordion */}
-            <div className="flex-1">
+            <div style={{ maxWidth: 480, width: "100%" }}>
           <div className="mb-8">
             <h2 className="text-2xl font-black text-on-surface mb-2">Perguntas frequentes</h2>
           </div>
