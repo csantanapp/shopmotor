@@ -44,12 +44,12 @@ const highlights = [
   { label: "Leilão",         icon: "gavel",         color: "bg-primary-container/30 text-on-surface border-primary-container" },
 ];
 
-const stats = [
+/* const stats = [
   { value: "48.200+", label: "Veículos anunciados" },
   { value: "12.000+", label: "Vendedores ativos"   },
   { value: "R$ 2bi+", label: "Em negociações"      },
   { value: "4.9★",    label: "Avaliação média"     },
-];
+]; */
 
 /* ── Page ─────────────────────────────────────────────── */
 
@@ -181,17 +181,6 @@ export default async function Home() {
             </div>
         </div>
 
-        {/* Stats bar */}
-        <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm border-t border-white/10">
-          <div className="max-w-screen-2xl mx-auto px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((s) => (
-              <div key={s.label} className="text-center">
-                <p className="text-white font-black text-xl">{s.value}</p>
-                <p className="text-neutral-400 text-xs">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </section>
 
       {/* ── BUSCAR POR CARROCERIA ── */}
