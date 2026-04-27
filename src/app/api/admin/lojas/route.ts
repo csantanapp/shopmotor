@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { encrypt, safeDecrypt } from "@/lib/crypto";
 
 export async function GET(req: NextRequest) {
   const err = await requireAdmin(req);
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
     { companyName: { contains: q, mode: "insensitive" } },
     { email:       { contains: q, mode: "insensitive" } },
     { storeSlug:   { contains: q, mode: "insensitive" } },
-    { cnpj:        { contains: q } },
+    { cnpj:        { equals: encrypt(q.replace(/\D/g, "")) } },
   ];
 
   const [total, stores] = await Promise.all([
@@ -51,12 +52,10 @@ export async function GET(req: NextRequest) {
   ]);
 
   // Se filtro de plano foi passado, filtra após busca pois o plano real é na subscription
-  const filtered = plan
-    ? stores.filter((s: any) => {
-        const sub = s.storeSubscriptions?.[0];
-        return sub?.plan === plan;
-      })
-    : stores;
+  const filtered = (plan
+    ? stores.filter((s: any) => s.storeSubscriptions?.[0]?.plan === plan)
+    : stores
+  ).map((s: any) => ({ ...s, cnpj: safeDecrypt(s.cnpj) }));
 
   return NextResponse.json({ stores: filtered, total: plan ? filtered.length : total, page, pages: Math.ceil((plan ? filtered.length : total) / limit) });
 }

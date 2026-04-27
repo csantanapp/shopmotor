@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { safeDecrypt } from "@/lib/crypto";
 
 /* ── GET /api/user/profile ── */
 export async function GET() {
@@ -19,7 +20,7 @@ export async function GET() {
       avatarUrl: u.avatarUrl,
       role:      u.role,
       plan:      u.plan,
-      cpf:       u.cpf,
+      cpf:       safeDecrypt(u.cpf),
       zipCode:   u.zipCode,
       address:   u.address,
       city:      u.city,
@@ -29,7 +30,7 @@ export async function GET() {
       birthDate:   u.birthDate,
       createdAt:   u.createdAt,
       accountType: u.accountType,
-      cnpj:        u.cnpj,
+      cnpj:        safeDecrypt(u.cnpj),
       companyName: u.companyName,
       tradeName:   u.tradeName,
     },

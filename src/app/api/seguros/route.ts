@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { encrypt } from "@/lib/crypto";
 
 async function getStorePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE" | null> {
   const sub = await (prisma as any).storeSubscription.findFirst({
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
         tipoPessoa:         body.tipoPessoa         ?? "pf",
         nomeSocial:         body.nomeSocial         || null,
         nome:               body.nome               ?? "",
-        cpfCnpj:            body.cpfCnpj            ?? "",
+        cpfCnpj:            body.cpfCnpj ? encrypt(body.cpfCnpj.replace(/\D/g, "")) : "",
         razaoSocial:        body.razaoSocial        || null,
         nomeFantasia:       body.nomeFantasia       || null,
         nascimento:         body.nascimento         || null,

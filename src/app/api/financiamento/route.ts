@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
+import { encrypt, maskCpf } from "@/lib/crypto";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     await (prisma as any).financiamentoLead.create({
       data: {
-        nome, cpf, nascimento, email, cidade, whatsapp, prazo,
+        nome, cpf: encrypt(cpf), nascimento, email, cidade, whatsapp, prazo,
         valorCarro, entrada, financiado, parcelas, pmt,
         storeSlug: storeSlug ?? null,
         storeUserId,
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
         <h2>Nova simulação de financiamento</h2>
         ${storeSlug ? `<p><strong>Loja origem:</strong> /loja/${storeSlug} (plano: ${leadTipo === "premium" ? "ELITE ✅" : "sem acesso"})</p>` : ""}
         <p><strong>Nome:</strong> ${nome}</p>
-        <p><strong>CPF:</strong> ${cpf}</p>
+        <p><strong>CPF:</strong> ${maskCpf(cpf)}</p>
         <p><strong>Nascimento:</strong> ${nascimento}</p>
         <p><strong>E-mail:</strong> ${email}</p>
         <p><strong>WhatsApp:</strong> ${whatsapp}</p>

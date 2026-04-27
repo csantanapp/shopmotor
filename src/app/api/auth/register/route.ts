@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession, COOKIE_NAME } from "@/lib/auth";
 import { sendWelcomeEmail } from "@/lib/mailer";
+import { encrypt } from "@/lib/crypto";
 
 function slugify(str: string) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -42,7 +43,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "CNPJ inválido." }, { status: 400 });
 
       const cnpjClean = cnpj.replace(/\D/g, "");
-      const cnpjExists = await (prisma.user as any).findFirst({ where: { cnpj: cnpjClean } });
+      const cnpjEncrypted = encrypt(cnpjClean);
+      const cnpjExists = await (prisma.user as any).findFirst({ where: { cnpj: cnpjEncrypted } });
       if (cnpjExists) return NextResponse.json({ error: "CNPJ já cadastrado." }, { status: 409 });
     }
 
@@ -77,7 +79,7 @@ export async function POST(req: NextRequest) {
         address:     address     || null,
         city:        city        || null,
         accountType: accountType === "PJ" ? "PJ" : "PF",
-        cnpj:        accountType === "PJ" ? cnpj.replace(/\D/g, "") : null,
+        cnpj:        accountType === "PJ" ? encrypt(cnpj.replace(/\D/g, "")) : null,
         companyName: accountType === "PJ" ? companyName : null,
         tradeName:   accountType === "PJ" ? tradeName || null : null,
         storeSlug,
