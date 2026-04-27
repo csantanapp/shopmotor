@@ -225,7 +225,7 @@ export default function CarroClient({ params }: { params: { id: string } }) {
 
           {/* Identificação */}
           <div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-on-surface uppercase leading-none">
+            <h1 className="text-xl md:text-2xl font-black tracking-tighter text-on-surface uppercase leading-none truncate">
               {vehicle.brand} {vehicle.model}
             </h1>
             {vehicle.version && <p className="text-on-surface-variant font-medium mt-2">{vehicle.version}</p>}
