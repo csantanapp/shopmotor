@@ -673,8 +673,21 @@ function SegurosContent() {
 
       {/* FAQ */}
       <div className="bg-surface border-t border-outline-variant/40 py-16 px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-10">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-12 items-center">
+
+            {/* Imagem lateral */}
+            <div className="lg:w-80 flex-shrink-0 flex items-center justify-center">
+              <img
+                src="/images/seguro_faq.webp"
+                alt="Seguro de veículo"
+                className="w-full h-auto object-contain"
+              />
+            </div>
+
+            {/* Accordion */}
+            <div className="flex-1">
+          <div className="mb-8">
             <h2 className="text-2xl font-black text-on-surface mb-2">Perguntas frequentes</h2>
           </div>
           <div className="space-y-3">
@@ -700,6 +713,8 @@ function SegurosContent() {
               </div>
             ))}
           </div>
+            </div>{/* fim accordion */}
+          </div>{/* fim flex row */}
         </div>
       </div>
 
