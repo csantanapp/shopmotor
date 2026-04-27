@@ -377,7 +377,7 @@ function SegurosContent() {
         </div>
         <div className="relative max-w-4xl mx-auto text-left">
           <div className="inline-flex items-center gap-2 bg-primary-container/20 border border-primary-container/30 text-primary-container text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-5">
-            <Icon name="verified" className="text-sm" /> Simulação gratuita · sem consulta ao SPC
+            <Icon name="verified" className="text-sm" /> Simulação gratuita · 100% gratuito
           </div>
           <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">Proteja seu veículo<br/>com o melhor seguro</h1>
           <p className="text-neutral-400 max-w-xl mb-8 text-sm leading-relaxed">
@@ -633,17 +633,6 @@ function SegurosContent() {
         </div>
       </div>
 
-      {/* Seguradoras */}
-      <div className="bg-surface border-t border-outline-variant/40 py-12 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-6">Trabalhamos com as principais seguradoras</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {["Porto Seguro", "Allianz", "Bradesco Seguros", "Tokio Marine", "Liberty Seguros", "Zurich"].map(s => (
-              <span key={s} className="bg-surface-container-lowest border border-outline-variant/40 text-on-surface-variant text-sm font-bold px-5 py-2.5 rounded-full shadow-sm">{s}</span>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Vantagens */}
       <div className="bg-surface-container-low border-t border-outline-variant/40 py-16 px-4">
@@ -693,7 +682,6 @@ function SegurosContent() {
           <div className="space-y-3">
             {[
               { q: "A simulação tem algum custo?",            a: "Não. A simulação é totalmente gratuita e sem compromisso de contratação." },
-              { q: "A simulação consulta SPC ou Serasa?",     a: "Não. Apenas coletamos seus dados para conectar você com corretoras parceiras. Nenhuma consulta de crédito é realizada." },
               { q: "Quanto tempo para receber as propostas?", a: "Um consultor especializado entrará em contato em até 1 dia útil com as melhores opções para o seu perfil." },
               { q: "Posso cotar para moto também?",           a: "Sim! Nossa simulação atende tanto carros quanto motos." },
               { q: "Meus dados ficam seguros?",               a: "Sim. Todos os dados são tratados conforme a LGPD e utilizados exclusivamente para envio das propostas de seguro." },
