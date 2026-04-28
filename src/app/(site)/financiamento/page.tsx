@@ -419,16 +419,6 @@ function FinanciamentoContent() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl p-6 text-center" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
-                  <p className="font-black text-zinc-900 mb-1">Quer falar com um especialista agora?</p>
-                  <p className="text-sm text-zinc-500 mb-4">Tire suas dúvidas diretamente pelo WhatsApp.</p>
-                  <a href={`https://wa.me/5500000000000?text=Olá! Simulei um financiamento de ${fmt(veiculo)} no ShopMotor e gostaria de mais informações.`}
-                    target="_blank"
-                    className="inline-flex items-center gap-2 text-white font-black px-6 py-3 rounded-full text-sm hover:opacity-90 transition-opacity"
-                    style={{ background: "#16a34a" }}>
-                    <Icon name="chat" className="text-base" /> Falar no WhatsApp
-                  </a>
-                </div>
 
                 <button onClick={resetForm} className="w-full text-sm text-zinc-400 hover:text-zinc-600 transition-colors py-2">
                   Fazer nova simulação
