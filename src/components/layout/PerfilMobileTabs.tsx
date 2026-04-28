@@ -8,6 +8,7 @@ const tabs = [
   { icon: "list_alt",        label: "Anúncios",  href: "/perfil/meus-anuncios" },
   { icon: "directions_car",  label: "Cadastrar", href: "/perfil/cadastrar"  },
   { icon: "chat_bubble",     label: "Msgs",      href: "/perfil/mensagens"  },
+  { icon: "notifications",   label: "Notif.",    href: "/perfil/notificacoes" },
   { icon: "favorite",        label: "Favoritos", href: "/perfil/favoritos"  },
   { icon: "person",          label: "Conta",     href: "/perfil/conta"      },
   { icon: "help",            label: "Ajuda",     href: "/perfil/ajuda"      },

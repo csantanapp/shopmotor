@@ -50,6 +50,7 @@ model User {
   passwordResets      PasswordReset[]
   payments            Payment[]
   storeSubscriptions  StoreSubscription[]
+  notifications       Notification[]
 
   @@map("users")
 }
@@ -447,4 +448,22 @@ model SeguroLead {
   @@index([createdAt])
   @@index([email])
   @@map("seguro_leads")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    // "vehicle_expired" | "vehicle_warning" | "slot_available" | "renewal_confirmed" | "boost_activated" | "cycle_exhausted"
+  title     String
+  body      String
+  vehicleId String?
+  actionUrl String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([createdAt])
+  @@map("notifications")
 }

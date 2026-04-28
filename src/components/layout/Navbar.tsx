@@ -57,8 +57,8 @@ export default function Navbar() {
           {/* Sino de notificações — apenas logado */}
           {!loading && user && (
             <Link
-              href="/perfil/mensagens"
-              aria-label={unread > 0 ? `${unread} mensagens não lidas` : "Mensagens"}
+              href="/perfil/notificacoes"
+              aria-label={unread > 0 ? `${unread} notificações não lidas` : "Notificações"}
               className="relative text-white hover:bg-white/5 p-2 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-primary-container focus-visible:outline-none"
             >
               <Icon name="notifications" className="text-xl" />

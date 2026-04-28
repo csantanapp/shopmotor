@@ -9,6 +9,7 @@ const navItems = [
   { icon: "directions_car", label: "Cadastrar meu veículo", href: "/perfil/cadastrar" },
   { icon: "list_alt",        label: "Meus anúncios",        href: "/perfil/meus-anuncios" },
   { icon: "chat_bubble",     label: "Mensagens",            href: "/perfil/mensagens" },
+  { icon: "notifications",   label: "Notificações",         href: "/perfil/notificacoes" },
   { icon: "favorite",        label: "Favoritos",            href: "/perfil/favoritos" },
   { icon: "person",          label: "Minha conta",          href: "/perfil/conta" },
   { icon: "help",            label: "Ajuda",                href: "/perfil/ajuda" },
