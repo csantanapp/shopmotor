@@ -162,6 +162,7 @@ export default function AdminLeads() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       <p className="text-xs text-neutral-600">{new Date(lead.createdAt).toLocaleDateString("pt-BR")}</p>
+                      <p className="text-xs text-neutral-700">{new Date(lead.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</p>
                     </td>
                   </tr>
                 ))}
