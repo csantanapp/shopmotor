@@ -167,7 +167,7 @@ export default function CadastrarPage() {
       const limitRes = await fetch("/api/vehicles/check-limit");
       const { overLimit } = await limitRes.json();
       if (overLimit) {
-        router.push(`/perfil/impulsionar/${vehicleId}?novo=1&upgrade=1`);
+        router.push(`/perfil/limite-atingido/${vehicleId}`);
       } else {
         router.push(`/perfil/impulsionar/${vehicleId}?novo=1`);
       }
