@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendExpirationEmail } from "@/lib/vehicle-emails";
 
-// Chamado por cron externo (ex: cron-job.org) — protegido por CRON_SECRET
-// Regra:
-//   renewalCount < 2  → marca EXPIRED (pode ser renovado)
-//   renewalCount >= 2 → marca EXPIRED e bloqueia edição (já usou 2 períodos)
 export async function POST(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
@@ -15,12 +12,33 @@ export async function POST(req: NextRequest) {
 
   const now = new Date();
 
-  const { count } = await prisma.vehicle.updateMany({
+  // Busca veículos ACTIVE expirados com dados do dono
+  const expired = await prisma.vehicle.findMany({
     where: { status: "ACTIVE", expiresAt: { lte: now } },
-    data:  { status: "EXPIRED" },
+    select: {
+      id: true, brand: true, model: true, yearFab: true, renewalCount: true,
+      user: { select: { email: true, name: true } },
+    },
   });
 
-  return NextResponse.json({ expired: count, at: now });
+  if (expired.length === 0) return NextResponse.json({ expired: 0, at: now });
+
+  // Marca todos como EXPIRED
+  await prisma.vehicle.updateMany({
+    where: { id: { in: expired.map(v => v.id) } },
+    data: { status: "EXPIRED" },
+  });
+
+  // Envia emails (fire-and-forget, sem bloquear o cron)
+  for (const v of expired) {
+    sendExpirationEmail(
+      { email: v.user.email, name: v.user.name ?? "Anunciante" },
+      { id: v.id, brand: v.brand, model: v.model, yearFab: v.yearFab },
+      v.renewalCount,
+    ).catch(e => console.error("[expire-cron] email error", v.id, e));
+  }
+
+  return NextResponse.json({ expired: expired.length, at: now });
 }
 
 export async function GET(req: NextRequest) {

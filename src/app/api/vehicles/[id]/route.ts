@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { sendSlotAvailableEmail } from "@/lib/vehicle-emails";
 
 /* ── GET /api/vehicles/[id] ── */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -124,13 +125,42 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
-  const vehicle = await prisma.vehicle.findUnique({ where: { id } });
+  const vehicle = await prisma.vehicle.findUnique({
+    where: { id },
+    select: { id: true, userId: true, status: true },
+  });
 
   if (!vehicle) return NextResponse.json({ error: "Veículo não encontrado." }, { status: 404 });
-  if (vehicle.userId !== user.id && user.role !== "ADMIN") {
+  if (vehicle.userId !== user.id && (user as any).role !== "ADMIN") {
     return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
   }
 
   await prisma.vehicle.delete({ where: { id } });
+
+  // Se era ACTIVE, verificar se há anúncio inativo elegível para notificar (FIFO)
+  if (vehicle.status === "ACTIVE") {
+    const u = user as any;
+    const isPF = (u.accountType ?? "PF") !== "PJ";
+    if (isPF) {
+      const eligible = await prisma.vehicle.findFirst({
+        where: {
+          userId: user.id,
+          OR: [
+            { status: "EXPIRED", renewalCount: { lt: 2 } },
+            { status: "DRAFT", photos: { some: {} } },
+          ],
+        },
+        orderBy: { createdAt: "asc" },
+        select: { id: true, brand: true, model: true, yearFab: true },
+      });
+      if (eligible) {
+        sendSlotAvailableEmail(
+          { email: user.email, name: (user as any).name ?? "Anunciante" },
+          eligible,
+        ).catch(e => console.error("[delete] slot email error", e));
+      }
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }

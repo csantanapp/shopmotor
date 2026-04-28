@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { sendRenewalConfirmationEmail } from "@/lib/vehicle-emails";
 
 // POST /api/vehicles/[id]/renew
 // Renova um anúncio EXPIRED por mais 30 dias (máximo 2 renovações)
@@ -29,15 +30,25 @@ export async function POST(
       { status: 403 }
     );
 
+  const newExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const newRenewalCount = vehicle.renewalCount + 1;
+
   const updated = await prisma.vehicle.update({
     where: { id },
     data: {
       status: "ACTIVE",
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      renewalCount: vehicle.renewalCount + 1,
+      expiresAt: newExpiresAt,
+      renewalCount: newRenewalCount,
     },
-    select: { id: true, status: true, expiresAt: true, renewalCount: true },
+    select: { id: true, brand: true, model: true, yearFab: true, status: true, expiresAt: true, renewalCount: true, user: { select: { email: true, name: true } } },
   });
+
+  sendRenewalConfirmationEmail(
+    { email: updated.user.email, name: updated.user.name ?? "Anunciante" },
+    { brand: updated.brand, model: updated.model, yearFab: updated.yearFab },
+    newExpiresAt,
+    newRenewalCount,
+  ).catch(e => console.error("[renew] email error", e));
 
   return NextResponse.json({ vehicle: updated });
 }

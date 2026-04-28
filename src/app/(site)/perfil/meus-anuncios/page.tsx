@@ -58,6 +58,7 @@ export default function MeusAnunciosPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("ativos");
   const [overLimit, setOverLimit] = useState(false);
+  const [fifoEligibleId, setFifoEligibleId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const [mineRes, limitRes] = await Promise.all([
@@ -71,6 +72,7 @@ export default function MeusAnunciosPage() {
     if (limitRes.ok) {
       const d = await limitRes.json();
       setOverLimit(d.overLimit ?? false);
+      setFifoEligibleId(d.fifoEligibleId ?? null);
     }
     setLoading(false);
   }, []);
@@ -309,13 +311,32 @@ export default function MeusAnunciosPage() {
 
                       {/* Renovar / Impulsionar (expirado) */}
                       {v.status === "EXPIRED" && v.renewalCount < 2 && (
-                        <button
-                          onClick={() => renewVehicle(v.id)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
-                        >
-                          <Icon name="refresh" className="text-sm" />
-                          Renovar {v.renewalCount === 1 ? "(último período)" : ""}
-                        </button>
+                        fifoEligibleId === v.id ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => renewVehicle(v.id)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-600 text-white text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
+                            >
+                              <Icon name="check_circle" className="text-sm" />
+                              Publicar grátis
+                            </button>
+                            <Link
+                              href={`/perfil/impulsionar/${v.id}`}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary-container text-primary text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
+                            >
+                              <Icon name="rocket_launch" className="text-sm" />
+                              Impulsionar
+                            </Link>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => renewVehicle(v.id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all"
+                          >
+                            <Icon name="refresh" className="text-sm" />
+                            Renovar {v.renewalCount === 1 ? "(último período)" : ""}
+                          </button>
+                        )
                       )}
                       {v.status === "EXPIRED" && v.renewalCount >= 2 && (
                         <Link
