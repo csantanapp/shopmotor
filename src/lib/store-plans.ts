@@ -4,7 +4,7 @@ export const STORE_PLANS = {
   STARTER: {
     key: "STARTER",
     name: "Starter",
-    emoji: "🟢",
+    emoji: "",
     price: 497,
     days: 30,
     anunciosExtras: 5,
@@ -34,8 +34,8 @@ export const STORE_PLANS = {
   PRO: {
     key: "PRO",
     name: "Pro",
-    emoji: "⭐",
-    price: 897,
+    emoji: "",
+    price: 797,
     days: 30,
     anunciosExtras: 15,
     anunciosTotal: 35,
@@ -62,8 +62,8 @@ export const STORE_PLANS = {
   ELITE: {
     key: "ELITE",
     name: "Elite",
-    emoji: "🔥",
-    price: 1497,
+    emoji: "",
+    price: 1197,
     days: 30,
     anunciosExtras: 30,
     anunciosTotal: 50,

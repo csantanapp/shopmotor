@@ -76,7 +76,7 @@ export default function PlanosPage() {
                   </div>
                 )}
 
-                <div className="text-2xl mb-3">{plan.emoji}</div>
+
                 <h2 className={`text-2xl font-black mb-1 ${isElite ? "text-white" : "text-zinc-900"}`}>{plan.name}</h2>
                 <p className={`text-xs uppercase tracking-widest mb-6 ${isElite ? "text-zinc-400" : "text-zinc-400"}`}>Plano mensal · {plan.days} dias</p>
 
@@ -130,7 +130,7 @@ export default function PlanosPage() {
                 <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-widest text-zinc-400">Recurso</th>
                 {plans.map(p => (
                   <th key={p.key} className={`px-6 py-4 text-center text-sm font-black ${p.key === "PRO" ? "text-yellow-600" : p.key === "ELITE" ? "text-zinc-900" : "text-zinc-600"}`}>
-                    {p.emoji} {p.name}
+                    {p.name}
                   </th>
                 ))}
               </tr>
