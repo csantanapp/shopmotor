@@ -112,18 +112,20 @@ export default function LimiteAtingidoPage() {
                 Escolha um dos planos pontuais — sem assinatura, pagamento único por anúncio — e
                 publique imediatamente, sem precisar esperar por vaga gratuita.
               </p>
-              <ul className="mt-3 space-y-1.5">
-                {[
-                  { name: "Turbo", price: "R$ 17,90", days: "7 dias", desc: "Topo das buscas, selo Destaque e galeria" },
-                  { name: "Destaque", price: "R$ 27,90", days: "15 dias", desc: "Posicionamento privilegiado, prioridade em filtros" },
-                  { name: "Super Destaque", price: "R$ 47,90", days: "30 dias", desc: "Topo absoluto, seção Elite da Home" },
-                ].map(p => (
-                  <li key={p.name} className="flex items-start gap-2 text-xs text-on-surface-variant">
-                    <Icon name="check_circle" className="text-primary text-sm mt-0.5 flex-shrink-0" />
-                    <span><strong className="text-on-surface">{p.name}</strong> — {p.price} · {p.days} · {p.desc}</span>
-                  </li>
-                ))}
-              </ul>
+              {isPJ && (
+                <ul className="mt-3 space-y-1.5">
+                  {[
+                    { name: "Turbo", price: "R$ 17,90", days: "7 dias", desc: "Topo das buscas, selo Destaque e galeria" },
+                    { name: "Destaque", price: "R$ 27,90", days: "15 dias", desc: "Posicionamento privilegiado, prioridade em filtros" },
+                    { name: "Super Destaque", price: "R$ 47,90", days: "30 dias", desc: "Topo absoluto, seção Elite da Home" },
+                  ].map(p => (
+                    <li key={p.name} className="flex items-start gap-2 text-xs text-on-surface-variant">
+                      <Icon name="check_circle" className="text-primary text-sm mt-0.5 flex-shrink-0" />
+                      <span><strong className="text-on-surface">{p.name}</strong> — {p.price} · {p.days} · {p.desc}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
           <Link
