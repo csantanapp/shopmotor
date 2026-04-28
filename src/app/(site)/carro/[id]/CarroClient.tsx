@@ -508,16 +508,23 @@ export default function CarroClient({ params }: { params: { id: string } }) {
 
             {/* Ações */}
             <div className="space-y-3 pt-1">
-              {user && vehicle.user.phone ? (
-                <a
-                  href={`https://wa.me/55${vehicle.user.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá! Vi seu anúncio do ${vehicle.brand} ${vehicle.model} no ShopMotor e tenho interesse.`)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-full transition-colors text-sm"
-                >
-                  <Icon name="chat" className="text-base" />
-                  Chamar no WhatsApp
-                </a>
-              ) : !user ? (
+              {/* WhatsApp: bloqueado para PJ sem plano pago (Grátis) */}
+              {(() => {
+                const isPJFree = vehicle.user.accountType === "PJ" && !vehicle.user.subPlan;
+                if (isPJFree) return null;
+                if (user && vehicle.user.phone) return (
+                  <a
+                    href={`https://wa.me/55${vehicle.user.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá! Vi seu anúncio do ${vehicle.brand} ${vehicle.model} no ShopMotor e tenho interesse.`)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-full transition-colors text-sm"
+                  >
+                    <Icon name="chat" className="text-base" />
+                    Chamar no WhatsApp
+                  </a>
+                );
+                return null;
+              })()}
+              {!user ? (
                 <Link
                   href={`/login?redirect=/carro/${id}`}
                   className="flex items-center justify-center gap-2 w-full bg-green-500/20 text-green-700 font-bold py-3 rounded-full text-sm border border-green-500/30 hover:bg-green-500/30 transition-colors"

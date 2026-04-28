@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { PJ_FREE_LIMIT, STORE_PLANS, StorePlan } from "@/lib/store-plans";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -9,8 +10,25 @@ export async function GET() {
   const u = user as any;
   const isPJ = (u.accountType ?? "PF") === "PJ";
 
-  // PF: 3 gratuitos (FREE) ou 20 (PREMIUM). PJ: sempre 20 vagas gratuitas.
-  const limit = isPJ ? 20 : (user.plan === "PREMIUM" ? 20 : 3);
+  let limit: number;
+  let subPlan: string | null = null;
+
+  if (isPJ) {
+    // Busca assinatura ativa do lojista
+    const now = new Date();
+    const activeSub = await (prisma as any).storeSubscription.findFirst({
+      where: { userId: user.id, status: "active", endsAt: { gt: now } },
+      orderBy: { endsAt: "desc" },
+      select: { plan: true },
+    });
+    subPlan = activeSub?.plan ?? null;
+    const planData = subPlan ? STORE_PLANS[subPlan as StorePlan] : null;
+    limit = planData ? planData.anunciosTotal : PJ_FREE_LIMIT;
+  } else {
+    // PF: 3 (FREE) ou 20 (PREMIUM)
+    limit = user.plan === "PREMIUM" ? 20 : 3;
+  }
+
   const activeCount = await prisma.vehicle.count({
     where: { userId: user.id, status: "ACTIVE" },
   });
@@ -32,5 +50,5 @@ export async function GET() {
     fifoEligibleId = eligible?.id ?? null;
   }
 
-  return NextResponse.json({ overLimit: activeCount >= limit, activeCount, limit, fifoEligibleId, isPJ });
+  return NextResponse.json({ overLimit: activeCount >= limit, activeCount, limit, fifoEligibleId, isPJ, subPlan });
 }

@@ -11,16 +11,18 @@ const plans = [STORE_PLANS.STARTER, STORE_PLANS.PRO, STORE_PLANS.ELITE];
 const COMPARE_ROWS = [
   { label: "Perfil Loja personalizado",     starter: true,  pro: true,  elite: true  },
   { label: "URL exclusiva da loja",         starter: true,  pro: true,  elite: true  },
-  { label: "Vitrine de veículos",           starter: true,  pro: true,  elite: true  },
+  { label: "Vitrine Personalizada",         starter: true,  pro: true,  elite: true  },
   { label: "Selo verificado",               starter: true,  pro: true,  elite: true  },
-  { label: "Anúncios no total",             starter: "25",  pro: "35",  elite: "50"  },
-  { label: "Destaques mensais",             starter: "2",   pro: "5",   elite: "10"  },
+  { label: "Anúncios gratuitos (base)",     starter: "20",  pro: "20",  elite: "20"  },
+  { label: "Anúncios extras",               starter: "+5",  pro: "+15", elite: "+30" },
+  { label: "Total de anúncios",             starter: "25",  pro: "35",  elite: "50"  },
+  { label: "Destaques mensais inclusos",    starter: "2",   pro: "5",   elite: "10"  },
+  { label: "Acesso ao WhatsApp",            starter: true,  pro: true,  elite: true  },
   { label: "Links redes sociais",           starter: false, pro: true,  elite: true  },
   { label: "Acesso e-mail + telefone lead", starter: false, pro: true,  elite: true  },
   { label: "Analytics de anúncios",        starter: false, pro: true,  elite: true  },
-  { label: "Simulação financiamento",       starter: false, pro: false, elite: true  },
+  { label: "Simulação de financiamento",    starter: false, pro: false, elite: true  },
   { label: "Destaque na Home",              starter: false, pro: false, elite: true  },
-  { label: "Lead prioritário completo",     starter: false, pro: false, elite: true  },
 ];
 
 function Check({ v }: { v: boolean | string }) {

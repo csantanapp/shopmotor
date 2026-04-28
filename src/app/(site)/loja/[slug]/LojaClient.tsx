@@ -329,7 +329,8 @@ export default function LojaClient({ params }: { params: { slug: string } }) {
                 </div>
               </div>
               <div className="flex flex-wrap gap-3">
-                {store.whatsapp && (
+                {/* WhatsApp só para planos pagos (Starter, Pro, Elite) */}
+                {store.whatsapp && store.subPlan && (
                   <a href={`https://wa.me/55${store.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Vim pelo site Shopmotor e gostaria de informações sobre a loja e os carros.")}`}
                     target="_blank" rel="noreferrer"
                     onClick={() => fetch(`/api/loja/${slug}/wa-click`, { method: "POST", headers: { "x-session-id": sessionStorage.getItem("sm_sid") ?? "" } }).catch(() => null)}
