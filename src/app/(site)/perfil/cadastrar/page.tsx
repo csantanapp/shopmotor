@@ -159,6 +159,10 @@ export default function CadastrarPage() {
       if (!await submitVehicle()) return;
     }
     if (step === 3) {
+      if (photos.length < 3) {
+        setError("Adicione pelo menos 3 fotos para publicar o anúncio.");
+        return;
+      }
       await uploadPhotos();
       const limitRes = await fetch("/api/vehicles/check-limit");
       const { overLimit } = await limitRes.json();
@@ -460,7 +464,7 @@ export default function CadastrarPage() {
       {step === 3 && (
         <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm space-y-6">
           <h2 className="text-base font-bold text-on-surface border-b border-neutral-100 pb-4">
-            Fotos <span className="text-outline font-normal text-xs ml-1">Máximo 20 fotos • JPG, PNG ou WebP • Até 10MB cada</span>
+            Fotos <span className="text-outline font-normal text-xs ml-1">Mínimo 3 fotos • Máximo 20 • JPG, PNG ou WebP • Até 10MB cada</span>
           </h2>
 
           <label className="flex flex-col items-center justify-center border-2 border-dashed border-outline-variant rounded-2xl p-12 cursor-pointer hover:border-primary-container transition-colors">

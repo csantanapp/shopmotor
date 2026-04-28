@@ -4,9 +4,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { mpPreference } from "@/lib/mercadopago";
 
 const PLANS: Record<string, { name: string; price: number; days: number; boostLevel: "DESTAQUE" | "ELITE" }> = {
-  TURBO:         { name: "Turbo",         price: 14.90, days: 5,  boostLevel: "DESTAQUE" },
-  DESTAQUE:      { name: "Destaque",      price: 29.90, days: 7,  boostLevel: "DESTAQUE" },
-  SUPER_DESTAQUE:{ name: "Super Destaque",price: 59.90, days: 15, boostLevel: "ELITE"    },
+  TURBO:         { name: "Turbo",         price: 17.90, days: 7,  boostLevel: "DESTAQUE" },
+  DESTAQUE:      { name: "Destaque",      price: 27.90, days: 15, boostLevel: "DESTAQUE" },
+  SUPER_DESTAQUE:{ name: "Super Destaque",price: 47.90, days: 30, boostLevel: "ELITE"    },
 };
 
 export async function POST(req: NextRequest) {
