@@ -46,11 +46,10 @@ export default function ContatoPage() {
         <p className="text-on-surface-variant text-sm">Estamos aqui para ajudar. Escolha o canal que preferir.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
           { icon: "mail", label: "E-mail", value: "contato@shopmotor.com.br", sub: "Resposta em até 24h" },
           { icon: "support_agent", label: "Suporte", value: "Seg–Sex, 9h–18h", sub: "Atendimento online" },
-          { icon: "location_on", label: "Localização", value: "Maringá, PR", sub: "Brasil" },
         ].map(item => (
           <div key={item.label} className="bg-surface-container-lowest rounded-2xl p-6 shadow-sm flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0">
