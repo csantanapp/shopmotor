@@ -32,5 +32,5 @@ export async function GET() {
     fifoEligibleId = eligible?.id ?? null;
   }
 
-  return NextResponse.json({ overLimit: activeCount >= limit, activeCount, limit, fifoEligibleId });
+  return NextResponse.json({ overLimit: activeCount >= limit, activeCount, limit, fifoEligibleId, isPJ });
 }

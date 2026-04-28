@@ -43,12 +43,38 @@ function PlanoContent() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [isPJ, setIsPJ] = useState<boolean | null>(null);
 
   useEffect(() => {
-    fetch("/api/payments/subscription")
-      .then(r => r.json())
-      .then(d => { setSubscription(d.subscription); setLoading(false); });
+    Promise.all([
+      fetch("/api/payments/subscription").then(r => r.json()),
+      fetch("/api/vehicles/check-limit").then(r => r.json()),
+    ]).then(([subData, limitData]) => {
+      setSubscription(subData.subscription);
+      setIsPJ(limitData.isPJ ?? false);
+      setLoading(false);
+    });
   }, []);
+
+  // Bloquear PF de acessar esta página
+  if (!loading && isPJ === false) {
+    return (
+      <div className="max-w-lg mx-auto py-16 text-center px-4 space-y-4">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+          <Icon name="block" className="text-red-500 text-4xl" />
+        </div>
+        <h2 className="text-xl font-black text-zinc-900">Acesso restrito</h2>
+        <p className="text-zinc-500 text-sm">
+          Planos comerciais (Starter, Pro, Elite) são exclusivos para contas Lojista PJ/CNPJ.
+          Contas Pessoa Física não têm acesso a esta área.
+        </p>
+        <Link href="/perfil/meus-anuncios" className="inline-flex items-center gap-2 bg-zinc-900 text-white font-black px-8 py-3 rounded-full text-sm hover:bg-zinc-700 transition-colors">
+          <Icon name="arrow_back" className="text-base" />
+          Voltar para meus anúncios
+        </Link>
+      </div>
+    );
+  }
 
   async function subscribe(planKey: StorePlan) {
     setPurchasing(planKey);
