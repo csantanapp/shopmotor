@@ -47,13 +47,12 @@ export async function POST(req: NextRequest) {
         storeSlug: storeSlug ?? null,
         storeUserId,
         vehicleId: vehicleId ?? null,
-        // leadTipo não existe no model FinanciamentoLead ainda, mas está no SeguroLead
       },
     });
 
     const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
-    await resend.emails.send({
+    resend.emails.send({
       from: "ShopMotor <noreply@shopmotor.com.br>",
       to: "contato@shopmotor.com.br",
       subject: `[Financiamento] Nova simulação — ${nome}${storeSlug ? ` via loja ${storeSlug}` : ""}`,
@@ -73,8 +72,11 @@ export async function POST(req: NextRequest) {
         <p><strong>Financiado:</strong> ${fmt(financiado)}</p>
         <p><strong>Parcelas:</strong> ${parcelas}x de ${fmt(pmt)}</p>
       `,
-    });
-  } catch {}
+    }).catch(e => console.error("[financiamento] email error", e));
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("[financiamento] lead save error", e);
+    return NextResponse.json({ error: "Erro ao salvar lead." }, { status: 500 });
+  }
 }
