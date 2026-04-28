@@ -20,67 +20,6 @@ export default function AnunciePage() {
         <p className="text-on-surface-variant text-base leading-relaxed max-w-xl">
           Alcance milhares de compradores qualificados em todo o Brasil. Planos para pessoa física e lojas, com ferramentas que fazem a diferença.
         </p>
-        <Link href="/cadastro" className="inline-block bg-primary-container text-on-primary-container font-black px-10 py-4 rounded-full text-sm uppercase tracking-widest hover:-translate-y-0.5 transition-all shadow-[0px_8px_24px_rgba(255,215,9,0.25)]">
-          Comece grátis
-        </Link>
-      </div>
-
-      {/* Planos */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-black text-on-surface">Planos disponíveis</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-          <PlanCard
-            name="Grátis"
-            price="R$ 0"
-            period="para sempre"
-            highlight={false}
-            features={[
-              "Até 3 anúncios ativos",
-              "Fotos ilimitadas por anúncio",
-              "Chat com compradores",
-              "Comparação FIPE automática",
-              "Perfil público de vendedor",
-            ]}
-            cta="Começar grátis"
-            href="/cadastro"
-          />
-
-          <PlanCard
-            name="Premium"
-            price="R$ 49"
-            period="por mês"
-            highlight={true}
-            features={[
-              "Até 20 anúncios ativos",
-              "Badge Premium no perfil",
-              "Destaque nas buscas",
-              "Estatísticas de visualizações",
-              "Suporte prioritário",
-              "Todos os recursos do Grátis",
-            ]}
-            cta="Assinar Premium"
-            href="/cadastro"
-          />
-
-          <PlanCard
-            name="Loja"
-            price="R$ 99"
-            period="por mês"
-            highlight={false}
-            features={[
-              "Anúncios ilimitados",
-              "Página da loja personalizada",
-              "Banner e logo da empresa",
-              "URL exclusiva (/loja/sua-loja)",
-              "Relatórios avançados",
-              "Todos os recursos do Premium",
-            ]}
-            cta="Criar minha loja"
-            href="/cadastro"
-          />
-
-        </div>
       </div>
 
       {/* Impulsionamento */}
@@ -217,35 +156,3 @@ export default function AnunciePage() {
   );
 }
 
-function PlanCard({ name, price, period, highlight, features, cta, href }: {
-  name: string; price: string; period: string; highlight: boolean;
-  features: string[]; cta: string; href: string;
-}) {
-  return (
-    <div className={`rounded-2xl p-6 space-y-5 flex flex-col ${highlight ? "bg-inverse-surface shadow-2xl scale-[1.02]" : "bg-surface-container-lowest shadow-sm"}`}>
-      <div>
-        <p className={`text-xs font-black uppercase tracking-widest ${highlight ? "text-primary-container" : "text-on-surface-variant"}`}>{name}</p>
-        <p className={`text-3xl font-black mt-1 ${highlight ? "text-inverse-on-surface" : "text-on-surface"}`}>{price}</p>
-        <p className={`text-xs ${highlight ? "text-inverse-on-surface/60" : "text-on-surface-variant"}`}>{period}</p>
-      </div>
-      <ul className="space-y-2 flex-1">
-        {features.map(f => (
-          <li key={f} className={`flex items-start gap-2 text-sm ${highlight ? "text-inverse-on-surface/80" : "text-on-surface-variant"}`}>
-            <span className={`material-symbols-outlined text-sm flex-shrink-0 mt-0.5 ${highlight ? "text-primary-container" : "text-green-600"}`}>check_circle</span>
-            {f}
-          </li>
-        ))}
-      </ul>
-      <Link
-        href={href}
-        className={`block text-center font-black py-3 rounded-full text-sm uppercase tracking-widest transition-all hover:-translate-y-0.5 ${
-          highlight
-            ? "bg-primary-container text-on-primary-container"
-            : "bg-surface-container-high text-on-surface hover:bg-primary-container hover:text-on-primary-container"
-        }`}
-      >
-        {cta}
-      </Link>
-    </div>
-  );
-}
