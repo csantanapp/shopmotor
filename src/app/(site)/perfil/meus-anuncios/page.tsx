@@ -59,6 +59,8 @@ export default function MeusAnunciosPage() {
   const [tab, setTab] = useState<Tab>("ativos");
   const [overLimit, setOverLimit] = useState(false);
   const [fifoEligibleId, setFifoEligibleId] = useState<string | null>(null);
+  const [activeCount, setActiveCount] = useState(0);
+  const [slotLimit, setSlotLimit] = useState(0);
 
   const load = useCallback(async () => {
     const [mineRes, limitRes] = await Promise.all([
@@ -73,6 +75,8 @@ export default function MeusAnunciosPage() {
       const d = await limitRes.json();
       setOverLimit(d.overLimit ?? false);
       setFifoEligibleId(d.fifoEligibleId ?? null);
+      setActiveCount(d.activeCount ?? 0);
+      setSlotLimit(d.limit ?? 0);
     }
     setLoading(false);
   }, []);
@@ -162,6 +166,17 @@ export default function MeusAnunciosPage() {
           Novo anúncio
         </Link>
       </div>
+
+      {/* Banner de cota PJ/PF */}
+      {slotLimit > 0 && (
+        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm ${overLimit ? "bg-red-50 text-red-700" : "bg-surface-container text-on-surface-variant"}`}>
+          <Icon name={overLimit ? "warning" : "check_circle"} className="text-lg flex-shrink-0" />
+          <span>
+            <strong>{activeCount}</strong> de <strong>{slotLimit}</strong> vagas gratuitas utilizadas.
+            {overLimit && " Limite atingido — exclua ou impulsione um anúncio para publicar mais."}
+          </span>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-outline/10">

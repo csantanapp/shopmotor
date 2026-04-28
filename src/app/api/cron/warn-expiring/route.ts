@@ -23,26 +23,23 @@ export async function POST(req: NextRequest) {
     },
     select: {
       id: true, brand: true, model: true, yearFab: true, renewalCount: true, expiresAt: true,
-      user: { select: { email: true, name: true, accountType: true } },
+      user: { select: { id: true, email: true, name: true } },
     },
   });
 
-  // Filtra apenas PF (PJ têm ciclo diferente)
-  const pf = expiring.filter(v => (v.user as any).accountType !== "PJ");
-
-  for (const v of pf) {
+  for (const v of expiring) {
     const daysLeft = Math.ceil(
       ((v.expiresAt?.getTime() ?? 0) - now.getTime()) / (24 * 60 * 60 * 1000)
     );
     sendExpirationWarningEmail(
-      { email: v.user.email, name: v.user.name ?? "Anunciante" },
+      { id: v.user.id, email: v.user.email, name: v.user.name ?? "Anunciante" },
       { id: v.id, brand: v.brand, model: v.model, yearFab: v.yearFab },
       daysLeft,
       v.renewalCount,
     ).catch(e => console.error("[warn-cron] email error", v.id, e));
   }
 
-  return NextResponse.json({ warned: pf.length, at: now });
+  return NextResponse.json({ warned: expiring.length, at: now });
 }
 
 export async function GET(req: NextRequest) {

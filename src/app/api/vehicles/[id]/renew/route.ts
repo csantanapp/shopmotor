@@ -40,11 +40,11 @@ export async function POST(
       expiresAt: newExpiresAt,
       renewalCount: newRenewalCount,
     },
-    select: { id: true, brand: true, model: true, yearFab: true, status: true, expiresAt: true, renewalCount: true, user: { select: { email: true, name: true } } },
+    select: { id: true, brand: true, model: true, yearFab: true, status: true, expiresAt: true, renewalCount: true, user: { select: { id: true, email: true, name: true } } },
   });
 
   sendRenewalConfirmationEmail(
-    { email: updated.user.email, name: updated.user.name ?? "Anunciante" },
+    { id: updated.user.id, email: updated.user.email, name: updated.user.name ?? "Anunciante" },
     { brand: updated.brand, model: updated.model, yearFab: updated.yearFab },
     newExpiresAt,
     newRenewalCount,

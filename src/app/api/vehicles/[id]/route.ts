@@ -68,9 +68,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   // Calcular expiresAt ao ativar o anúncio
   let expiresAt: Date | undefined;
   if (body.status === "ACTIVE" && vehicle.status !== "ACTIVE") {
-    const u = user as any;
-    const days = u.accountType === "PJ" ? 60 : 30;
-    expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   }
 
   try {
@@ -137,28 +135,24 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   await prisma.vehicle.delete({ where: { id } });
 
-  // Se era ACTIVE, verificar se há anúncio inativo elegível para notificar (FIFO)
+  // Se era ACTIVE, verificar FIFO e notificar (PF e PJ)
   if (vehicle.status === "ACTIVE") {
-    const u = user as any;
-    const isPF = (u.accountType ?? "PF") !== "PJ";
-    if (isPF) {
-      const eligible = await prisma.vehicle.findFirst({
-        where: {
-          userId: user.id,
-          OR: [
-            { status: "EXPIRED", renewalCount: { lt: 2 } },
-            { status: "DRAFT", photos: { some: {} } },
-          ],
-        },
-        orderBy: { createdAt: "asc" },
-        select: { id: true, brand: true, model: true, yearFab: true },
-      });
-      if (eligible) {
-        sendSlotAvailableEmail(
-          { email: user.email, name: (user as any).name ?? "Anunciante" },
-          eligible,
-        ).catch(e => console.error("[delete] slot email error", e));
-      }
+    const eligible = await prisma.vehicle.findFirst({
+      where: {
+        userId: user.id,
+        OR: [
+          { status: "EXPIRED", renewalCount: { lt: 2 } },
+          { status: "DRAFT", photos: { some: {} } },
+        ],
+      },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, brand: true, model: true, yearFab: true },
+    });
+    if (eligible) {
+      sendSlotAvailableEmail(
+        { id: user.id, email: user.email, name: (user as any).name ?? "Anunciante" },
+        eligible,
+      ).catch(e => console.error("[delete] slot email error", e));
     }
   }
 

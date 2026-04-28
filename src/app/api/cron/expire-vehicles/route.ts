@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     where: { status: "ACTIVE", expiresAt: { lte: now } },
     select: {
       id: true, brand: true, model: true, yearFab: true, renewalCount: true,
-      user: { select: { email: true, name: true } },
+      user: { select: { id: true, email: true, name: true } },
     },
   });
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   // Envia emails (fire-and-forget, sem bloquear o cron)
   for (const v of expired) {
     sendExpirationEmail(
-      { email: v.user.email, name: v.user.name ?? "Anunciante" },
+      { id: v.user.id, email: v.user.email, name: v.user.name ?? "Anunciante" },
       { id: v.id, brand: v.brand, model: v.model, yearFab: v.yearFab },
       v.renewalCount,
     ).catch(e => console.error("[expire-cron] email error", v.id, e));

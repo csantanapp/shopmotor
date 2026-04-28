@@ -7,10 +7,10 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const u = user as any;
-  const isPF = (u.accountType ?? "PF") !== "PJ";
-  if (!isPF) return NextResponse.json({ overLimit: false, activeCount: 0, limit: 999, fifoEligibleId: null });
+  const isPJ = (u.accountType ?? "PF") === "PJ";
 
-  const limit = user.plan === "PREMIUM" ? 20 : 3;
+  // PF: 3 gratuitos (FREE) ou 20 (PREMIUM). PJ: sempre 20 vagas gratuitas.
+  const limit = isPJ ? 20 : (user.plan === "PREMIUM" ? 20 : 3);
   const activeCount = await prisma.vehicle.count({
     where: { userId: user.id, status: "ACTIVE" },
   });
