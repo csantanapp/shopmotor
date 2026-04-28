@@ -147,7 +147,8 @@ export default function ContaPage() {
   if (!profile) return null;
 
   const memberSince = new Date(profile.createdAt).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-  const planLabel = profile.plan === "PREMIUM" ? "Vendedor Premium" : "Plano Grátis";
+  const isPJ = profile.accountType === "PJ";
+  const planLabel = isPJ ? (profile.plan === "PREMIUM" ? "Vendedor Premium" : "Plano Grátis") : null;
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -207,7 +208,7 @@ export default function ContaPage() {
           </div>
           <div>
             <h3 className="font-black text-xl text-on-surface">{profile.accountType === "PJ" ? (profile.tradeName || profile.name) : profile.name}</h3>
-            <p className="text-sm text-primary font-semibold">{planLabel}</p>
+            {planLabel && <p className="text-sm text-primary font-semibold">{planLabel}</p>}
             <p className="text-xs text-on-surface-variant mt-1">Membro desde {memberSince}</p>
           </div>
         </div>

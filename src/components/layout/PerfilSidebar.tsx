@@ -19,7 +19,8 @@ export default function PerfilSidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  const planLabel = user?.plan === "PREMIUM" ? "Vendedor Premium" : "Plano Grátis";
+  const isPJ = (user as any)?.accountType === "PJ";
+  const planLabel = isPJ ? (user?.plan === "PREMIUM" ? "Vendedor Premium" : "Plano Grátis") : null;
 
   return (
     <aside className="hidden md:flex flex-col w-64 sticky top-[80px] h-[calc(100vh-80px)] bg-neutral-100 border-r border-neutral-200 p-4 flex-shrink-0">
@@ -36,7 +37,7 @@ export default function PerfilSidebar() {
         </div>
         <Link href="/perfil" className="overflow-hidden hover:opacity-80 transition-opacity">
           <h3 className="text-neutral-900 font-bold leading-tight text-sm truncate">{user?.accountType === "PJ" ? (user.tradeName || user.name) : user?.name ?? "..."}</h3>
-          <p className="text-xs text-neutral-500">{planLabel}</p>
+          {planLabel && <p className="text-xs text-neutral-500">{planLabel}</p>}
         </Link>
       </div>
 
