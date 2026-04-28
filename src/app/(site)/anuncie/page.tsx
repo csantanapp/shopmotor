@@ -22,64 +22,6 @@ export default function AnunciePage() {
         </p>
       </div>
 
-      {/* Impulsionamento */}
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-black text-on-surface">Impulsione seus anúncios</h2>
-          <p className="text-sm text-on-surface-variant mt-1">Disponível para todos os planos como recurso adicional.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-surface-container-lowest rounded-2xl shadow-sm p-6 space-y-3 border-2 border-primary-container/40">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary-container text-xl">stars</span>
-              <h3 className="font-black text-on-surface">Destaque</h3>
-            </div>
-            <p className="text-sm text-on-surface-variant leading-relaxed">Seu anúncio aparece no topo dos resultados de busca com badge dourado. Mais visibilidade, mais contatos.</p>
-            <ul className="space-y-1 text-sm text-on-surface-variant">
-              <li className="flex items-center gap-2"><span className="material-symbols-outlined text-green-600 text-sm">check</span>Posição de destaque nas buscas</li>
-              <li className="flex items-center gap-2"><span className="material-symbols-outlined text-green-600 text-sm">check</span>Badge "Destaque" no card</li>
-              <li className="flex items-center gap-2"><span className="material-symbols-outlined text-green-600 text-sm">check</span>Rotação justa entre anúncios destaque</li>
-            </ul>
-          </div>
-
-          <div className="bg-inverse-surface rounded-2xl p-6 space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-yellow-400 text-xl">workspace_premium</span>
-              <h3 className="font-black text-inverse-on-surface">Elite</h3>
-            </div>
-            <p className="text-sm text-inverse-on-surface/70 leading-relaxed">O nível máximo de visibilidade. Anúncios Elite aparecem acima dos Destaque e têm presença garantida nas primeiras posições.</p>
-            <ul className="space-y-1 text-sm text-inverse-on-surface/70">
-              <li className="flex items-center gap-2"><span className="material-symbols-outlined text-yellow-400 text-sm">check</span>Posição acima do Destaque</li>
-              <li className="flex items-center gap-2"><span className="material-symbols-outlined text-yellow-400 text-sm">check</span>Badge "Elite" exclusivo</li>
-              <li className="flex items-center gap-2"><span className="material-symbols-outlined text-yellow-400 text-sm">check</span>Máxima exposição na galeria</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Por que anunciar */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-black text-on-surface">Por que anunciar na ShopMotor?</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            { icon: "group", title: "Audiência qualificada", desc: "Compradores que estão ativamente buscando veículos, não navegação casual." },
-            { icon: "price_check", title: "Transparência de preços", desc: "Comparação FIPE automática que ajuda compradores a tomar decisões mais rápidas." },
-            { icon: "trending_up", title: "Ferramentas de impulsionamento", desc: "Destaque seu anúncio quando precisar vender mais rápido." },
-            { icon: "insights", title: "Estatísticas em tempo real", desc: "Saiba quantas pessoas visualizaram seu anúncio e como ele está performando." },
-            { icon: "storefront", title: "Página da loja", desc: "Lojas têm URL exclusiva e vitrine personalizada com todos os seus veículos." },
-            { icon: "verified_user", title: "Plataforma segura", desc: "Sistema de avaliações, chat interno e verificação de usuários para mais confiança." },
-          ].map(item => (
-            <div key={item.title} className="flex items-start gap-4 bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
-              <span className="material-symbols-outlined text-primary text-2xl flex-shrink-0">{item.icon}</span>
-              <div>
-                <p className="font-bold text-on-surface">{item.title}</p>
-                <p className="text-sm text-on-surface-variant mt-0.5">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Anuncie sua marca */}
       <div className="space-y-0" id="marcas">
         <div className="bg-inverse-surface rounded-t-3xl px-10 pt-12 pb-8 space-y-6">
