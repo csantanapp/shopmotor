@@ -7,7 +7,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
   const db = prisma;
 
   const store = await db.user.findFirst({
-    where: { storeSlug: slug, accountType: "PJ", isDemo: false },
+    where: { storeSlug: slug, accountType: "PJ" },
     select: {
       id: true, name: true, tradeName: true, companyName: true,
       avatarUrl: true, storeBannerUrl: true, storeDescription: true,
