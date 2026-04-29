@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
+import { sendCmsEmail } from "@/lib/cms-email";
 
 // Roda a cada minuto — envia mensagens agendadas cujo horário já passou
 export async function POST(req: NextRequest) {
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (msg.segment === "pf")      where.accountType = "PF";
     if (msg.segment === "lojista") where.accountType = "PJ";
 
-    const users = await prisma.user.findMany({ where, select: { id: true } });
+    const users = await prisma.user.findMany({ where, select: { id: true, email: true, name: true } });
 
     for (const user of users) {
       if (channels.includes("in_app")) {
@@ -39,6 +40,13 @@ export async function POST(req: NextRequest) {
           title:     msg.title,
           body:      msg.body.replace(/<[^>]*>/g, "").slice(0, 200),
           actionUrl: msg.ctaUrl ?? undefined,
+        });
+      }
+      if (channels.includes("email") && user.email) {
+        await sendCmsEmail({
+          to: user.email, name: user.name,
+          title: msg.title, body: msg.body,
+          ctaLabel: msg.ctaLabel, ctaUrl: msg.ctaUrl,
         });
       }
     }

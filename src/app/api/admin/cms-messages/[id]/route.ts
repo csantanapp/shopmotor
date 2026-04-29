@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { createNotification } from "@/lib/notifications";
+import { sendCmsEmail } from "@/lib/cms-email";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -88,8 +89,14 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         actionUrl: msg.ctaUrl ?? undefined,
       });
     }
-    // Email — usa função genérica de e-mail se existir
-    // (expandir quando necessário)
+    // Email
+    if (channels.includes("email") && user.email) {
+      await sendCmsEmail({
+        to: user.email, name: user.name,
+        title: msg.title, body: msg.body,
+        ctaLabel: msg.ctaLabel, ctaUrl: msg.ctaUrl,
+      });
+    }
     sent++;
   }
 
