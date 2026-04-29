@@ -7,6 +7,7 @@ import Icon from "@/components/ui/Icon";
 const nav = [
   { href: "/admin",           icon: "dashboard",      label: "Dashboard"       },
   { href: "/admin/receita",   icon: "payments",       label: "Receita"         },
+  { href: "/admin/hero-banners", icon: "photo_library", label: "Banners Hero"     },
   { href: "/admin/anuncios",  icon: "campaign",       label: "Anúncios Parceiros" },
   { href: "/admin/usuarios",  icon: "person",         label: "Usuários"        },
   { href: "/admin/lojas",     icon: "storefront",     label: "Lojas"           },

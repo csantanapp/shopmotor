@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 import HeroSearch from "@/components/ui/HeroSearch";
+import HeroCarousel from "@/components/ui/HeroCarousel";
 import AdBanner from "@/components/ads/AdBanner";
 import { prisma } from "@/lib/prisma";
 
@@ -146,17 +146,9 @@ export default async function Home() {
     <>
       {/* ── HERO ── */}
       <section className="relative bg-inverse-surface overflow-hidden min-h-[600px] flex items-center">
-        {/* BG car image */}
+        {/* BG carousel */}
         <div className="absolute inset-0">
-          <Image
-            src="/images/banner_hero.webp"
-            alt="Hero car"
-            fill
-            className="object-cover opacity-25"
-            priority
-          />
-          {/* gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-inverse-surface/60 via-inverse-surface/75 to-inverse-surface" />
+          <HeroCarousel fallback="/images/banner_hero.webp" />
         </div>
 
         <div className="relative z-10 max-w-screen-xl mx-auto px-6 py-24 w-full flex flex-col items-center text-center">
@@ -337,11 +329,10 @@ export default async function Home() {
       <section className="max-w-screen-2xl mx-auto px-6 py-20">
         <div className="bg-inverse-surface rounded-2xl overflow-hidden relative" style={{ height: 90 }}>
           <div className="absolute inset-0">
-            <Image
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIvLp-rtsJt2IjPOLqXPiPBkYuHU2HARrJ8J75dRrfQv_2BBPNRKry2HOpanttRVmJy92r7AXo9cbIv9RWOnK-iZxLQHeC1V2d1Wtrb5ZK9luoIbaZF1i46T9MLv-3Z8nWX4O_A9qqOH01kXZNfGmV1Wpkd8lDPgkP4O4oGxm_wsvLXs8eUB7WnvXulAselnLZ2vNhT9Fqx08p22CtyTtig7tJQo0VJQkA1AcdwoZdwH4MIc9T0KGWWWku95z_Nrg5iutFCvtq-Ig"
+            <img
+              src="/images/banner_hero.webp"
               alt="Supercar"
-              fill
-              className="object-cover object-center opacity-40"
+              className="w-full h-full object-cover object-center opacity-40"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-inverse-surface/90 via-inverse-surface/60 to-transparent" />
           </div>
