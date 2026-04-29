@@ -28,13 +28,13 @@ const brands = [
   { name: "Audi",       src: `${BASE}/audi.png` },
 ];
 
-const bodyCategories = [
-  { label: "SUVs",        icon: "directions_car",   count: 1482 },
-  { label: "Sedãs",       icon: "airport_shuttle",  count: 934  },
-  { label: "Hatchbacks",  icon: "local_taxi",       count: 721  },
-  { label: "Picapes",     icon: "rv_hookup",        count: 388  },
-  { label: "Esportivos",  icon: "speed",            count: 154  },
-  { label: "Elétricos",   icon: "electric_car",     count: 97   },
+const BODY_CATEGORIES = [
+  { label: "SUVs",       icon: "directions_car", body: "SUV"     },
+  { label: "Sedãs",      icon: "airport_shuttle",body: "Sedan"   },
+  { label: "Hatchbacks", icon: "local_taxi",     body: "Hatch"   },
+  { label: "Picapes",    icon: "rv_hookup",      body: "Picape"  },
+  { label: "Esportivos", icon: "speed",          body: "Coupe"   },
+  { label: "Elétricos",  icon: "electric_car",   fuel: "Elétrico"},
 ];
 
 const highlights = [
@@ -103,6 +103,18 @@ export default async function Home() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = prisma as any;
+  const bodyCounts = await Promise.all(
+    BODY_CATEGORIES.map(cat =>
+      prisma.vehicle.count({
+        where: {
+          status: "ACTIVE",
+          ...(cat.body ? { bodyType: cat.body } : { fuel: cat.fuel }),
+        },
+      })
+    )
+  );
+  const bodyCategories = BODY_CATEGORIES.map((cat, i) => ({ ...cat, count: bodyCounts[i] }));
+
   const [destaques, elite, recentes, lojas]: [BoostedVehicle[], BoostedVehicle[], BoostedVehicle[], StoreUser[]] = await Promise.all([
     db.vehicle.findMany({
       where: { status: "ACTIVE", boostLevel: "DESTAQUE", boostGalleryUntil: { gte: now } },
@@ -195,7 +207,7 @@ export default async function Home() {
           {bodyCategories.map((cat) => (
             <Link
               key={cat.label}
-              href="/busca"
+              href={cat.body ? `/busca?body=${cat.body}` : `/busca?fuel=${cat.fuel}`}
               className="group bg-surface-container-lowest rounded-2xl p-5 flex flex-col items-center gap-3 text-center hover:bg-primary-container transition-colors shadow-sm"
             >
               <div className="w-12 h-12 rounded-xl bg-surface-container group-hover:bg-primary flex items-center justify-center transition-colors">
