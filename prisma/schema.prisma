@@ -451,6 +451,43 @@ model SeguroLead {
   @@map("seguro_leads")
 }
 
+model CmsMessage {
+  id          String    @id @default(cuid())
+  title       String
+  body        String
+  type        String    @default("notice") // promotional | notice | warning | system
+  status      String    @default("draft")  // draft | scheduled | sent | archived
+  segment     String    @default("all")    // all | pf | lojista
+  channels    String    @default("[\"in_app\"]") // JSON: ["in_app","email"]
+  ctaLabel    String?
+  ctaUrl      String?
+  tags        String?   // JSON array
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  totalSent   Int       @default(0)
+  createdBy   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@map("cms_messages")
+}
+
+model CmsMessageTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   @default("notice")
+  title     String
+  body      String
+  ctaLabel  String?
+  ctaUrl    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_message_templates")
+}
+
 model Notification {
   id        String    @id @default(cuid())
   userId    String

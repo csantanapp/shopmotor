@@ -11,6 +11,7 @@ const nav = [
   { href: "/admin/anuncios",  icon: "campaign",       label: "Anúncios Parceiros" },
   { href: "/admin/usuarios",  icon: "person",         label: "Usuários"        },
   { href: "/admin/lojas",     icon: "storefront",     label: "Lojas"           },
+  { href: "/admin/central-mensagens", icon: "send",    label: "Central Mensagens" },
   { href: "/admin/mensagens", icon: "mail",           label: "Mensagens"       },
   { href: "/admin/faq",       icon: "quiz",           label: "FAQ"             },
   { href: "/admin/analytics", icon: "bar_chart",      label: "Analytics"       },

@@ -6,7 +6,11 @@ type NotificationType =
   | "slot_available"
   | "renewal_confirmed"
   | "boost_activated"
-  | "cycle_exhausted";
+  | "cycle_exhausted"
+  | "promotional"
+  | "notice"
+  | "warning"
+  | "system";
 
 export async function createNotification({
   userId,
