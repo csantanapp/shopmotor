@@ -111,6 +111,9 @@ export default function ImpulsionarPage() {
   const [selected, setSelected] = useState<PlanKey | null>(null);
   const [processing, setProcessing] = useState(false);
   const [boostError, setBoostError] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponState, setCouponState] = useState<{ valid: boolean; discount: number; finalPrice: number; error?: string } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   useEffect(() => {
     fetch(`/api/vehicles/${id}`)
@@ -121,6 +124,29 @@ export default function ImpulsionarPage() {
       });
   }, [id]);
 
+  async function validateCoupon() {
+    if (!couponCode.trim() || !selected) return;
+    setCouponLoading(true);
+    setCouponState(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode, plan: selected }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setCouponState({ valid: true, discount: data.discount, finalPrice: data.finalPrice });
+      } else {
+        setCouponState({ valid: false, discount: 0, finalPrice: 0, error: data.error });
+      }
+    } catch {
+      setCouponState({ valid: false, discount: 0, finalPrice: 0, error: "Erro ao validar cupom." });
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
   async function handleBoost() {
     if (!selected) return;
     setBoostError("");
@@ -129,14 +155,13 @@ export default function ImpulsionarPage() {
       const res = await fetch("/api/payments/create-preference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vehicleId: id, plan: selected }),
+        body: JSON.stringify({ vehicleId: id, plan: selected, couponCode: couponState?.valid ? couponCode : undefined }),
       });
       const data = await res.json();
       if (!res.ok) {
         setBoostError(data.error ?? "Erro ao iniciar pagamento. Tente novamente.");
         return;
       }
-      // Redireciona para o checkout do Mercado Pago
       window.location.href = data.initPoint;
     } catch {
       setBoostError("Erro de conexão. Verifique sua internet e tente novamente.");
@@ -284,6 +309,41 @@ export default function ImpulsionarPage() {
         })}
       </div>
 
+      {/* Cupom de desconto */}
+      {selected && (
+        <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
+          <p className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-3">Código promocional</p>
+          <div className="flex gap-2">
+            <input
+              value={couponCode}
+              onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponState(null); }}
+              onKeyDown={e => e.key === "Enter" && validateCoupon()}
+              placeholder="Digite seu cupom"
+              className="flex-1 bg-surface-container border border-outline/20 rounded-xl px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary-container uppercase tracking-widest font-mono"
+            />
+            <button
+              onClick={validateCoupon}
+              disabled={!couponCode.trim() || couponLoading}
+              className="px-4 py-2.5 bg-surface-container-high text-on-surface text-sm font-black rounded-xl hover:bg-surface-container-highest transition-colors disabled:opacity-40"
+            >
+              {couponLoading ? "..." : "Aplicar"}
+            </button>
+          </div>
+          {couponState?.valid && (
+            <div className="flex items-center gap-2 mt-2.5 text-green-400 text-sm font-semibold">
+              <Icon name="check_circle" className="text-base" />
+              Cupom aplicado! Desconto de R$ {couponState.discount.toFixed(2).replace(".", ",")}
+              <span className="ml-auto text-on-surface font-black">Total: R$ {couponState.finalPrice.toFixed(2).replace(".", ",")}</span>
+            </div>
+          )}
+          {couponState && !couponState.valid && (
+            <p className="mt-2 text-xs text-error flex items-center gap-1">
+              <Icon name="error" className="text-sm" /> {couponState.error}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Erro boost */}
       {boostError && (
         <div className="flex items-center gap-2 bg-error/10 text-error rounded-xl px-4 py-3 text-sm font-medium">
@@ -298,9 +358,18 @@ export default function ImpulsionarPage() {
           {selected ? (
             <>
               <p className="font-black text-on-surface">Plano {selectedPlan?.name} selecionado</p>
-              <p className="text-sm text-on-surface-variant">
-                R$ {selectedPlan?.price.toFixed(2).replace(".", ",")} · {selectedPlan?.days} dias · R$ {selectedPlan?.perDay}/dia
-              </p>
+              {couponState?.valid ? (
+                <p className="text-sm text-on-surface-variant">
+                  <span className="line-through">R$ {selectedPlan?.price.toFixed(2).replace(".", ",")}</span>
+                  {" → "}
+                  <span className="text-green-400 font-black">R$ {couponState.finalPrice.toFixed(2).replace(".", ",")}</span>
+                  {" · "}{selectedPlan?.days} dias
+                </p>
+              ) : (
+                <p className="text-sm text-on-surface-variant">
+                  R$ {selectedPlan?.price.toFixed(2).replace(".", ",")} · {selectedPlan?.days} dias · R$ {selectedPlan?.perDay}/dia
+                </p>
+              )}
             </>
           ) : (
             <p className="text-on-surface-variant text-sm">Selecione um plano acima para continuar</p>

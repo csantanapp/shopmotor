@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const { vehicleId, plan: planKey } = await req.json();
+  const { vehicleId, plan: planKey, couponCode } = await req.json();
 
   const plan = PLANS[planKey];
   if (!plan) return NextResponse.json({ error: "Plano inválido." }, { status: 400 });
@@ -25,6 +25,34 @@ export async function POST(req: NextRequest) {
   if (!vehicle || vehicle.userId !== user.id)
     return NextResponse.json({ error: "Veículo não encontrado." }, { status: 404 });
 
+  // Validar cupom se fornecido
+  let finalPrice = plan.price;
+  let couponId: string | null = null;
+  let discountAmount = 0;
+
+  if (couponCode) {
+    const db = prisma as any;
+    const coupon = await db.coupon.findUnique({ where: { code: couponCode.trim().toUpperCase() } });
+    const now = new Date();
+
+    const isValid = coupon && coupon.active
+      && (!coupon.validFrom || new Date(coupon.validFrom) <= now)
+      && (!coupon.validUntil || new Date(coupon.validUntil) >= now)
+      && (coupon.maxUses === null || coupon.usesCount < coupon.maxUses);
+
+    if (isValid) {
+      const alreadyUsed = await db.couponUse.findFirst({ where: { couponId: coupon.id, userId: user.id } });
+      if (!alreadyUsed) {
+        discountAmount = coupon.discountType === "percent"
+          ? plan.price * (coupon.discountValue / 100)
+          : Math.min(coupon.discountValue, plan.price);
+        finalPrice = Math.max(0.01, plan.price - discountAmount);
+        finalPrice = Math.round(finalPrice * 100) / 100;
+        couponId = coupon.id;
+      }
+    }
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 
   const payment = await prisma.payment.create({
@@ -32,10 +60,11 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       vehicleId: vehicle.id,
       plan: planKey,
-      amount: plan.price,
+      amount: finalPrice,
       status: "pending",
+      ...(couponId && { metadata: JSON.stringify({ couponId, discountAmount: Math.round(discountAmount * 100) / 100 }) }),
     },
-  });
+  } as any);
 
   const preference = await mpPreference.create({
     body: {
@@ -44,7 +73,7 @@ export async function POST(req: NextRequest) {
         title: `ShopMotor — Plano ${plan.name}`,
         description: `Impulsionamento ${plan.name} por ${plan.days} dias para ${vehicle.brand} ${vehicle.model}`,
         quantity: 1,
-        unit_price: plan.price,
+        unit_price: finalPrice,
         currency_id: "BRL",
       }],
       external_reference: payment.id,
@@ -55,7 +84,7 @@ export async function POST(req: NextRequest) {
       },
       ...(baseUrl.startsWith("https") && { auto_return: "approved" }),
       notification_url: `${baseUrl}/api/payments/webhook`,
-      metadata: { paymentId: payment.id, vehicleId, planKey },
+      metadata: { paymentId: payment.id, vehicleId, planKey, couponId },
     },
   });
 
@@ -64,5 +93,11 @@ export async function POST(req: NextRequest) {
     data: { mpPreferenceId: preference.id },
   });
 
-  return NextResponse.json({ initPoint: preference.init_point, preferenceId: preference.id });
+  return NextResponse.json({
+    initPoint: preference.init_point,
+    preferenceId: preference.id,
+    finalPrice,
+    discountAmount: Math.round(discountAmount * 100) / 100,
+    couponApplied: !!couponId,
+  });
 }

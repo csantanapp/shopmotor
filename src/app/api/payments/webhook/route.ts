@@ -87,6 +87,18 @@ export async function POST(req: NextRequest) {
 
     const boostUntil = new Date(Date.now() + plan.days * 86400000);
 
+    // Registrar uso do cupom se houver
+    const metadata = (paymentRecord as any).metadata
+      ? JSON.parse((paymentRecord as any).metadata)
+      : null;
+    if (metadata?.couponId) {
+      const db = prisma as any;
+      await Promise.all([
+        db.couponUse.create({ data: { couponId: metadata.couponId, userId: paymentRecord.userId, paymentId: paymentRecord.id } }),
+        db.coupon.update({ where: { id: metadata.couponId }, data: { usesCount: { increment: 1 } } }),
+      ]);
+    }
+
     await Promise.all([
       prisma.payment.update({
         where: { id: paymentRecord.id },
