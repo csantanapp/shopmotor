@@ -4,10 +4,19 @@ import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+
+const NAV_LINKS = [
+  { label: "Comprar",       href: "/busca" },
+  { label: "Vender",        href: "/perfil/cadastrar" },
+  { label: "Financiamento", href: "/financiamento" },
+  { label: "Seguros",       href: "/seguros" },
+];
 
 export default function Navbar() {
   const { user, loading, logout } = useAuth();
   const [unread, setUnread] = useState(0);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!user) { setUnread(0); return; }
@@ -31,18 +40,22 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden md:flex items-center space-x-8">
-          <Link href="/busca" className="text-yellow-500 border-b-2 border-yellow-500 pb-1 tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">
-            Comprar
-          </Link>
-          <Link href="/perfil/cadastrar" className="text-zinc-400 hover:text-white transition-colors tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">
-            Vender
-          </Link>
-          <Link href="/perfil/ajuda" className="text-zinc-400 hover:text-white transition-colors tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">
-            Serviços
-          </Link>
-          <Link href="/perfil/ajuda" className="text-zinc-400 hover:text-white transition-colors tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">
-            Financiamento
-          </Link>
+          {NAV_LINKS.map(({ label, href }) => {
+            const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`tracking-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm ${
+                  active
+                    ? "text-yellow-500 border-b-2 border-yellow-500 pb-1"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-3">
