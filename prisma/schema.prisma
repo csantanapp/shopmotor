@@ -29,6 +29,7 @@ model User {
   nickname            String?
   birthDate           DateTime?
   accountType         String         @default("PF")
+  isDemo              Boolean        @default(false)
   cnpj                String?        @unique
   companyName         String?
   tradeName           String?

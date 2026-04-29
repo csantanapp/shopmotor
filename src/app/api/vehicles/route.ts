@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
   const where: Record<string, unknown> = {
     status: "ACTIVE",
     OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+    user: { isDemo: false },
     ...(brand        && { brand }),
     ...(fuel         && { fuel }),
     ...(body         && { bodyType: body }),
