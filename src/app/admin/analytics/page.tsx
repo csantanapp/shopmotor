@@ -14,6 +14,97 @@ type AnalyticsData = {
   cities: { country: string; region: string | null; city: string | null; count: number }[];
 };
 
+function LineChart({ days }: { days: { date: string; views: number }[] }) {
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string; views: number } | null>(null);
+
+  const W = 800, H = 200, PL = 44, PR = 12, PT = 12, PB = 28;
+  const chartW = W - PL - PR;
+  const chartH = H - PT - PB;
+
+  const maxVal = Math.max(...days.map(d => d.views), 1);
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(r => Math.round(r * maxVal));
+
+  function px(i: number) { return PL + (i / Math.max(days.length - 1, 1)) * chartW; }
+  function py(v: number) { return PT + chartH - (v / maxVal) * chartH; }
+
+  const pts = days.map((d, i) => ({ x: px(i), y: py(d.views), ...d }));
+  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const areaPath = `${linePath} L${pts[pts.length - 1].x.toFixed(1)},${(PT + chartH).toFixed(1)} L${PL},${(PT + chartH).toFixed(1)} Z`;
+
+  const xLabels = days.reduce((acc: { i: number; label: string }[], d, i) => {
+    const day = new Date(d.date + "T12:00:00").getDate();
+    if (i === 0 || day === 1 || day === 7 || day === 14 || day === 21 || i === days.length - 1)
+      acc.push({ i, label: new Date(d.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) });
+    return acc;
+  }, []);
+
+  return (
+    <div className="bg-[#111414] border border-white/5 rounded-2xl p-6 mb-6">
+      <p className="text-xs font-black text-neutral-400 uppercase tracking-widest mb-4">Visitas — últimos 30 dias</p>
+      <div className="relative w-full" style={{ paddingBottom: `${(H / W) * 100}%` }}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 w-full h-full" onMouseLeave={() => setTooltip(null)}>
+          <defs>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#EAB308" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#EAB308" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+
+          {/* Grid lines */}
+          {yTicks.map(v => {
+            const y = py(v);
+            return (
+              <g key={v}>
+                <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                <text x={PL - 6} y={y + 4} textAnchor="end" fontSize="10" fill="#525252">{v}</text>
+              </g>
+            );
+          })}
+
+          {/* X axis labels */}
+          {xLabels.map(({ i, label }) => (
+            <text key={i} x={px(i)} y={H - 4} textAnchor="middle" fontSize="10" fill="#525252">{label}</text>
+          ))}
+
+          {/* Area fill */}
+          <path d={areaPath} fill="url(#areaGrad)" />
+
+          {/* Line */}
+          <path d={linePath} fill="none" stroke="#EAB308" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+
+          {/* Dots + hover zones */}
+          {pts.map((p, i) => (
+            <g key={i} onMouseEnter={() => setTooltip({ x: p.x, y: p.y, label: new Date(p.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), views: p.views })}>
+              <rect x={p.x - chartW / days.length / 2} y={PT} width={chartW / days.length} height={chartH} fill="transparent" />
+              {p.views > 0 && <circle cx={p.x} cy={p.y} r="3" fill="#EAB308" stroke="#111414" strokeWidth="1.5" />}
+            </g>
+          ))}
+
+          {/* Tooltip */}
+          {tooltip && (() => {
+            const tw = 90, th = 34;
+            const tx = Math.min(Math.max(tooltip.x - tw / 2, PL), W - PR - tw);
+            const ty = tooltip.y - th - 8 < PT ? tooltip.y + 8 : tooltip.y - th - 8;
+            return (
+              <g pointerEvents="none">
+                <line x1={tooltip.x} y1={PT} x2={tooltip.x} y2={PT + chartH} stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="4,3" />
+                <rect x={tx} y={ty} width={tw} height={th} rx="6" fill="#1e2222" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                <text x={tx + tw / 2} y={ty + 13} textAnchor="middle" fontSize="10" fill="#a3a3a3">{tooltip.label}</text>
+                <text x={tx + tw / 2} y={ty + 26} textAnchor="middle" fontSize="12" fontWeight="bold" fill="#EAB308">{tooltip.views} visitas</text>
+              </g>
+            );
+          })()}
+        </svg>
+      </div>
+      {/* Legend */}
+      <div className="flex items-center gap-2 mt-3">
+        <span className="w-6 h-0.5 bg-yellow-500 rounded" />
+        <span className="text-xs text-neutral-500">Visitas site</span>
+      </div>
+    </div>
+  );
+}
+
 const COUNTRY_NAMES: Record<string, string> = {
   BR: "Brasil", US: "EUA", PT: "Portugal", AR: "Argentina", MX: "México",
   DE: "Alemanha", FR: "França", ES: "Espanha", GB: "Reino Unido", IT: "Itália",
@@ -41,7 +132,6 @@ export default function AdminAnalytics() {
   if (error) return <div className="p-8 text-red-400 text-sm">Erro ao carregar analytics: {error}</div>;
   if (!data) return null;
 
-  const maxViews = Math.max(...data.days.map(d => d.views), 1);
   const totalDevices = data.devices.reduce((a, b) => a + b.count, 0) || 1;
   const totalSources = data.sources.reduce((a, b) => a + b.count, 0) || 1;
 
@@ -73,33 +163,7 @@ export default function AdminAnalytics() {
       </div>
 
       {/* Line Chart */}
-      <div className="bg-[#111414] border border-white/5 rounded-2xl p-6 mb-6">
-        <p className="text-xs font-black text-neutral-400 uppercase tracking-widest mb-6">Visitas — últimos 30 dias</p>
-        <div className="flex items-end gap-1 h-40">
-          {data.days.map(d => {
-            const pct = (d.views / maxViews) * 100;
-            const label = new Date(d.date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-            return (
-              <div key={d.date} className="flex-1 flex flex-col items-center gap-1 group relative">
-                <div
-                  className="w-full bg-primary-container/60 hover:bg-primary-container rounded-t transition-all cursor-default"
-                  style={{ height: `${Math.max(pct, 2)}%` }}
-                />
-                {/* tooltip */}
-                <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center pointer-events-none z-10">
-                  <div className="bg-[#1e2222] border border-white/10 rounded-lg px-2 py-1 text-xs text-white whitespace-nowrap">
-                    {label}: <span className="font-bold">{d.views}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex justify-between mt-2">
-          <span className="text-xs text-neutral-600">{data.days[0]?.date.slice(5).replace("-", "/")}</span>
-          <span className="text-xs text-neutral-600">{data.days[29]?.date.slice(5).replace("-", "/")}</span>
-        </div>
-      </div>
+      <LineChart days={data.days} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Devices */}
