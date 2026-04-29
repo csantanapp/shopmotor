@@ -35,8 +35,8 @@ export default function Navbar() {
   return (
     <header className="bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 shadow-2xl">
       <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto">
-        <Link href="/" className="text-2xl font-black tracking-tighter text-white uppercase font-headline">
-          SHOPMOTOR
+        <Link href="/">
+          <img src="/images/logo_shopmotor.webp" alt="ShopMotor" className="h-8 w-auto" />
         </Link>
 
         <nav className="hidden md:flex items-center space-x-8">

@@ -16,7 +16,9 @@ export default async function Footer() {
       <div className="max-w-screen-2xl mx-auto px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div>
-            <div className="text-lg font-bold text-zinc-900 mb-6 uppercase tracking-tighter">SHOPMOTOR</div>
+            <div className="mb-6">
+              <img src="/images/logo_shopmotor_footer.webp" alt="ShopMotor" className="h-8 w-auto" />
+            </div>
             <p className="text-sm text-zinc-500 leading-relaxed mb-6">
               A plataforma definitiva para entusiastas e compradores de veículos de alta performance.
             </p>
