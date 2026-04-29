@@ -41,22 +41,34 @@ export default async function Footer() {
           </div>
 
           <div>
-            <h5 className="text-zinc-900 font-bold mb-6 uppercase text-sm tracking-widest">Atendimento</h5>
+            <h5 className="text-zinc-900 font-bold mb-6 uppercase text-sm tracking-widest">Veículos</h5>
             <ul className="space-y-4 text-sm text-zinc-500">
-              <li><Link href="/ajuda" className="hover:text-yellow-600 transition-colors">Central de Ajuda</Link></li>
-              <li><Link href="/seguranca" className="hover:text-yellow-600 transition-colors">Segurança</Link></li>
-              <li><Link href="/faq" className="hover:text-yellow-600 transition-colors">Dúvidas Frequentes</Link></li>
-              <li><Link href="/contato" className="hover:text-yellow-600 transition-colors">Contato</Link></li>
+              <li><Link href="/busca" className="hover:text-yellow-600 transition-colors">Buscar veículos</Link></li>
+              <li><Link href="/busca?vehicleType=CAR" className="hover:text-yellow-600 transition-colors">Carros</Link></li>
+              <li><Link href="/busca?vehicleType=MOTO" className="hover:text-yellow-600 transition-colors">Motos</Link></li>
+              <li><Link href="/busca?condition=Novo" className="hover:text-yellow-600 transition-colors">0 km</Link></li>
+              <li><Link href="/busca?condition=Usado" className="hover:text-yellow-600 transition-colors">Seminovos</Link></li>
             </ul>
           </div>
 
           <div>
-            <h5 className="text-zinc-900 font-bold mb-6 uppercase text-sm tracking-widest">Institucional</h5>
+            <h5 className="text-zinc-900 font-bold mb-6 uppercase text-sm tracking-widest">Serviços</h5>
             <ul className="space-y-4 text-sm text-zinc-500">
-              <li><Link href="/sobre" className="hover:text-yellow-600 transition-colors">Sobre Nós</Link></li>
-              <li><Link href="/anuncie" className="hover:text-yellow-600 transition-colors">Anuncie conosco</Link></li>
-              <li><Link href="/termos" className="hover:text-yellow-600 transition-colors">Termos de Uso</Link></li>
-              <li><Link href="/privacidade" className="hover:text-yellow-600 transition-colors">Privacidade</Link></li>
+              <li><Link href="/financiamento" className="hover:text-yellow-600 transition-colors">Financiamento</Link></li>
+              <li><Link href="/seguros" className="hover:text-yellow-600 transition-colors">Seguro veicular</Link></li>
+              <li><Link href="/planos" className="hover:text-yellow-600 transition-colors">Planos para lojistas</Link></li>
+              <li><Link href="/anuncie" className="hover:text-yellow-600 transition-colors">Anuncie seu veículo</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h5 className="text-zinc-900 font-bold mb-6 uppercase text-sm tracking-widest">ShopMotor</h5>
+            <ul className="space-y-4 text-sm text-zinc-500">
+              <li><Link href="/sobre" className="hover:text-yellow-600 transition-colors">Sobre nós</Link></li>
+              <li><Link href="/faq" className="hover:text-yellow-600 transition-colors">Perguntas frequentes</Link></li>
+              <li><Link href="/ajuda" className="hover:text-yellow-600 transition-colors">Central de ajuda</Link></li>
+              <li><Link href="/contato" className="hover:text-yellow-600 transition-colors">Contato</Link></li>
+              <li><Link href="/seguranca" className="hover:text-yellow-600 transition-colors">Segurança</Link></li>
             </ul>
           </div>
 
