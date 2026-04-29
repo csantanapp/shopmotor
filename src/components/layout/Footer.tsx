@@ -75,7 +75,7 @@ export default async function Footer() {
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-zinc-200">
-          <span className="text-sm text-zinc-600 mb-4 md:mb-0">© 2024 SHOPMOTOR. PRECISION ENGINEERED.</span>
+          <span className="text-sm text-zinc-600 mb-4 md:mb-0">© 2026 SHOPMOTOR.</span>
           <div className="flex gap-6">
             <Link href="/termos" className="text-zinc-500 hover:text-yellow-600 text-sm">Termos</Link>
             <Link href="/privacidade" className="text-zinc-500 hover:text-yellow-600 text-sm">Privacidade</Link>
