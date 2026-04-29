@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (msg.segment === "pf")      where.accountType = "PF";
     if (msg.segment === "lojista") where.accountType = "PJ";
 
-    const users = await prisma.user.findMany({ where, select: { id: true, email: true, name: true } });
+    const users: any[] = await (prisma as any).user.findMany({ where, select: { id: true, email: true, name: true, emailUnsubscribed: true } });
 
     for (const user of users) {
       if (channels.includes("in_app")) {
@@ -42,9 +42,9 @@ export async function POST(req: NextRequest) {
           actionUrl: msg.ctaUrl ?? undefined,
         });
       }
-      if (channels.includes("email") && user.email) {
+      if (channels.includes("email") && user.email && !(user as any).emailUnsubscribed) {
         await sendCmsEmail({
-          to: user.email, name: user.name,
+          to: user.email, name: user.name, userId: user.id,
           title: msg.title, body: msg.body,
           ctaLabel: msg.ctaLabel, ctaUrl: msg.ctaUrl,
         });

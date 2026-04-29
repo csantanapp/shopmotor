@@ -30,6 +30,7 @@ model User {
   birthDate           DateTime?
   accountType         String         @default("PF")
   isDemo              Boolean        @default(false)
+  emailUnsubscribed   Boolean        @default(false)
   cnpj                String?        @unique
   companyName         String?
   tradeName           String?
@@ -486,6 +487,25 @@ model CmsMessageTemplate {
   updatedAt DateTime @updatedAt
 
   @@map("cms_message_templates")
+}
+
+model CmsAutomation {
+  id          String   @id @default(cuid())
+  name        String
+  trigger     String   // plan_expiring_7d | plan_expired | new_user
+  title       String
+  body        String
+  type        String   @default("notice")
+  segment     String   @default("all")
+  channels    String   @default("[\"in_app\"]")
+  ctaLabel    String?
+  ctaUrl      String?
+  active      Boolean  @default(true)
+  lastRunAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("cms_automations")
 }
 
 model Notification {

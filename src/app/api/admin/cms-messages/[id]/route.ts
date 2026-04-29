@@ -74,7 +74,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (msg.segment === "lojista") where.accountType = "PJ";
   where.isDemo = false;
 
-  const users = await prisma.user.findMany({ where, select: { id: true, email: true, name: true } });
+  const users: any[] = await (prisma as any).user.findMany({ where, select: { id: true, email: true, name: true, emailUnsubscribed: true } });
 
   let sent = 0;
 
@@ -90,9 +90,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       });
     }
     // Email
-    if (channels.includes("email") && user.email) {
+    if (channels.includes("email") && user.email && !(user as any).emailUnsubscribed) {
       await sendCmsEmail({
-        to: user.email, name: user.name,
+        to: user.email, name: user.name, userId: user.id as string,
         title: msg.title, body: msg.body,
         ctaLabel: msg.ctaLabel, ctaUrl: msg.ctaUrl,
       });

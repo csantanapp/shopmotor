@@ -3,10 +3,17 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_CMS_KEY);
 const FROM = "ShopMotor <noreply@shopmotor.com.br>";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://shopmotor.com.br";
+
+function unsubscribeLink(userId: string) {
+  const token = Buffer.from(userId).toString("base64");
+  return `${BASE_URL}/api/unsubscribe?token=${token}`;
+}
+
 export async function sendCmsEmail({
-  to, name, title, body, ctaLabel, ctaUrl,
+  to, name, userId, title, body, ctaLabel, ctaUrl,
 }: {
-  to: string; name?: string | null;
+  to: string; name?: string | null; userId: string;
   title: string; body: string;
   ctaLabel?: string | null; ctaUrl?: string | null;
 }) {
@@ -32,7 +39,8 @@ export async function sendCmsEmail({
     </div>
     <p style="color:#525252;font-size:12px;text-align:center;margin-top:24px">
       Você está recebendo este e-mail pois possui uma conta na ShopMotor.<br>
-      © 2026 SHOPMOTOR.
+      © 2026 SHOPMOTOR. &nbsp;·&nbsp;
+      <a href="${unsubscribeLink(userId)}" style="color:#525252;text-decoration:underline">Cancelar inscrição</a>
     </p>
   </div>
 </body>

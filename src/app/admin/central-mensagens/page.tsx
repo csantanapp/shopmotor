@@ -117,6 +117,10 @@ export default function CentralMensagensPage() {
           <p className="text-neutral-400 text-sm mt-1">{total} mensagens no total</p>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/admin/central-mensagens/automacoes"
+            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-neutral-300 font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors">
+            <Icon name="bolt" className="text-base" /> Automações
+          </Link>
           <Link href="/admin/central-mensagens/templates"
             className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-neutral-300 font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors">
             <Icon name="bookmark" className="text-base" /> Templates
