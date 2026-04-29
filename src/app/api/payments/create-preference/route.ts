@@ -55,16 +55,17 @@ export async function POST(req: NextRequest) {
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
 
-  const payment = await prisma.payment.create({
+  const payment = await (prisma as any).payment.create({
     data: {
       userId: user.id,
       vehicleId: vehicle.id,
       plan: planKey,
       amount: finalPrice,
       status: "pending",
-      ...(couponId && { metadata: JSON.stringify({ couponId, discountAmount: Math.round(discountAmount * 100) / 100 }) }),
+      couponId: couponId ?? null,
+      discountAmount: discountAmount > 0 ? Math.round(discountAmount * 100) / 100 : null,
     },
-  } as any);
+  });
 
   const preference = await mpPreference.create({
     body: {
