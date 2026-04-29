@@ -137,7 +137,7 @@ export default async function Home() {
         {/* BG car image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/FINANCIAMENTO.png"
+            src="/images/banner_hero.webp"
             alt="Hero car"
             fill
             className="object-cover opacity-25"
