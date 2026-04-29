@@ -164,7 +164,7 @@ export default async function Home() {
               <span className="text-primary-container">CARRO NOVO!</span>
             </h1>
             <p className="text-neutral-400 text-lg mb-10 max-w-xl">
-              Mais de 48 mil veículos de particulares e lojas. Compre, venda e negocie com segurança.
+              Compre, venda e negocie com segurança.
             </p>
 
             {/* Search bar */}
