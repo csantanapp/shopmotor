@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/ui/Icon";
 
-type Banner = { url: string; title?: string; subtitle?: string };
+type Banner = { url: string; title?: string; subtitle?: string; link?: string };
 
 export default function HeroBannersPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -55,7 +55,7 @@ export default function HeroBannersPage() {
     setBanners(prev => { if (i >= prev.length - 1) return prev; const a = [...prev]; [a[i], a[i + 1]] = [a[i + 1], a[i]]; return a; });
   }
 
-  function update(i: number, field: "title" | "subtitle", val: string) {
+  function update(i: number, field: "title" | "subtitle" | "link", val: string) {
     setBanners(prev => prev.map((b, idx) => idx === i ? { ...b, [field]: val } : b));
   }
 
@@ -117,6 +117,12 @@ export default function HeroBannersPage() {
                   value={b.subtitle ?? ""}
                   onChange={e => update(i, "subtitle", e.target.value)}
                   placeholder="Subtítulo (opcional)"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-yellow-500/50"
+                />
+                <input
+                  value={b.link ?? ""}
+                  onChange={e => update(i, "link", e.target.value)}
+                  placeholder="Link ao clicar (ex: /busca ou https://...)"
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-yellow-500/50"
                 />
                 <p className="text-[10px] text-neutral-600 truncate">{b.url}</p>

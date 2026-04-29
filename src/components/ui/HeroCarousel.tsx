@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-type Banner = { url: string; title?: string; subtitle?: string };
+type Banner = { url: string; title?: string; subtitle?: string; link?: string };
 
 export default function HeroCarousel({ fallback }: { fallback: string }) {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -30,15 +30,25 @@ export default function HeroCarousel({ fallback }: { fallback: string }) {
 
   return (
     <>
-      {list.map((b, i) => (
-        <div
-          key={b.url + i}
-          className={`absolute inset-0 transition-opacity duration-1000 ${i === current ? "opacity-100" : "opacity-0"}`}
-        >
-          <img src={b.url} alt="" className="w-full h-full object-cover opacity-25" />
-          <div className="absolute inset-0 bg-gradient-to-b from-inverse-surface/60 via-inverse-surface/75 to-inverse-surface" />
-        </div>
-      ))}
+      {list.map((b, i) => {
+        const inner = (
+          <>
+            <img src={b.url} alt="" className="w-full h-full object-cover opacity-25" />
+            <div className="absolute inset-0 bg-gradient-to-b from-inverse-surface/60 via-inverse-surface/75 to-inverse-surface" />
+          </>
+        );
+        return (
+          <div
+            key={b.url + i}
+            className={`absolute inset-0 transition-opacity duration-1000 ${i === current ? "opacity-100" : "opacity-0"}`}
+          >
+            {b.link
+              ? <a href={b.link} className="block w-full h-full">{inner}</a>
+              : inner
+            }
+          </div>
+        );
+      })}
 
       {list.length > 1 && (
         <>
