@@ -29,10 +29,29 @@ export async function POST(req: NextRequest) {
   if (coupon.maxUses !== null && coupon.usesCount >= coupon.maxUses)
     return NextResponse.json({ valid: false, error: "Cupom esgotado." });
 
-  // Verificar se usuário já usou
+  // Segmento
+  if (coupon.segment !== "all") {
+    const fullUser = await prisma.user.findUnique({ where: { id: user.id }, select: { accountType: true } });
+    const accountType = fullUser?.accountType ?? "PF";
+    if (coupon.segment === "pf" && accountType !== "PF")
+      return NextResponse.json({ valid: false, error: "Cupom válido apenas para Pessoa Física." });
+    if (coupon.segment === "lojista" && accountType !== "PJ")
+      return NextResponse.json({ valid: false, error: "Cupom válido apenas para Lojistas." });
+  }
+
+  // Verificar se usuário já usou este cupom
   const alreadyUsed = await db.couponUse.findFirst({ where: { couponId: coupon.id, userId: user.id } });
   if (alreadyUsed)
     return NextResponse.json({ valid: false, error: "Você já utilizou este cupom." });
+
+  // Primeiro uso — nunca impulsionou
+  if (coupon.firstUseOnly) {
+    const hasBoost = await (prisma as any).payment.findFirst({
+      where: { userId: user.id, status: "approved" },
+    });
+    if (hasBoost)
+      return NextResponse.json({ valid: false, error: "Cupom válido apenas para o primeiro impulsionamento." });
+  }
 
   const originalPrice = PLANS[plan];
   if (!originalPrice) return NextResponse.json({ valid: false, error: "Plano inválido." });
@@ -41,7 +60,7 @@ export async function POST(req: NextRequest) {
     ? originalPrice * (coupon.discountValue / 100)
     : Math.min(coupon.discountValue, originalPrice);
 
-  const finalPrice = Math.max(0, originalPrice - discount);
+  const finalPrice = Math.max(0.01, originalPrice - discount);
 
   return NextResponse.json({
     valid: true,

@@ -8,12 +8,19 @@ type Coupon = {
   discountType: string; discountValue: number;
   maxUses?: number; usesCount: number;
   validFrom?: string; validUntil?: string; active: boolean;
+  firstUseOnly: boolean; segment: string;
   _count?: { uses: number };
+};
+
+type CouponUse = {
+  id: string; usedAt: string; paymentId?: string;
+  user: { name: string; email: string; accountType: string } | null;
 };
 
 const EMPTY_FORM = {
   code: "", description: "", discountType: "percent", discountValue: "",
   maxUses: "", validFrom: "", validUntil: "", active: true,
+  firstUseOnly: false, segment: "all",
 };
 
 function toLocalDate(iso?: string) {
@@ -28,6 +35,8 @@ export default function CampanhasPage() {
   const [form, setForm] = useState<any>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [report, setReport] = useState<{ coupon: Coupon; uses: CouponUse[] } | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -38,6 +47,15 @@ export default function CampanhasPage() {
 
   useEffect(() => { load(); }, []);
 
+  async function openReport(c: Coupon) {
+    setReportLoading(true);
+    setReport({ coupon: c, uses: [] });
+    const r = await fetch(`/api/admin/campanhas/${c.id}/usos`);
+    const uses = await r.json();
+    setReport({ coupon: c, uses });
+    setReportLoading(false);
+  }
+
   function openCreate() { setForm(EMPTY_FORM); setModal("create"); }
   function openEdit(c: Coupon) {
     setForm({
@@ -45,7 +63,7 @@ export default function CampanhasPage() {
       discountType: c.discountType, discountValue: String(c.discountValue),
       maxUses: c.maxUses ? String(c.maxUses) : "",
       validFrom: toLocalDate(c.validFrom), validUntil: toLocalDate(c.validUntil),
-      active: c.active,
+      active: c.active, firstUseOnly: c.firstUseOnly, segment: c.segment,
     });
     setModal("edit");
   }
@@ -137,7 +155,11 @@ export default function CampanhasPage() {
                   <tr key={c.id} className="hover:bg-white/2 transition-colors">
                     <td className="px-5 py-4">
                       <p className="text-white font-black font-mono tracking-widest">{c.code}</p>
-                      {c.description && <p className="text-neutral-500 text-xs mt-0.5">{c.description}</p>}
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        {c.description && <p className="text-neutral-500 text-xs">{c.description}</p>}
+                        {c.firstUseOnly && <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">1º uso</span>}
+                        {c.segment !== "all" && <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">{c.segment === "pf" ? "PF" : "Lojista"}</span>}
+                      </div>
                     </td>
                     <td className="px-5 py-4 text-center">
                       <span className="text-yellow-400 font-black text-base">
@@ -161,6 +183,10 @@ export default function CampanhasPage() {
                           className={`p-1.5 rounded-lg transition-colors ${c.active ? "hover:bg-red-500/10 text-neutral-400 hover:text-red-400" : "hover:bg-green-500/10 text-neutral-400 hover:text-green-400"}`}
                           title={c.active ? "Desativar" : "Ativar"}>
                           <Icon name={c.active ? "pause" : "play_arrow"} className="text-sm" />
+                        </button>
+                        <button onClick={() => openReport(c)}
+                          className="p-1.5 rounded-lg hover:bg-blue-500/10 text-neutral-400 hover:text-blue-400 transition-colors" title="Ver usos">
+                          <Icon name="bar_chart" className="text-sm" />
                         </button>
                         <button onClick={() => openEdit(c)}
                           className="p-1.5 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white transition-colors" title="Editar">
@@ -234,10 +260,25 @@ export default function CampanhasPage() {
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-500/50 [color-scheme:dark]" />
                 </div>
               </div>
-              <label className="flex items-center gap-3 cursor-pointer pt-1">
-                <input type="checkbox" checked={form.active} onChange={e => setForm((f: any) => ({ ...f, active: e.target.checked }))} className="accent-yellow-500 w-4 h-4" />
-                <span className="text-sm text-neutral-300 font-semibold">Cupom ativo</span>
-              </label>
+              <div>
+                <label className="text-xs text-neutral-400 font-semibold uppercase tracking-widest block mb-1">Público-alvo</label>
+                <select value={form.segment} onChange={e => setForm((f: any) => ({ ...f, segment: e.target.value }))}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-500/50">
+                  <option value="all">Todos os usuários</option>
+                  <option value="pf">Apenas Pessoa Física</option>
+                  <option value="lojista">Apenas Lojistas</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-2 pt-1">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={form.active} onChange={e => setForm((f: any) => ({ ...f, active: e.target.checked }))} className="accent-yellow-500 w-4 h-4" />
+                  <span className="text-sm text-neutral-300 font-semibold">Cupom ativo</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={form.firstUseOnly} onChange={e => setForm((f: any) => ({ ...f, firstUseOnly: e.target.checked }))} className="accent-yellow-500 w-4 h-4" />
+                  <span className="text-sm text-neutral-300 font-semibold">Apenas primeiro impulsionamento</span>
+                </label>
+              </div>
             </div>
             <div className="flex gap-3 mt-5">
               <button onClick={() => setModal(null)}
@@ -248,6 +289,58 @@ export default function CampanhasPage() {
                 className="flex-1 bg-yellow-500 hover:bg-yellow-400 disabled:opacity-60 text-black font-black py-2.5 rounded-xl text-sm transition-colors">
                 {saving ? "Salvando..." : "Salvar"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal relatório de usos */}
+      {report && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111414] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="p-5 border-b border-white/5 flex items-center justify-between">
+              <div>
+                <h3 className="text-white font-black text-lg">Relatório — {report.coupon.code}</h3>
+                <p className="text-neutral-400 text-xs mt-0.5">{report.uses.length} uso{report.uses.length !== 1 ? "s" : ""}</p>
+              </div>
+              <button onClick={() => setReport(null)} className="p-2 rounded-lg hover:bg-white/5 text-neutral-400 hover:text-white transition-colors">
+                <Icon name="close" className="text-base" />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1">
+              {reportLoading ? (
+                <p className="text-center text-neutral-500 py-12">Carregando...</p>
+              ) : report.uses.length === 0 ? (
+                <p className="text-center text-neutral-500 py-12">Nenhum uso registrado ainda.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-[#111414]">
+                    <tr className="border-b border-white/5">
+                      <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-neutral-500">Usuário</th>
+                      <th className="px-5 py-3 text-center text-[10px] font-black uppercase tracking-widest text-neutral-500">Tipo</th>
+                      <th className="px-5 py-3 text-center text-[10px] font-black uppercase tracking-widest text-neutral-500">Data</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {report.uses.map(u => (
+                      <tr key={u.id} className="hover:bg-white/2 transition-colors">
+                        <td className="px-5 py-3">
+                          <p className="text-white font-semibold">{u.user?.name ?? "—"}</p>
+                          <p className="text-neutral-500 text-xs">{u.user?.email ?? "—"}</p>
+                        </td>
+                        <td className="px-5 py-3 text-center">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${u.user?.accountType === "PJ" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-purple-500/10 text-purple-400 border-purple-500/20"}`}>
+                            {u.user?.accountType === "PJ" ? "Lojista" : "PF"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-center text-neutral-400 text-xs">
+                          {new Date(u.usedAt).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>

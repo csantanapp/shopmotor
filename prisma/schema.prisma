@@ -521,6 +521,8 @@ model Coupon {
   validFrom     DateTime?
   validUntil    DateTime?
   active        Boolean     @default(true)
+  firstUseOnly  Boolean     @default(false)
+  segment       String      @default("all") // all | pf | lojista
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   uses          CouponUse[]
