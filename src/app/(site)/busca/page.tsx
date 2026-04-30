@@ -42,6 +42,7 @@ const brandOptions = [
   "Shineray","Tesla","Toyota","Volkswagen","Volvo","Zeekr","Outros",
 ];
 const fuelOptions         = ["Todos","Flex","Gasolina","Diesel","Elétrico","Híbrido","GNV"];
+const motoFuelOptions     = ["Todos","Gasolina","Elétrico"];
 const bodyOptions         = ["Todos","Hatch","Sedã","SUV/Crossover","Picape","Minivan","Esportivo","Conversível","Cupê","Van/Utilitário/Furgão","Buggy"];
 const plateEndOptions     = ["1 e 2","3 e 4","5 e 6","7 e 8","9 e 0"];
 const FILTER_FEATURES     = ["Ar condicionado","Airbag","Freio ABS","Carplay","Teto solar","Tração 4x4","IPVA Pago","Único dono","Garantia de fábrica","Direção hidráulica/elétrica","Sensor de estacionamento","Rodas liga leve","Piloto automático"];
@@ -400,7 +401,7 @@ function BuscaPageInner() {
 
         <FilterSection label="Combustível">
           <div className="flex flex-wrap gap-1.5">
-            {fuelOptions.map(f => <ChipBtn key={f} label={f} active={fuel === f} onClick={() => setFuel(f)} />)}
+            {(vehicleTypeFilter === "MOTO" ? motoFuelOptions : fuelOptions).map(f => <ChipBtn key={f} label={f} active={fuel === f} onClick={() => setFuel(f)} />)}
           </div>
         </FilterSection>
 
