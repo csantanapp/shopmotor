@@ -116,7 +116,6 @@ model Vehicle {
   armored           Boolean          @default(false)
   auction           Boolean          @default(false)
   plateEnd          String?
-  features          String[]
   condition         VehicleCondition @default(USED)
   description       String?
   city              String
@@ -134,6 +133,13 @@ model Vehicle {
   vehicleType       String           @default("CAR")
   motoType          String?
   cylindercc        Int?
+  coolingType       String?
+  startType         String?
+  engineType        String?
+  gears             String?
+  brakeType         String?
+  colorSecondary    String?
+  motoNeed          String?
   boostLevel        BoostLevel       @default(NONE)
   boostUntil        DateTime?
   boostGalleryUntil DateTime?

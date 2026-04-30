@@ -45,7 +45,14 @@ const fuelOptions         = ["Todos","Flex","Gasolina","Diesel","Elétrico","Hí
 const bodyOptions         = ["Todos","Hatch","Sedã","SUV/Crossover","Picape","Minivan","Esportivo","Conversível","Cupê","Van/Utilitário/Furgão","Buggy"];
 const plateEndOptions     = ["1 e 2","3 e 4","5 e 6","7 e 8","9 e 0"];
 const FILTER_FEATURES     = ["Ar condicionado","Airbag","Freio ABS","Carplay","Teto solar","Tração 4x4","IPVA Pago","Único dono","Garantia de fábrica","Direção hidráulica/elétrica","Sensor de estacionamento","Rodas liga leve","Piloto automático"];
-const motoTypeOptions     = ["Todos","Street","Naked","Esportiva","Trail/Adventure","Custom/Cruiser","Scooter","Enduro/Motocross","Touring"];
+const FILTER_MOTO_FEATURES = ["Aceito troca","Alienado","Garantia de fábrica","IPVA Pago","Licenciado","Revisões feitas pela concessionária","Único dono","Passagem por Leilão"];
+const motoStyleOptions    = ["Ciclomotor","Custom","Esportiva","Naked","Off Road","Quadriciclo","Scooter","Street","Supermotard","Touring","Trail","Trial","Triciclo","Utilitária"];
+const coolingOptions      = ["Ar","Líquida"];
+const startTypeOptions    = ["Elétrica","Pedal","Pedal + Elétrica"];
+const engineTypeOptions   = ["2 tempos","4 tempos","Elétrico de corrente contínua"];
+const gearsOptions        = ["2","3","4","5","6","7","8","Automático"];
+const brakeTypeOptions    = ["Disco/Disco","Disco/Tambor","Tambor/Disco","Tambor/Tambor"];
+const motoNeedOptions     = ["Esportiva","Estrada","Fora-de-estrada","Lazer","Urbano"];
 const transmissionOptions = ["Todos","Automático","Manual","CVT","Automatizado"];
 const colorOptions        = ["Todas","Branco","Preto","Prata","Cinza","Vermelho","Azul","Verde","Amarelo","Laranja","Marrom","Bege","Dourado","Outro"];
 const stateOptions = [
@@ -99,6 +106,13 @@ function BuscaPageInner() {
   const [auction, setAuction]           = useState(false);
   const [plateEnd, setPlateEnd]         = useState("");
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [coolingType, setCoolingType]   = useState("");
+  const [startType, setStartType]       = useState("");
+  const [engineType, setEngineType]     = useState("");
+  const [gears, setGears]               = useState("");
+  const [brakeType, setBrakeType]       = useState("");
+  const [motoStyle, setMotoStyle]       = useState("Todos");
+  const [motoNeed, setMotoNeed]         = useState("");
   const [sort, setSort]                 = useState("createdAt_desc");
   const [view, setView]                 = useState<"grid" | "list">("grid");
   const [filtersOpen, setFiltersOpen]   = useState(false);
@@ -161,9 +175,16 @@ function BuscaPageInner() {
     if (vehicleTypeFilter === "MOTO" && motoType !== "Todos") params.set("motoType", motoType);
     if (vehicleTypeFilter === "MOTO" && cylinderccMin) params.set("cylinderccMin", cylinderccMin);
     if (vehicleTypeFilter === "MOTO" && cylinderccMax) params.set("cylinderccMax", cylinderccMax);
-    if (armored)   params.set("armored", "true");
-    if (auction)   params.set("auction", "true");
-    if (plateEnd)  params.set("plateEnd", plateEnd);
+    if (armored)     params.set("armored", "true");
+    if (auction)     params.set("auction", "true");
+    if (plateEnd)    params.set("plateEnd", plateEnd);
+    if (coolingType) params.set("coolingType", coolingType);
+    if (startType)   params.set("startType", startType);
+    if (engineType)  params.set("engineType", engineType);
+    if (gears)       params.set("gears", gears);
+    if (brakeType)   params.set("brakeType", brakeType);
+    if (motoStyle !== "Todos") params.set("motoStyle", motoStyle);
+    if (motoNeed)    params.set("motoNeed", motoNeed);
     selectedFeatures.forEach(f => params.append("feature", f));
     if (priceMin) params.set("priceMin", priceMin.replace(/\D/g, ""));
     if (priceMax) params.set("priceMax", priceMax.replace(/\D/g, ""));
@@ -187,7 +208,7 @@ function BuscaPageInner() {
       setFetchError(true);
     }
     setFetching(false);
-  }, [search, brand, fuel, body, transmission, color, state, condition, vehicleTypeFilter, motoType, cylinderccMin, cylinderccMax, armored, auction, plateEnd, selectedFeatures, priceMin, priceMax, kmMin, kmMax, yearMin, yearMax, sort]);
+  }, [search, brand, fuel, body, transmission, color, state, condition, vehicleTypeFilter, motoType, cylinderccMin, cylinderccMax, armored, auction, plateEnd, selectedFeatures, coolingType, startType, engineType, gears, brakeType, motoStyle, motoNeed, priceMin, priceMax, kmMin, kmMax, yearMin, yearMax, sort]);
 
   // Reset page and debounce fetch when filters change
   useEffect(() => {
@@ -210,6 +231,8 @@ function BuscaPageInner() {
     setArmored(false); setAuction(false); setSearch(""); setVehicleTypeFilter("Todos");
     setMotoType("Todos"); setCylinderccMin(""); setCylinderccMax("");
     setPlateEnd(""); setSelectedFeatures([]);
+    setCoolingType(""); setStartType(""); setEngineType(""); setGears("");
+    setBrakeType(""); setMotoStyle("Todos"); setMotoNeed("");
   };
 
   const activeFiltersCount = [
@@ -218,6 +241,8 @@ function BuscaPageInner() {
     !!kmMin, !!kmMax, !!yearMin, !!yearMax, armored, auction,
     motoType !== "Todos", !!cylinderccMin, !!cylinderccMax,
     !!plateEnd, selectedFeatures.length > 0,
+    !!coolingType, !!startType, !!engineType, !!gears, !!brakeType,
+    motoStyle !== "Todos", !!motoNeed,
   ].filter(Boolean).length;
 
   /* ── Filter panel ── */
@@ -306,9 +331,9 @@ function BuscaPageInner() {
 
         {vehicleTypeFilter === "MOTO" && (
           <>
-            <FilterSection label="Tipo de moto">
+            <FilterSection label="Estilo">
               <div className="flex flex-wrap gap-1.5">
-                {motoTypeOptions.map(t => <ChipBtn key={t} label={t} active={motoType === t} onClick={() => setMotoType(t)} />)}
+                {["Todos",...motoStyleOptions].map(t => <ChipBtn key={t} label={t} active={motoStyle === t} onClick={() => setMotoStyle(t)} />)}
               </div>
             </FilterSection>
 
@@ -316,6 +341,58 @@ function BuscaPageInner() {
               <div className="grid grid-cols-2 gap-2">
                 <input type="number" value={cylinderccMin} onChange={e => setCylinderccMin(e.target.value)} placeholder="Mín." className={inputCls} />
                 <input type="number" value={cylinderccMax} onChange={e => setCylinderccMax(e.target.value)} placeholder="Máx." className={inputCls} />
+              </div>
+            </FilterSection>
+
+            <FilterSection label="Tipo de motor">
+              <div className="flex flex-wrap gap-1.5">
+                {engineTypeOptions.map(o => <ChipBtn key={o} label={o} active={engineType === o} onClick={() => setEngineType(p => p === o ? "" : o)} />)}
+              </div>
+            </FilterSection>
+
+            <FilterSection label="Tipo de refrigeração">
+              <div className="flex gap-2">
+                {coolingOptions.map(o => <ChipBtn key={o} label={o} active={coolingType === o} onClick={() => setCoolingType(p => p === o ? "" : o)} />)}
+              </div>
+            </FilterSection>
+
+            <FilterSection label="Tipo de partida">
+              <div className="flex flex-wrap gap-1.5">
+                {startTypeOptions.map(o => <ChipBtn key={o} label={o} active={startType === o} onClick={() => setStartType(p => p === o ? "" : o)} />)}
+              </div>
+            </FilterSection>
+
+            <FilterSection label="Número de marchas">
+              <div className="flex flex-wrap gap-1.5">
+                {gearsOptions.map(o => <ChipBtn key={o} label={o} active={gears === o} onClick={() => setGears(p => p === o ? "" : o)} />)}
+              </div>
+            </FilterSection>
+
+            <FilterSection label="Freio dianteiro/traseiro">
+              <div className="flex flex-wrap gap-1.5">
+                {brakeTypeOptions.map(o => <ChipBtn key={o} label={o} active={brakeType === o} onClick={() => setBrakeType(p => p === o ? "" : o)} />)}
+              </div>
+            </FilterSection>
+
+            <FilterSection label="Necessidade">
+              <div className="flex flex-wrap gap-1.5">
+                {motoNeedOptions.map(o => <ChipBtn key={o} label={o} active={motoNeed === o} onClick={() => setMotoNeed(p => p === o ? "" : o)} />)}
+              </div>
+            </FilterSection>
+
+            <FilterSection label="Características">
+              <div className="space-y-2">
+                {FILTER_MOTO_FEATURES.map(feat => (
+                  <label key={feat} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedFeatures.includes(feat)}
+                      onChange={() => setSelectedFeatures(prev => prev.includes(feat) ? prev.filter(f => f !== feat) : [...prev, feat])}
+                      className="w-4 h-4 accent-yellow-500 rounded"
+                    />
+                    <span className="text-sm text-on-surface">{feat}</span>
+                  </label>
+                ))}
               </div>
             </FilterSection>
           </>
@@ -447,6 +524,13 @@ function BuscaPageInner() {
           {cylinderccMin             && <Chip label={`Cilindrada ≥ ${cylinderccMin}cc`} onRemove={() => setCylinderccMin("")} />}
           {cylinderccMax             && <Chip label={`Cilindrada ≤ ${cylinderccMax}cc`} onRemove={() => setCylinderccMax("")} />}
           {plateEnd                  && <Chip label={`Final ${plateEnd}`} onRemove={() => setPlateEnd("")} />}
+          {motoStyle !== "Todos"     && <Chip label={motoStyle}          onRemove={() => setMotoStyle("Todos")} />}
+          {engineType                && <Chip label={engineType}         onRemove={() => setEngineType("")} />}
+          {coolingType               && <Chip label={`Refrig. ${coolingType}`} onRemove={() => setCoolingType("")} />}
+          {startType                 && <Chip label={`Partida ${startType}`}   onRemove={() => setStartType("")} />}
+          {gears                     && <Chip label={`${gears} marchas`} onRemove={() => setGears("")} />}
+          {brakeType                 && <Chip label={`Freio ${brakeType}`}     onRemove={() => setBrakeType("")} />}
+          {motoNeed                  && <Chip label={motoNeed}           onRemove={() => setMotoNeed("")} />}
           {selectedFeatures.map(f   => <Chip key={f} label={f} onRemove={() => setSelectedFeatures(prev => prev.filter(x => x !== f))} />)}
         </div>
       )}

@@ -8,11 +8,11 @@ const steps = ["Dados básicos", "Especificações", "Preço", "Fotos"];
 
 const fuelOptions        = ["Flex","Gasolina","Etanol","Diesel","Elétrico","Híbrido","GNV"];
 const motoFuelOptions    = ["Gasolina","Etanol","Flex","Elétrico"];
-const transmissionOptions     = ["Automático","Manual","CVT","Automatizado"];
-const motoTransmissionOptions = ["Manual","Automático","Semiautomático"];
+const transmissionOptions = ["Automático","Manual","CVT","Automatizado"];
 const bodyOptions  = ["Hatch","Sedã","SUV/Crossover","Picape","Minivan","Esportivo","Conversível","Cupê","Van/Utilitário/Furgão","Buggy"];
 const plateEndOptions = ["1 e 2","3 e 4","5 e 6","7 e 8","9 e 0"];
 
+// Carro — opcionais
 const FEATURES_CARACTERISTICAS = [
   "Alienado","Garantia de fábrica","IPVA Pago","Licenciado",
   "Todas revisões feitas pela concessionária","Único dono","Passagem por Leilão",
@@ -24,7 +24,22 @@ const FEATURES_EXTRAS = [
 const FEATURES_SEGURANCA = ["Airbag","Controle de tração","Freio ABS","Blindado"];
 const FEATURES_TECH = ["Carplay","Sensor de estacionamento"];
 const FEATURES_OUTROS = ["Faróis de LED/Xenon","Rodas liga leve","Teto solar","Tração 4x4"];
-const motoTypeOptions = ["Street","Naked","Esportiva","Trail/Adventure","Custom/Cruiser","Scooter","Enduro/Motocross","Touring"];
+
+// Moto — opcionais
+const FEATURES_MOTO_CARACTERISTICAS = [
+  "Aceito troca","Alienado","Garantia de fábrica","IPVA Pago",
+  "Licenciado","Revisões feitas pela concessionária","Único dono","Passagem por Leilão",
+];
+
+// Moto — opções estruturadas
+const motoStyleOptions  = ["Ciclomotor","Custom","Esportiva","Naked","Off Road","Quadriciclo","Scooter","Street","Supermotard","Touring","Trail","Trial","Triciclo","Utilitária"];
+const coolingOptions    = ["Ar","Líquida"];
+const startTypeOptions  = ["Elétrica","Pedal","Pedal + Elétrica"];
+const engineTypeOptions = ["2 tempos","4 tempos","Elétrico de corrente contínua"];
+const gearsOptions      = ["2","3","4","5","6","7","8","Automático"];
+const brakeTypeOptions  = ["Disco/Disco","Disco/Tambor","Tambor/Disco","Tambor/Tambor"];
+const motoNeedOptions   = ["Esportiva","Estrada","Fora-de-estrada","Lazer","Urbano"];
+
 const colorOptions = ["Branco","Prata","Preto","Cinza","Vermelho","Azul","Verde","Amarelo","Laranja","Marrom","Bege","Dourado","Vinho","Outro"];
 
 function toTitleCase(str: string) {
@@ -67,6 +82,8 @@ export default function CadastrarPage() {
     yearFab: "", yearModel: "", km: "",
     fuel: "", transmission: "", color: "", doors: "",
     cylindercc: "", motoType: "",
+    coolingType: "", startType: "", engineType: "", gears: "", brakeType: "",
+    colorSecondary: "", motoNeed: "",
     price: "", acceptTrade: false, financing: false, armored: false, auction: false,
     description: "",
     fipeBrandCode: "", fipeModelCode: "", fipeYearCode: "",
@@ -426,39 +443,79 @@ export default function CadastrarPage() {
                 <option value="">Selecione</option>
                 {(isMoto ? motoFuelOptions : fuelOptions).map(opt => <option key={opt}>{opt}</option>)}
               </FormSelect>
-              <FormSelect label="Câmbio *" value={form.transmission} onChange={v => set("transmission", v)}>
-                <option value="">Selecione</option>
-                {(isMoto ? motoTransmissionOptions : transmissionOptions).map(t => <option key={t}>{t}</option>)}
-              </FormSelect>
-              <FormSelect label="Cor" value={form.color} onChange={v => set("color", v)}>
+              {isMoto ? (
+                <FormSelect label="Tipo de motor" value={form.engineType} onChange={v => set("engineType", v)}>
+                  <option value="">Selecione</option>
+                  {engineTypeOptions.map(o => <option key={o}>{o}</option>)}
+                </FormSelect>
+              ) : (
+                <FormSelect label="Câmbio *" value={form.transmission} onChange={v => set("transmission", v)}>
+                  <option value="">Selecione</option>
+                  {transmissionOptions.map(t => <option key={t}>{t}</option>)}
+                </FormSelect>
+              )}
+              <FormSelect label="Cor primária" value={form.color} onChange={v => set("color", v)}>
                 <option value="">Selecione</option>
                 {colorOptions.map(c => <option key={c}>{c}</option>)}
               </FormSelect>
               {isMoto ? (
-                <FormInput label="Cilindrada (cc)" type="number" value={form.cylindercc} onChange={v => set("cylindercc", v)} placeholder="Ex: 500" />
+                <FormSelect label="Cor secundária" value={form.colorSecondary} onChange={v => set("colorSecondary", v)}>
+                  <option value="">Selecione</option>
+                  {colorOptions.map(c => <option key={c}>{c}</option>)}
+                </FormSelect>
               ) : (
                 <FormSelect label="Portas" value={form.doors} onChange={v => set("doors", v)}>
                   <option value="">Selecione</option>
                   {["2","3","4","5"].map(n => <option key={n} value={n}>{n} portas</option>)}
                 </FormSelect>
               )}
+              {isMoto && (
+                <>
+                  <FormInput label="Cilindrada (cc)" type="number" value={form.cylindercc} onChange={v => set("cylindercc", v)} placeholder="Ex: 500" />
+                  <FormSelect label="Número de marchas" value={form.gears} onChange={v => set("gears", v)}>
+                    <option value="">Selecione</option>
+                    {gearsOptions.map(g => <option key={g}>{g}</option>)}
+                  </FormSelect>
+                  <FormSelect label="Tipo de refrigeração" value={form.coolingType} onChange={v => set("coolingType", v)}>
+                    <option value="">Selecione</option>
+                    {coolingOptions.map(o => <option key={o}>{o}</option>)}
+                  </FormSelect>
+                  <FormSelect label="Tipo de partida" value={form.startType} onChange={v => set("startType", v)}>
+                    <option value="">Selecione</option>
+                    {startTypeOptions.map(o => <option key={o}>{o}</option>)}
+                  </FormSelect>
+                  <FormSelect label="Freio dianteiro/traseiro" value={form.brakeType} onChange={v => set("brakeType", v)}>
+                    <option value="">Selecione</option>
+                    {brakeTypeOptions.map(o => <option key={o}>{o}</option>)}
+                  </FormSelect>
+                  <FormSelect label="Estilo" value={form.motoType} onChange={v => set("motoType", v)}>
+                    <option value="">Selecione</option>
+                    {motoStyleOptions.map(o => <option key={o}>{o}</option>)}
+                  </FormSelect>
+                  <FormSelect label="Necessidade" value={form.motoNeed} onChange={v => set("motoNeed", v)}>
+                    <option value="">Selecione</option>
+                    {motoNeedOptions.map(o => <option key={o}>{o}</option>)}
+                  </FormSelect>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Características */}
-          <FeatureBlock title="Características" features={FEATURES_CARACTERISTICAS} selected={form.features} onToggle={toggleFeature} />
+          {/* Opcionais — carro */}
+          {!isMoto && (
+            <>
+              <FeatureBlock title="Características" features={FEATURES_CARACTERISTICAS} selected={form.features} onToggle={toggleFeature} />
+              <FeatureBlock title="Extras do Veículo" features={FEATURES_EXTRAS} selected={form.features} onToggle={toggleFeature} />
+              <FeatureBlock title="Segurança" features={FEATURES_SEGURANCA} selected={form.features} onToggle={toggleFeature} />
+              <FeatureBlock title="Tecnologia e Conectividade" features={FEATURES_TECH} selected={form.features} onToggle={toggleFeature} />
+              <FeatureBlock title="Outros" features={FEATURES_OUTROS} selected={form.features} onToggle={toggleFeature} />
+            </>
+          )}
 
-          {/* Extras do Veículo */}
-          <FeatureBlock title="Extras do Veículo" features={FEATURES_EXTRAS} selected={form.features} onToggle={toggleFeature} />
-
-          {/* Segurança */}
-          <FeatureBlock title="Segurança" features={FEATURES_SEGURANCA} selected={form.features} onToggle={toggleFeature} />
-
-          {/* Tecnologia e Conectividade */}
-          <FeatureBlock title="Tecnologia e Conectividade" features={FEATURES_TECH} selected={form.features} onToggle={toggleFeature} />
-
-          {/* Outros */}
-          <FeatureBlock title="Outros" features={FEATURES_OUTROS} selected={form.features} onToggle={toggleFeature} />
+          {/* Opcionais — moto */}
+          {isMoto && (
+            <FeatureBlock title="Características" features={FEATURES_MOTO_CARACTERISTICAS} selected={form.features} onToggle={toggleFeature} />
+          )}
 
           {/* Descrição */}
           <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm">

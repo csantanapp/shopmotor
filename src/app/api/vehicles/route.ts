@@ -28,6 +28,13 @@ export async function GET(req: NextRequest) {
   const cylinderccMax  = searchParams.get("cylinderccMax")  ? Number(searchParams.get("cylinderccMax"))  : undefined;
   const plateEnd    = searchParams.get("plateEnd")     ?? undefined;
   const features    = searchParams.getAll("feature");
+  const coolingType = searchParams.get("coolingType")  ?? undefined;
+  const startType   = searchParams.get("startType")    ?? undefined;
+  const engineType  = searchParams.get("engineType")   ?? undefined;
+  const gears       = searchParams.get("gears")        ?? undefined;
+  const brakeType   = searchParams.get("brakeType")    ?? undefined;
+  const motoStyle   = searchParams.get("motoStyle")    ?? undefined;
+  const motoNeed    = searchParams.get("motoNeed")     ?? undefined;
   const sort        = searchParams.get("sort")         ?? "createdAt_desc";
   const page        = Math.max(1, Number(searchParams.get("page") ?? 1));
   const limit       = Math.min(48, Number(searchParams.get("limit") ?? 24));
@@ -52,6 +59,13 @@ export async function GET(req: NextRequest) {
     ...(vehicleType && { vehicleType }),
     ...(motoType    && { motoType }),
     ...(plateEnd    && { plateEnd }),
+    ...(coolingType && { coolingType }),
+    ...(startType   && { startType }),
+    ...(engineType  && { engineType }),
+    ...(gears       && { gears }),
+    ...(brakeType   && { brakeType }),
+    ...(motoStyle   && { motoType: motoStyle }),
+    ...(motoNeed    && { motoNeed }),
     ...(features.length > 0 && { features: { some: { name: { in: features } } } }),
     ...(cylinderccMin !== undefined || cylinderccMax !== undefined
       ? { cylindercc: { ...(cylinderccMin !== undefined && { gte: cylinderccMin }), ...(cylinderccMax !== undefined && { lte: cylinderccMax }) } }
@@ -203,10 +217,17 @@ export async function POST(req: NextRequest) {
         cylindercc:   body.cylindercc   ? Number(body.cylindercc) : null,
         expiresAt:    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         renewalCount: 0,
-        fipeBrandCode: body.fipeBrandCode ?? null,
-        fipeModelCode: body.fipeModelCode ?? null,
-        fipeYearCode:  body.fipeYearCode  ?? null,
-        plateEnd:      body.plateEnd      || null,
+        fipeBrandCode:  body.fipeBrandCode  ?? null,
+        fipeModelCode:  body.fipeModelCode  ?? null,
+        fipeYearCode:   body.fipeYearCode   ?? null,
+        plateEnd:       body.plateEnd       || null,
+        coolingType:    body.coolingType    || null,
+        startType:      body.startType      || null,
+        engineType:     body.engineType     || null,
+        gears:          body.gears          || null,
+        brakeType:      body.brakeType      || null,
+        colorSecondary: body.colorSecondary || null,
+        motoNeed:       body.motoNeed       || null,
         features: body.features?.length
           ? { create: body.features.map((name: string) => ({ name })) }
           : undefined,
