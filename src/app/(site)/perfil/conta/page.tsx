@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 
@@ -33,8 +33,7 @@ interface ProfileData {
 export default function ContaPage() {
   const { refresh } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const isGoogleWelcome = searchParams.get("welcome") === "google";
+  const [isGoogleWelcome, setIsGoogleWelcome] = useState(false);
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,6 +51,10 @@ export default function ContaPage() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("welcome") === "google") setIsGoogleWelcome(true);
+    }
     fetch("/api/user/profile")
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(d => { setProfile(d.user); setLoading(false); })
