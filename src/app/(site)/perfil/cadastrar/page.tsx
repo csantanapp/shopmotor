@@ -346,12 +346,7 @@ export default function CadastrarPage() {
 
               <FormInput label="Versão" value={form.version} onChange={v => set("version", v)} placeholder={isMoto ? "Ex: CB 500F ABS" : "Ex: LTZ 1.0 Turbo Premier"} />
 
-              {isMoto ? (
-                <FormSelect label="Tipo de moto" value={form.motoType} onChange={v => set("motoType", v)}>
-                  <option value="">Selecione</option>
-                  {motoTypeOptions.map(b => <option key={b}>{b}</option>)}
-                </FormSelect>
-              ) : (
+              {isMoto ? null : (
                 <FormSelect label="Carroceria" value={form.bodyType} onChange={v => set("bodyType", v)}>
                   <option value="">Selecione</option>
                   {bodyOptions.map(b => <option key={b}>{b}</option>)}
