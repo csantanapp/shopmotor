@@ -93,37 +93,26 @@ export default function CadastroPage() {
     <div className="min-h-screen flex flex-col lg:flex-row">
 
       {/* ── LEFT — Hero comercial ── */}
-      <div
-        className="relative lg:w-1/2 flex flex-col justify-between overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #0c0f0f 0%, #111518 50%, #161b1b 100%)",
-          minHeight: "340px",
-        }}
-      >
-        {/* Glow decorativo */}
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full opacity-10 pointer-events-none"
-          style={{ background: "radial-gradient(circle, #FFD709 0%, transparent 70%)", transform: "translate(-30%, -30%)" }} />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full opacity-5 pointer-events-none"
-          style={{ background: "radial-gradient(circle, #FFD709 0%, transparent 70%)", transform: "translate(30%, 30%)" }} />
+      <div className="relative lg:w-1/2 flex flex-col overflow-hidden bg-surface">
 
-        <div className="relative z-10 flex flex-col justify-center h-full px-8 md:px-14 py-14 lg:py-20 gap-10">
+        <div className="flex flex-col px-8 md:px-14 pt-12 pb-0 gap-8">
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 self-start">
-            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#FFD709] border border-[#FFD709]/30 rounded-full px-4 py-1.5">
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-on-surface border border-outline-variant rounded-full px-4 py-1.5">
               CRIE SUA CONTA
             </span>
           </div>
 
           {/* Headline */}
           <div className="space-y-4">
-            <h1 className="text-4xl md:text-5xl font-black leading-[1.05] tracking-tighter text-white">
+            <h1 className="text-4xl md:text-5xl font-black leading-[1.05] tracking-tighter text-on-surface">
               O marketplace mais completo para{" "}
-              <span style={{ color: "#FFD709" }}>comprar, vender e anunciar</span>{" "}
+              <span className="text-primary">comprar, vender e anunciar</span>{" "}
               veículos
             </h1>
-            <p className="text-white/50 text-base leading-relaxed max-w-md">
-              Junte-se a milhares de pessoas que já encontraram o veículo ideal ou fecharam grandes negócios.
+            <p className="text-on-surface-variant text-base leading-relaxed max-w-md">
+              Anuncie ainda hoje e encontre o comprador ideal ou o veículo dos seus sonhos.
             </p>
           </div>
 
@@ -132,39 +121,32 @@ export default function CadastroPage() {
             {benefits.map((b) => (
               <div
                 key={b.title}
-                className="group rounded-2xl p-5 flex gap-4 items-start transition-all duration-300 cursor-default"
-                style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,215,9,0.12)",
-                  backdropFilter: "blur(8px)",
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = "0 0 24px rgba(255,215,9,0.15)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,215,9,0.35)";
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,215,9,0.12)";
-                }}
+                className="rounded-2xl p-5 flex gap-4 items-start transition-all duration-300 cursor-default border border-outline-variant hover:border-primary/40 hover:shadow-md"
               >
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(255,215,9,0.12)" }}>
-                  <Icon name={b.icon} className="text-lg" style={{ color: "#FFD709" }} />
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary/10">
+                  <Icon name={b.icon} className="text-lg text-primary" />
                 </div>
                 <div>
-                  <p className="text-white text-sm font-black leading-tight mb-1">{b.title}</p>
-                  <p className="text-white/40 text-xs leading-relaxed">{b.text}</p>
+                  <p className="text-on-surface text-sm font-black leading-tight mb-1">{b.title}</p>
+                  <p className="text-on-surface-variant text-xs leading-relaxed">{b.text}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Rodapé do hero */}
-          <div className="flex items-center gap-3">
-            <span className="text-3xl font-black tracking-tighter" style={{ color: "#FFD709" }}>SHOP</span>
-            <span className="text-3xl font-black tracking-tighter text-white">MOTOR</span>
-            <span className="text-white/20 text-xs ml-2">Rápido. Fácil. Vendido.</span>
+          {/* Logo */}
+          <div>
+            <img src="/images/logo_shopmotor_footer.webp" alt="ShopMotor" className="h-8 w-auto" />
           </div>
+        </div>
+
+        {/* Imagem hero */}
+        <div className="mt-auto w-full">
+          <img
+            src="/images/hero-cadastro.webp"
+            alt="Carro e moto ShopMotor"
+            className="w-full object-contain object-bottom"
+          />
         </div>
       </div>
 
