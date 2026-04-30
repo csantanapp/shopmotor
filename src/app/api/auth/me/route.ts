@@ -19,7 +19,9 @@ export async function GET() {
       plan:        user.plan,
       city:        user.city,
       state:       user.state,
-      accountType: (user as any).accountType ?? "PF",
+      accountType:   (user as any).accountType ?? "PF",
+      emailVerified:   (user as any).emailVerified ?? false,
+      profileComplete: (user as any).profileComplete ?? true,
     },
   });
 }

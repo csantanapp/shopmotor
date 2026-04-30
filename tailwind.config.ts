@@ -69,9 +69,9 @@ const config: Config = {
         full: "9999px",
       },
       fontFamily: {
-        headline: ["var(--font-inter)", "sans-serif"],
-        body: ["var(--font-inter)", "sans-serif"],
-        label: ["var(--font-inter)", "sans-serif"],
+        headline: ["var(--font-barlow)", "Arial Narrow", "Arial", "sans-serif"],
+        body:     ["var(--font-inter)", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Helvetica Neue", "Arial", "sans-serif"],
+        label:    ["var(--font-inter)", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Helvetica Neue", "Arial", "sans-serif"],
       },
     },
   },

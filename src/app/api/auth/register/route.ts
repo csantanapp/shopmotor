@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession, COOKIE_NAME, SECURE_COOKIE_OPTIONS } from "@/lib/auth";
-import { sendWelcomeEmail } from "@/lib/mailer";
+import { sendVerificationEmail } from "@/lib/mailer";
+import crypto from "crypto";
 import { encrypt } from "@/lib/crypto";
+import { rateLimit, getIp } from "@/lib/rate-limit";
 
 function slugify(str: string) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -25,6 +27,11 @@ function validateCNPJ(cnpj: string) {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getIp(req);
+    if (!rateLimit(`register:${ip}`, 5, 60 * 60 * 1000)) {
+      return NextResponse.json({ error: "Muitas tentativas. Aguarde 1 hora." }, { status: 429 });
+    }
+
     const body = await req.json();
     const { name, email, phone, sharePhone, password, zipCode, state, address, city,
             accountType, cnpj, companyName, tradeName } = body;
@@ -83,6 +90,7 @@ export async function POST(req: NextRequest) {
         companyName: accountType === "PJ" ? companyName : null,
         tradeName:   accountType === "PJ" ? tradeName || null : null,
         storeSlug,
+        profileComplete: true,
       },
       select: { id: true, name: true, email: true, role: true, plan: true },
     });
@@ -92,7 +100,13 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json({ user }, { status: 201 });
     response.cookies.set(COOKIE_NAME, token, { ...SECURE_COOKIE_OPTIONS, expires: expiresAt });
 
-    sendWelcomeEmail(user.email, user.name).catch(() => null);
+    // Create email verification token
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const verifyExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await (prisma as any).emailVerification.create({
+      data: { userId: user.id, token: verifyToken, expiresAt: verifyExpiresAt },
+    });
+    sendVerificationEmail(user.email, user.name, verifyToken).catch(() => null);
 
     return response;
   } catch (err) {

@@ -12,7 +12,9 @@ model User {
   email               String         @unique
   emailVerified       Boolean        @default(false)
   phone               String?
-  passwordHash        String
+  passwordHash        String?
+  googleId            String?        @unique
+  profileComplete     Boolean        @default(false)
   avatarUrl           String?
   role                UserRole       @default(BUYER)
   plan                UserPlan       @default(FREE)
@@ -50,11 +52,24 @@ model User {
   sessions            Session[]
   vehicles            Vehicle[]
   passwordResets      PasswordReset[]
+  emailVerifications  EmailVerification[]
   payments            Payment[]
   storeSubscriptions  StoreSubscription[]
   notifications       Notification[]
 
   @@map("users")
+}
+
+model EmailVerification {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verifications")
 }
 
 model PasswordReset {

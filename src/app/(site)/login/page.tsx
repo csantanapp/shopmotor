@@ -147,8 +147,8 @@ function LoginForm() {
             <div className="flex-1 h-px bg-outline-variant" />
           </div>
 
-          <button
-            type="button"
+          <a
+            href={`/api/auth/google?redirect=${encodeURIComponent(redirect)}`}
             className="w-full flex items-center justify-center gap-3 border border-outline-variant rounded-full py-3.5 hover:bg-surface-container transition-colors font-semibold text-sm text-on-surface"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -158,7 +158,7 @@ function LoginForm() {
               <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
             </svg>
             Entrar com Google
-          </button>
+          </a>
 
         </div>
 

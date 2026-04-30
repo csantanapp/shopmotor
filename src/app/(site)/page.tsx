@@ -159,7 +159,7 @@ export default async function Home() {
               <span className="w-8 h-0.5 bg-primary-container" />
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-none uppercase mb-6">
+            <h1 className="font-headline text-6xl md:text-8xl font-black tracking-tight text-white leading-none uppercase mb-6">
               VOCÊ DE<br />
               <span className="text-primary-container">CARRO NOVO!</span>
             </h1>
@@ -192,7 +192,7 @@ export default async function Home() {
         <div className="flex items-end justify-between mb-8">
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Explore por categoria</p>
-            <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Tipo de veículo</h2>
+            <h2 className="font-headline text-4xl font-black tracking-tight text-on-surface uppercase">Tipo de veículo</h2>
           </div>
         </div>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
@@ -226,7 +226,7 @@ export default async function Home() {
           <div className="flex items-end justify-between mb-8">
             <div>
               <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Selecionados para você</p>
-              <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">
+              <h2 className="font-headline text-4xl font-black tracking-tight text-on-surface uppercase">
                 Anúncios Destaques
               </h2>
               <div className="h-1 w-16 bg-primary-container mt-2" />
@@ -250,7 +250,7 @@ export default async function Home() {
             <div className="flex items-end justify-between mb-8">
               <div>
                 <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Selecionados para você</p>
-                <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">
+                <h2 className="font-headline text-4xl font-black tracking-tight text-on-surface uppercase">
                   Anúncios Elite
                 </h2>
                 <div className="h-1 w-16 bg-inverse-surface mt-2" />
@@ -274,7 +274,7 @@ export default async function Home() {
           <div className="flex items-end justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Navegue por marca</p>
-              <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Marcas populares</h2>
+              <h2 className="font-headline text-4xl font-black tracking-tight text-on-surface uppercase">Marcas populares</h2>
             </div>
             <Link href="/busca" className="text-primary font-bold flex items-center gap-1 hover:underline text-sm">
               Ver todas <Icon name="arrow_forward" className="text-base" />
@@ -312,7 +312,7 @@ export default async function Home() {
           <div className="flex items-end justify-between mb-8">
             <div>
               <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Recém adicionados</p>
-              <h2 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Novos anúncios</h2>
+              <h2 className="font-headline text-4xl font-black tracking-tight text-on-surface uppercase">Novos anúncios</h2>
               <div className="h-1 w-16 bg-primary-container mt-2" />
             </div>
             <Link href="/busca" className="text-primary font-bold flex items-center gap-1 hover:underline text-sm">
@@ -396,7 +396,7 @@ export default async function Home() {
         <div className="max-w-screen-2xl mx-auto px-6">
           <div className="text-center mb-12">
             <p className="text-xs font-black uppercase tracking-widest text-primary mb-2">Ecossistema completo</p>
-            <h2 className="text-3xl font-black tracking-tighter uppercase">Além da compra e venda</h2>
+            <h2 className="font-headline text-4xl font-black tracking-tight uppercase">Além da compra e venda</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[

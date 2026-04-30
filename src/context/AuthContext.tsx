@@ -13,6 +13,8 @@ interface AuthUser {
   plan: string;
   accountType: string;
   tradeName: string | null;
+  emailVerified: boolean;
+  profileComplete: boolean;
 }
 
 interface AuthContextValue {

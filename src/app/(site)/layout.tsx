@@ -5,14 +5,16 @@ import TopBar from "@/components/ads/TopBar";
 import AdPopup from "@/components/ads/AdPopup";
 import CookieConsent from "@/components/layout/CookieConsent";
 import CookieManager from "@/components/layout/CookieManager";
+import EmailVerificationBanner from "@/components/layout/EmailVerificationBanner";
 import { AuthProvider } from "@/context/AuthContext";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <TopBar />
+      <EmailVerificationBanner />
       <Navbar />
-      <main id="main-content" className="pb-16 md:pb-0">{children}</main>
+      <main id="main-content" className="pb-20 md:pb-0">{children}</main>
       <Footer />
       <BottomNav />
       <AdPopup />

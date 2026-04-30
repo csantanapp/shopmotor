@@ -27,6 +27,30 @@ export async function sendPasswordResetEmail(to: string, name: string, token: st
   });
 }
 
+export async function sendVerificationEmail(to: string, name: string, token: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+  const link = `${baseUrl}/verificar-email?token=${token}`;
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: "Confirme seu e-mail — ShopMotor",
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff">
+        <h1 style="font-size:24px;font-weight:900;text-transform:uppercase;margin-bottom:8px">ShopMotor</h1>
+        <p style="color:#555">Olá, <strong>${name}</strong>!</p>
+        <p style="color:#555">Clique no botão abaixo para confirmar seu e-mail e ativar sua conta:</p>
+        <a href="${link}" style="display:inline-block;margin:24px 0;background:#facc15;color:#000;font-weight:900;text-decoration:none;padding:14px 32px;border-radius:999px;text-transform:uppercase;font-size:13px;letter-spacing:1px">
+          Confirmar e-mail
+        </a>
+        <p style="color:#999;font-size:12px">Este link expira em 24 horas. Se você não criou uma conta, ignore este e-mail.</p>
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+        <p style="color:#ccc;font-size:11px">© ${new Date().getFullYear()} ShopMotor.</p>
+      </div>
+    `,
+  });
+}
+
 export async function sendWelcomeEmail(to: string, name: string) {
   await resend.emails.send({
     from: FROM,

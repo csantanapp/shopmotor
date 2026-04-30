@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession, COOKIE_NAME, SECURE_COOKIE_OPTIONS } from "@/lib/auth";
+import { rateLimit, getIp } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getIp(req);
+    if (!rateLimit(`login:${ip}`, 10, 15 * 60 * 1000)) {
+      return NextResponse.json({ error: "Muitas tentativas. Aguarde 15 minutos." }, { status: 429 });
+    }
+
     const { email, password } = await req.json();
 
     if (!email || !password) {
@@ -12,7 +18,11 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
+    if (!user || !user.passwordHash) {
+      // User registered via Google (no password) — suggest Google login
+      if (user && (user as any).googleId) {
+        return NextResponse.json({ error: "Esta conta usa login com Google. Clique em 'Entrar com Google'." }, { status: 401 });
+      }
       return NextResponse.json({ error: "E-mail ou senha incorretos." }, { status: 401 });
     }
 
