@@ -42,7 +42,9 @@ const brandOptions = [
   "Shineray","Tesla","Toyota","Volkswagen","Volvo","Zeekr","Outros",
 ];
 const fuelOptions         = ["Todos","Flex","Gasolina","Diesel","Elétrico","Híbrido","GNV"];
-const bodyOptions         = ["Todos","Hatch","Sedã","SUV","Picape","Minivan","Esportivo","Conversível"];
+const bodyOptions         = ["Todos","Hatch","Sedã","SUV/Crossover","Picape","Minivan","Esportivo","Conversível","Cupê","Van/Utilitário/Furgão","Buggy"];
+const plateEndOptions     = ["1 e 2","3 e 4","5 e 6","7 e 8","9 e 0"];
+const FILTER_FEATURES     = ["Ar condicionado","Airbag","Freio ABS","Carplay","Teto solar","Tração 4x4","IPVA Pago","Único dono","Garantia de fábrica","Direção hidráulica/elétrica","Sensor de estacionamento","Rodas liga leve","Piloto automático"];
 const motoTypeOptions     = ["Todos","Street","Naked","Esportiva","Trail/Adventure","Custom/Cruiser","Scooter","Enduro/Motocross","Touring"];
 const transmissionOptions = ["Todos","Automático","Manual","CVT","Automatizado"];
 const colorOptions        = ["Todas","Branco","Preto","Prata","Cinza","Vermelho","Azul","Verde","Amarelo","Laranja","Marrom","Bege","Dourado","Outro"];
@@ -95,6 +97,8 @@ function BuscaPageInner() {
   const [cylinderccMax, setCylinderccMax] = useState("");
   const [armored, setArmored]           = useState(false);
   const [auction, setAuction]           = useState(false);
+  const [plateEnd, setPlateEnd]         = useState("");
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [sort, setSort]                 = useState("createdAt_desc");
   const [view, setView]                 = useState<"grid" | "list">("grid");
   const [filtersOpen, setFiltersOpen]   = useState(false);
@@ -157,8 +161,10 @@ function BuscaPageInner() {
     if (vehicleTypeFilter === "MOTO" && motoType !== "Todos") params.set("motoType", motoType);
     if (vehicleTypeFilter === "MOTO" && cylinderccMin) params.set("cylinderccMin", cylinderccMin);
     if (vehicleTypeFilter === "MOTO" && cylinderccMax) params.set("cylinderccMax", cylinderccMax);
-    if (armored)  params.set("armored", "true");
-    if (auction)  params.set("auction", "true");
+    if (armored)   params.set("armored", "true");
+    if (auction)   params.set("auction", "true");
+    if (plateEnd)  params.set("plateEnd", plateEnd);
+    selectedFeatures.forEach(f => params.append("feature", f));
     if (priceMin) params.set("priceMin", priceMin.replace(/\D/g, ""));
     if (priceMax) params.set("priceMax", priceMax.replace(/\D/g, ""));
     if (kmMin)    params.set("kmMin", kmMin.replace(/\D/g, ""));
@@ -181,7 +187,7 @@ function BuscaPageInner() {
       setFetchError(true);
     }
     setFetching(false);
-  }, [search, brand, fuel, body, transmission, color, state, condition, vehicleTypeFilter, motoType, cylinderccMin, cylinderccMax, armored, auction, priceMin, priceMax, kmMin, kmMax, yearMin, yearMax, sort]);
+  }, [search, brand, fuel, body, transmission, color, state, condition, vehicleTypeFilter, motoType, cylinderccMin, cylinderccMax, armored, auction, plateEnd, selectedFeatures, priceMin, priceMax, kmMin, kmMax, yearMin, yearMax, sort]);
 
   // Reset page and debounce fetch when filters change
   useEffect(() => {
@@ -203,6 +209,7 @@ function BuscaPageInner() {
     setKmMin(""); setKmMax(""); setYearMin(""); setYearMax("");
     setArmored(false); setAuction(false); setSearch(""); setVehicleTypeFilter("Todos");
     setMotoType("Todos"); setCylinderccMin(""); setCylinderccMax("");
+    setPlateEnd(""); setSelectedFeatures([]);
   };
 
   const activeFiltersCount = [
@@ -210,6 +217,7 @@ function BuscaPageInner() {
     color !== "Todas", state !== "Todos", condition !== "Todos", !!priceMin, !!priceMax,
     !!kmMin, !!kmMax, !!yearMin, !!yearMax, armored, auction,
     motoType !== "Todos", !!cylinderccMin, !!cylinderccMax,
+    !!plateEnd, selectedFeatures.length > 0,
   ].filter(Boolean).length;
 
   /* ── Filter panel ── */
@@ -337,6 +345,32 @@ function BuscaPageInner() {
           </select>
         </FilterSection>
 
+        {vehicleTypeFilter !== "MOTO" && (
+          <FilterSection label="Final da placa">
+            <div className="flex flex-wrap gap-1.5">
+              {plateEndOptions.map(opt => (
+                <ChipBtn key={opt} label={opt} active={plateEnd === opt} onClick={() => setPlateEnd(p => p === opt ? "" : opt)} />
+              ))}
+            </div>
+          </FilterSection>
+        )}
+
+        <FilterSection label="Opcionais">
+          <div className="space-y-2">
+            {FILTER_FEATURES.map(feat => (
+              <label key={feat} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedFeatures.includes(feat)}
+                  onChange={() => setSelectedFeatures(prev => prev.includes(feat) ? prev.filter(f => f !== feat) : [...prev, feat])}
+                  className="w-4 h-4 accent-yellow-500 rounded"
+                />
+                <span className="text-sm text-on-surface">{feat}</span>
+              </label>
+            ))}
+          </div>
+        </FilterSection>
+
         <FilterSection label="Outras opções">
           <div className="space-y-2">
             <label className="flex items-center gap-3 cursor-pointer">
@@ -412,6 +446,8 @@ function BuscaPageInner() {
           {motoType !== "Todos"      && <Chip label={motoType}               onRemove={() => setMotoType("Todos")} />}
           {cylinderccMin             && <Chip label={`Cilindrada ≥ ${cylinderccMin}cc`} onRemove={() => setCylinderccMin("")} />}
           {cylinderccMax             && <Chip label={`Cilindrada ≤ ${cylinderccMax}cc`} onRemove={() => setCylinderccMax("")} />}
+          {plateEnd                  && <Chip label={`Final ${plateEnd}`} onRemove={() => setPlateEnd("")} />}
+          {selectedFeatures.map(f   => <Chip key={f} label={f} onRemove={() => setSelectedFeatures(prev => prev.filter(x => x !== f))} />)}
         </div>
       )}
 

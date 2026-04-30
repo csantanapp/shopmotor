@@ -115,6 +115,8 @@ model Vehicle {
   financing         Boolean          @default(false)
   armored           Boolean          @default(false)
   auction           Boolean          @default(false)
+  plateEnd          String?
+  features          String[]
   condition         VehicleCondition @default(USED)
   description       String?
   city              String

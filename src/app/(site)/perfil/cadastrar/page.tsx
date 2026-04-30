@@ -10,7 +10,20 @@ const fuelOptions        = ["Flex","Gasolina","Etanol","Diesel","Elétrico","Hí
 const motoFuelOptions    = ["Gasolina","Etanol","Flex","Elétrico"];
 const transmissionOptions     = ["Automático","Manual","CVT","Automatizado"];
 const motoTransmissionOptions = ["Manual","Automático","Semiautomático"];
-const bodyOptions  = ["Hatch","Sedã","SUV/Crossover","Picape","Minivan","Esportivo","Conversível"];
+const bodyOptions  = ["Hatch","Sedã","SUV/Crossover","Picape","Minivan","Esportivo","Conversível","Cupê","Van/Utilitário/Furgão","Buggy"];
+const plateEndOptions = ["1 e 2","3 e 4","5 e 6","7 e 8","9 e 0"];
+
+const FEATURES_CARACTERISTICAS = [
+  "Alienado","Garantia de fábrica","IPVA Pago","Licenciado",
+  "Todas revisões feitas pela concessionária","Único dono","Passagem por Leilão",
+];
+const FEATURES_EXTRAS = [
+  "Ar condicionado","Bancos em couro","Direção hidráulica/elétrica",
+  "Piloto automático","Retrovisores elétricos","Travas elétricas","Vidros elétricos",
+];
+const FEATURES_SEGURANCA = ["Airbag","Controle de tração","Freio ABS","Blindado"];
+const FEATURES_TECH = ["Carplay","Sensor de estacionamento"];
+const FEATURES_OUTROS = ["Faróis de LED/Xenon","Rodas liga leve","Teto solar","Tração 4x4"];
 const motoTypeOptions = ["Street","Naked","Esportiva","Trail/Adventure","Custom/Cruiser","Scooter","Enduro/Motocross","Touring"];
 const colorOptions = ["Branco","Prata","Preto","Cinza","Vermelho","Azul","Verde","Amarelo","Laranja","Marrom","Bege","Dourado","Vinho","Outro"];
 
@@ -57,6 +70,8 @@ export default function CadastrarPage() {
     price: "", acceptTrade: false, financing: false, armored: false, auction: false,
     description: "",
     fipeBrandCode: "", fipeModelCode: "", fipeYearCode: "",
+    plateEnd: "",
+    features: [] as string[],
   });
 
   // Carregar marcas FIPE ao escolher tipo
@@ -105,6 +120,15 @@ export default function CadastrarPage() {
 
   function set(field: string, value: string | boolean) {
     setForm(f => ({ ...f, [field]: value }));
+  }
+
+  function toggleFeature(feat: string) {
+    setForm(f => ({
+      ...f,
+      features: f.features.includes(feat)
+        ? f.features.filter(x => x !== feat)
+        : [...f.features, feat],
+    }));
   }
 
   async function submitBasicData() {
@@ -319,6 +343,28 @@ export default function CadastrarPage() {
             </div>
           </div>
 
+          {!isMoto && (
+            <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm space-y-4">
+              <h2 className="text-base font-bold text-on-surface border-b border-neutral-100 pb-4">Final da placa</h2>
+              <div className="flex flex-wrap gap-2">
+                {plateEndOptions.map(opt => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => set("plateEnd", form.plateEnd === opt ? "" : opt)}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
+                      form.plateEnd === opt
+                        ? "border-primary-container bg-primary-container/10 text-on-surface"
+                        : "border-outline-variant text-on-surface-variant hover:border-outline"
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm space-y-4">
             <h2 className="text-base font-bold text-on-surface border-b border-neutral-100 pb-4">Condição</h2>
             <div className="flex gap-4">
@@ -370,50 +416,53 @@ export default function CadastrarPage() {
 
       {/* Step 1: Especificações */}
       {step === 1 && (
-        <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm space-y-6">
-          <h2 className="text-base font-bold text-on-surface border-b border-neutral-100 pb-4">Especificações</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormSelect label="Combustível *" value={form.fuel} onChange={v => set("fuel", v)}>
-              <option value="">Selecione</option>
-              {(isMoto ? motoFuelOptions : fuelOptions).map(opt => <option key={opt}>{opt}</option>)}
-            </FormSelect>
-            <FormSelect label="Câmbio *" value={form.transmission} onChange={v => set("transmission", v)}>
-              <option value="">Selecione</option>
-              {(isMoto ? motoTransmissionOptions : transmissionOptions).map(t => <option key={t}>{t}</option>)}
-            </FormSelect>
-            <FormSelect label="Cor" value={form.color} onChange={v => set("color", v)}>
-              <option value="">Selecione</option>
-              {colorOptions.map(c => <option key={c}>{c}</option>)}
-            </FormSelect>
-            {isMoto ? (
-              <FormInput label="Cilindrada (cc)" type="number" value={form.cylindercc} onChange={v => set("cylindercc", v)} placeholder="Ex: 500" />
-            ) : (
-              <FormSelect label="Portas" value={form.doors} onChange={v => set("doors", v)}>
+        <div className="space-y-6">
+
+          {/* Especificações básicas */}
+          <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm space-y-6">
+            <h2 className="text-base font-bold text-on-surface border-b border-neutral-100 pb-4">Especificações</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormSelect label="Combustível *" value={form.fuel} onChange={v => set("fuel", v)}>
                 <option value="">Selecione</option>
-                {["2","3","4","5"].map(n => <option key={n} value={n}>{n} portas</option>)}
+                {(isMoto ? motoFuelOptions : fuelOptions).map(opt => <option key={opt}>{opt}</option>)}
               </FormSelect>
-            )}
+              <FormSelect label="Câmbio *" value={form.transmission} onChange={v => set("transmission", v)}>
+                <option value="">Selecione</option>
+                {(isMoto ? motoTransmissionOptions : transmissionOptions).map(t => <option key={t}>{t}</option>)}
+              </FormSelect>
+              <FormSelect label="Cor" value={form.color} onChange={v => set("color", v)}>
+                <option value="">Selecione</option>
+                {colorOptions.map(c => <option key={c}>{c}</option>)}
+              </FormSelect>
+              {isMoto ? (
+                <FormInput label="Cilindrada (cc)" type="number" value={form.cylindercc} onChange={v => set("cylindercc", v)} placeholder="Ex: 500" />
+              ) : (
+                <FormSelect label="Portas" value={form.doors} onChange={v => set("doors", v)}>
+                  <option value="">Selecione</option>
+                  {["2","3","4","5"].map(n => <option key={n} value={n}>{n} portas</option>)}
+                </FormSelect>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-3 pt-2">
-            {[
-              { field: "armored", label: isMoto ? "Moto blindada" : "Veículo blindado" },
-              { field: "auction", label: isMoto ? "Moto de leilão" : "Veículo de leilão" },
-            ].map(({ field, label }) => (
-              <label key={field} className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form[field as keyof typeof form] as boolean}
-                  onChange={e => set(field, e.target.checked)}
-                  className="w-4 h-4 accent-yellow-500"
-                />
-                <span className="text-sm font-medium text-on-surface">{label}</span>
-              </label>
-            ))}
-          </div>
+          {/* Características */}
+          <FeatureBlock title="Características" features={FEATURES_CARACTERISTICAS} selected={form.features} onToggle={toggleFeature} />
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Descrição</label>
+          {/* Extras do Veículo */}
+          <FeatureBlock title="Extras do Veículo" features={FEATURES_EXTRAS} selected={form.features} onToggle={toggleFeature} />
+
+          {/* Segurança */}
+          <FeatureBlock title="Segurança" features={FEATURES_SEGURANCA} selected={form.features} onToggle={toggleFeature} />
+
+          {/* Tecnologia e Conectividade */}
+          <FeatureBlock title="Tecnologia e Conectividade" features={FEATURES_TECH} selected={form.features} onToggle={toggleFeature} />
+
+          {/* Outros */}
+          <FeatureBlock title="Outros" features={FEATURES_OUTROS} selected={form.features} onToggle={toggleFeature} />
+
+          {/* Descrição */}
+          <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm">
+            <h2 className="text-base font-bold text-on-surface border-b border-neutral-100 pb-4 mb-4">Descrição</h2>
             <textarea
               rows={5}
               value={form.description}
@@ -551,6 +600,29 @@ function FormSelect({ label, value, onChange, children }: {
       >
         {children}
       </select>
+    </div>
+  );
+}
+
+function FeatureBlock({ title, features, selected, onToggle }: {
+  title: string; features: string[]; selected: string[]; onToggle: (feat: string) => void;
+}) {
+  return (
+    <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm space-y-4">
+      <h2 className="text-base font-bold text-on-surface border-b border-neutral-100 pb-4">{title}</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {features.map(feat => (
+          <label key={feat} className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selected.includes(feat)}
+              onChange={() => onToggle(feat)}
+              className="w-4 h-4 accent-yellow-500"
+            />
+            <span className="text-sm text-on-surface">{feat}</span>
+          </label>
+        ))}
+      </div>
     </div>
   );
 }

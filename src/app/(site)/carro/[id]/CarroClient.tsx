@@ -23,6 +23,7 @@ interface Vehicle {
   price: number; previousPrice: number | null; fipePrice: number | null;
   acceptTrade: boolean; financing: boolean; armored: boolean; auction: boolean;
   condition: "NEW" | "USED"; description: string | null; city: string; state: string;
+  plateEnd: string | null;
   views: number; status: string;
   fipeBrandCode: string | null; fipeModelCode: string | null; fipeYearCode: string | null;
   photos: VehiclePhoto[];
@@ -161,8 +162,9 @@ export default function CarroClient({ params }: { params: { id: string } }) {
     ...(!isMoto && vehicle.bodyType  ? [{ icon: "directions_car", label: "Carroceria", value: vehicle.bodyType   }] : []),
     ...(vehicle.color    ? [{ icon: "palette",        label: "Cor",        value: vehicle.color    }] : []),
     ...(!isMoto && vehicle.doors ? [{ icon: "sensor_door", label: "Portas", value: `${vehicle.doors} portas` }] : []),
-    ...(vehicle.armored  ? [{ icon: "shield",         label: "Blindagem",  value: "Sim"            }] : []),
-    ...(vehicle.auction  ? [{ icon: "gavel",          label: "Leilão",     value: "Sim"            }] : []),
+    ...(vehicle.armored   ? [{ icon: "shield",         label: "Blindagem",    value: "Sim"              }] : []),
+    ...(vehicle.auction   ? [{ icon: "gavel",          label: "Leilão",       value: "Sim"              }] : []),
+    ...(vehicle.plateEnd  ? [{ icon: "pin",            label: "Final da placa", value: vehicle.plateEnd }] : []),
   ];
 
   const sellerSince = new Date(vehicle.user.createdAt).getFullYear();

@@ -26,6 +26,8 @@ export async function GET(req: NextRequest) {
   const motoType       = searchParams.get("motoType")       ?? undefined;
   const cylinderccMin  = searchParams.get("cylinderccMin")  ? Number(searchParams.get("cylinderccMin"))  : undefined;
   const cylinderccMax  = searchParams.get("cylinderccMax")  ? Number(searchParams.get("cylinderccMax"))  : undefined;
+  const plateEnd    = searchParams.get("plateEnd")     ?? undefined;
+  const features    = searchParams.getAll("feature");
   const sort        = searchParams.get("sort")         ?? "createdAt_desc";
   const page        = Math.max(1, Number(searchParams.get("page") ?? 1));
   const limit       = Math.min(48, Number(searchParams.get("limit") ?? 24));
@@ -49,6 +51,8 @@ export async function GET(req: NextRequest) {
     ...(condition === "Usado" && { condition: "USED" }),
     ...(vehicleType && { vehicleType }),
     ...(motoType    && { motoType }),
+    ...(plateEnd    && { plateEnd }),
+    ...(features.length > 0 && { features: { some: { name: { in: features } } } }),
     ...(cylinderccMin !== undefined || cylinderccMax !== undefined
       ? { cylindercc: { ...(cylinderccMin !== undefined && { gte: cylinderccMin }), ...(cylinderccMax !== undefined && { lte: cylinderccMax }) } }
       : {}),
@@ -202,6 +206,7 @@ export async function POST(req: NextRequest) {
         fipeBrandCode: body.fipeBrandCode ?? null,
         fipeModelCode: body.fipeModelCode ?? null,
         fipeYearCode:  body.fipeYearCode  ?? null,
+        plateEnd:      body.plateEnd      || null,
         features: body.features?.length
           ? { create: body.features.map((name: string) => ({ name })) }
           : undefined,
