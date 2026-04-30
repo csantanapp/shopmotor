@@ -138,17 +138,12 @@ export default function CadastroPage() {
           </div>
 
           {/* Imagem */}
-          <div className="w-full">
+          <div className="w-4/5 mx-auto pb-10">
             <img
               src="/images/cadastro.webp"
               alt="Carro e moto ShopMotor"
               className="w-full object-contain rounded-2xl"
             />
-          </div>
-
-          {/* Logo */}
-          <div className="pb-10">
-            <img src="/images/logo_shopmotor_footer.webp" alt="ShopMotor" className="h-8 w-auto" />
           </div>
         </div>
       </div>
