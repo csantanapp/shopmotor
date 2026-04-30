@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 
@@ -33,6 +33,8 @@ interface ProfileData {
 export default function ContaPage() {
   const { refresh } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isGoogleWelcome = searchParams.get("welcome") === "google";
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -157,6 +159,17 @@ export default function ContaPage() {
         <h1 className="text-3xl font-black tracking-tighter text-on-surface uppercase">Minha Conta</h1>
         <p className="text-on-surface-variant text-sm mt-1">Gerencie seus dados pessoais e preferências.</p>
       </div>
+
+      {/* Banner boas-vindas Google */}
+      {isGoogleWelcome && (
+        <div className="bg-yellow-400 rounded-2xl px-6 py-5 flex items-start gap-4">
+          <span className="text-2xl flex-shrink-0">👋</span>
+          <div>
+            <p className="font-black text-black text-base">Bem-vindo ao ShopMotor!</p>
+            <p className="text-black/70 text-sm mt-0.5">Sua conta Google foi conectada com sucesso. Complete seus dados abaixo para finalizar o cadastro.</p>
+          </div>
+        </div>
+      )}
 
       {/* Feedback */}
       {error && (

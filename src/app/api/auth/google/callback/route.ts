@@ -43,26 +43,27 @@ export async function GET(req: NextRequest) {
     const googleUser: { id: string; email: string; name: string; picture: string } = await userRes.json();
 
     // 3. Find or create user
-    let user = await prisma.user.findFirst({
+    const db = prisma as any;
+    let user = await db.user.findFirst({
       where: { OR: [{ googleId: googleUser.id }, { email: googleUser.email }] },
     });
 
     if (!user) {
       // New user via Google
-      user = await prisma.user.create({
+      user = await db.user.create({
         data: {
-          name:           googleUser.name,
-          email:          googleUser.email,
-          googleId:       googleUser.id,
-          avatarUrl:      googleUser.picture,
-          emailVerified:  true,
+          name:            googleUser.name,
+          email:           googleUser.email,
+          googleId:        googleUser.id,
+          avatarUrl:       googleUser.picture,
+          emailVerified:   true,
           profileComplete: false,
-          role:           "SELLER",
+          role:            "SELLER",
         },
       });
     } else if (!user.googleId) {
       // Existing user (registered with email/password) — link Google account
-      user = await prisma.user.update({
+      user = await db.user.update({
         where: { id: user.id },
         data: {
           googleId:      googleUser.id,
@@ -75,9 +76,10 @@ export async function GET(req: NextRequest) {
     // 4. Create session
     const { token, expiresAt } = await createSession(user.id, user.email, user.role);
 
-    // 5. Redirect — new/incomplete users go to complete profile
-    const destination = !(user as any).profileComplete
-      ? `${baseUrl}/completar-cadastro?redirect=${encodeURIComponent(state)}`
+    // 5. Redirect — new/incomplete users go to conta with welcome banner
+    const isNew = !(user as any).profileComplete;
+    const destination = isNew
+      ? `${baseUrl}/perfil/conta?welcome=google`
       : `${baseUrl}${state}`;
 
     const response = NextResponse.redirect(destination);
