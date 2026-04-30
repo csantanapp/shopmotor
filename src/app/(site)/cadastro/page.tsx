@@ -108,7 +108,7 @@ export default function CadastroPage() {
           <div className="space-y-4">
             <h1 className="text-4xl md:text-5xl font-black leading-[1.05] tracking-tighter text-on-surface">
               O marketplace mais completo para{" "}
-              <span className="text-primary">comprar, vender e anunciar</span>{" "}
+              <span style={{ color: "#ffd709" }}>comprar, vender e anunciar</span>{" "}
               veículos
             </h1>
             <p className="text-on-surface-variant text-base leading-relaxed max-w-md">
@@ -121,10 +121,13 @@ export default function CadastroPage() {
             {benefits.map((b) => (
               <div
                 key={b.title}
-                className="rounded-2xl p-5 flex gap-4 items-start transition-all duration-300 cursor-default border border-outline-variant hover:border-primary/40 hover:shadow-md"
+                className="rounded-2xl p-5 flex gap-4 items-start transition-all duration-300 cursor-default border border-outline-variant hover:shadow-md"
+                style={{ borderColor: undefined }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = "#ffd70966")}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = "")}
               >
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary/10">
-                  <Icon name={b.icon} className="text-lg text-primary" />
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#ffd70920" }}>
+                  <span style={{ color: "#ffd709" }}><Icon name={b.icon} className="text-lg" /></span>
                 </div>
                 <div>
                   <p className="text-on-surface text-sm font-black leading-tight mb-1">{b.title}</p>
@@ -134,19 +137,19 @@ export default function CadastroPage() {
             ))}
           </div>
 
+          {/* Imagem */}
+          <div className="w-full">
+            <img
+              src="/images/cadastro.webp"
+              alt="Carro e moto ShopMotor"
+              className="w-full object-contain rounded-2xl"
+            />
+          </div>
+
           {/* Logo */}
-          <div>
+          <div className="pb-10">
             <img src="/images/logo_shopmotor_footer.webp" alt="ShopMotor" className="h-8 w-auto" />
           </div>
-        </div>
-
-        {/* Imagem hero */}
-        <div className="mt-auto w-full">
-          <img
-            src="/images/hero-cadastro.webp"
-            alt="Carro e moto ShopMotor"
-            className="w-full object-contain object-bottom"
-          />
         </div>
       </div>
 
