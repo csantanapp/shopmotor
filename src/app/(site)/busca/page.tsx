@@ -432,34 +432,38 @@ function BuscaPageInner() {
           </FilterSection>
         )}
 
-        <FilterSection label="Opcionais">
-          <div className="space-y-2">
-            {FILTER_FEATURES.map(feat => (
-              <label key={feat} className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedFeatures.includes(feat)}
-                  onChange={() => setSelectedFeatures(prev => prev.includes(feat) ? prev.filter(f => f !== feat) : [...prev, feat])}
-                  className="w-4 h-4 accent-yellow-500 rounded"
-                />
-                <span className="text-sm text-on-surface">{feat}</span>
-              </label>
-            ))}
-          </div>
-        </FilterSection>
+        {vehicleTypeFilter !== "MOTO" && (
+          <>
+            <FilterSection label="Opcionais">
+              <div className="space-y-2">
+                {FILTER_FEATURES.map(feat => (
+                  <label key={feat} className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedFeatures.includes(feat)}
+                      onChange={() => setSelectedFeatures(prev => prev.includes(feat) ? prev.filter(f => f !== feat) : [...prev, feat])}
+                      className="w-4 h-4 accent-yellow-500 rounded"
+                    />
+                    <span className="text-sm text-on-surface">{feat}</span>
+                  </label>
+                ))}
+              </div>
+            </FilterSection>
 
-        <FilterSection label="Outras opções">
-          <div className="space-y-2">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={armored} onChange={e => setArmored(e.target.checked)} className="w-4 h-4 accent-yellow-500 rounded" />
-              <div><span className="text-sm font-semibold text-on-surface">Blindado</span></div>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={auction} onChange={e => setAuction(e.target.checked)} className="w-4 h-4 accent-yellow-500 rounded" />
-              <div><span className="text-sm font-semibold text-on-surface">Leilão</span></div>
-            </label>
-          </div>
-        </FilterSection>
+            <FilterSection label="Outras opções">
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={armored} onChange={e => setArmored(e.target.checked)} className="w-4 h-4 accent-yellow-500 rounded" />
+                  <span className="text-sm font-semibold text-on-surface">Blindado</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={auction} onChange={e => setAuction(e.target.checked)} className="w-4 h-4 accent-yellow-500 rounded" />
+                  <span className="text-sm font-semibold text-on-surface">Leilão</span>
+                </label>
+              </div>
+            </FilterSection>
+          </>
+        )}
       </div>
     </div>
   );
