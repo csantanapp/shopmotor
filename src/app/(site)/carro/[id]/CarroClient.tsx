@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 
+interface RelatedVehicle {
+  id: string; brand: string; model: string; version: string | null;
+  yearFab: number; km: number; price: number; city: string; state: string;
+  photos: { url: string }[];
+}
 interface VehiclePhoto { id: string; url: string; order: number; isCover: boolean; }
 interface VehicleFeature { id: string; name: string; }
 interface Seller {
@@ -48,6 +53,8 @@ export default function CarroClient({ params }: { params: { id: string } }) {
   const [shopMotorCount, setShopMotorCount] = useState(0);
   const [fipePrice, setFipePrice] = useState<number | null>(null);
   const [loadingFipe, setLoadingFipe] = useState(false);
+  const [related, setRelated] = useState<RelatedVehicle[]>([]);
+  const [relatedCarouselIdx, setRelatedCarouselIdx] = useState(0);
 
   // Carrega veículo (apenas uma vez por id)
   useEffect(() => {
@@ -61,6 +68,22 @@ export default function CarroClient({ params }: { params: { id: string } }) {
         const cover = data.vehicle.photos.findIndex((p: VehiclePhoto) => p.isCover);
         setActivePhoto(cover >= 0 ? cover : 0);
         setLoading(false);
+
+        // Busca anúncios relacionados
+        const v = data.vehicle;
+        const isPJ = v.user?.accountType === "PJ";
+        let relatedUrl = "";
+        if (isPJ) {
+          relatedUrl = `/api/vehicles?userId=${v.user.id}&excludeId=${v.id}&limit=8&sort=createdAt_desc`;
+        } else if (v.bodyType) {
+          relatedUrl = `/api/vehicles?body=${encodeURIComponent(v.bodyType)}&excludeId=${v.id}&limit=8&sort=createdAt_desc`;
+        }
+        if (relatedUrl) {
+          fetch(relatedUrl)
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d?.vehicles) setRelated(d.vehicles); })
+            .catch(() => {});
+        }
 
         const { fipeBrandCode, fipeModelCode, fipeYearCode } = data.vehicle;
         if (fipeBrandCode && fipeModelCode && fipeYearCode) {
@@ -551,6 +574,90 @@ export default function CarroClient({ params }: { params: { id: string } }) {
       </div>
 
       </div>{/* end grid */}
+
+      {/* ── Anúncios relacionados ── */}
+      {related.length > 0 && (
+        <section className="mt-16 pt-10 border-t border-outline-variant/30">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">
+                {vehicle.user.accountType === "PJ" ? "Do mesmo vendedor" : "Semelhantes"}
+              </p>
+              <h2 className="font-headline text-3xl font-black tracking-tight text-on-surface uppercase">
+                {vehicle.user.accountType === "PJ" ? "Mais anúncios do vendedor" : "Também podem te interessar"}
+              </h2>
+              <div className="h-1 w-16 bg-primary-container mt-2" />
+            </div>
+            {vehicle.user.accountType === "PJ" && vehicle.user.storeSlug && (
+              <Link
+                href={`/loja/${vehicle.user.storeSlug}`}
+                className="text-primary font-bold flex items-center gap-1 hover:underline text-sm"
+              >
+                Ver loja <Icon name="arrow_forward" className="text-base" />
+              </Link>
+            )}
+          </div>
+
+          {/* Carrossel */}
+          <div className="relative">
+            <div className="overflow-hidden">
+              <div
+                className="flex gap-4 transition-transform duration-300"
+                style={{ transform: `translateX(calc(-${relatedCarouselIdx * 25}% - ${relatedCarouselIdx}rem))` }}
+              >
+                {related.map(v => {
+                  const price = v.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+                  const km = v.km === 0 ? "0 km" : `${v.km.toLocaleString("pt-BR")} km`;
+                  const cover = v.photos[0]?.url ?? null;
+                  return (
+                    <Link
+                      key={v.id}
+                      href={`/carro/${v.id}`}
+                      className="flex-shrink-0 w-[calc(50%-0.5rem)] md:w-[calc(25%-0.75rem)] min-w-[180px] bg-surface-container-lowest rounded-xl overflow-hidden hover:scale-[1.02] transition-transform group shadow-sm block"
+                    >
+                      <div className="h-40 overflow-hidden relative bg-surface-container">
+                        {cover
+                          ? <img src={cover} alt={`${v.brand} ${v.model}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          : <div className="w-full h-full flex items-center justify-center"><Icon name="directions_car" className="text-5xl text-outline" /></div>
+                        }
+                      </div>
+                      <div className="p-4">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-0.5">{v.brand}</p>
+                        <p className="font-bold text-sm text-on-surface truncate">{v.model}{v.version ? ` ${v.version}` : ""}</p>
+                        <p className="text-xs text-on-surface-variant mt-0.5">{v.yearFab} · {km}</p>
+                        <div className="flex items-end justify-between mt-3">
+                          <p className="text-base font-black text-on-surface">{price}</p>
+                          <span className="text-[10px] text-on-surface-variant">{v.city}, {v.state}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Controles do carrossel */}
+            {related.length > 4 && (
+              <div className="flex justify-center gap-2 mt-6">
+                <button
+                  onClick={() => setRelatedCarouselIdx(i => Math.max(0, i - 1))}
+                  disabled={relatedCarouselIdx === 0}
+                  className="w-9 h-9 bg-surface-container hover:bg-surface-container-high rounded-full flex items-center justify-center disabled:opacity-30 transition-colors"
+                >
+                  <Icon name="chevron_left" className="text-xl" />
+                </button>
+                <button
+                  onClick={() => setRelatedCarouselIdx(i => Math.min(related.length - 4, i + 1))}
+                  disabled={relatedCarouselIdx >= related.length - 4}
+                  className="w-9 h-9 bg-surface-container hover:bg-surface-container-high rounded-full flex items-center justify-center disabled:opacity-30 transition-colors"
+                >
+                  <Icon name="chevron_right" className="text-xl" />
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       <div className="mt-12 pt-8 border-t border-outline-variant/30">
         <Link href="/busca" className="flex items-center gap-2 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">

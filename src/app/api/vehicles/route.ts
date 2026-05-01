@@ -35,6 +35,8 @@ export async function GET(req: NextRequest) {
   const brakeType   = searchParams.get("brakeType")    ?? undefined;
   const motoStyle   = searchParams.get("motoStyle")    ?? undefined;
   const motoNeed    = searchParams.get("motoNeed")     ?? undefined;
+  const sellerUserId = searchParams.get("userId")       ?? undefined;
+  const excludeId    = searchParams.get("excludeId")    ?? undefined;
   const sort        = searchParams.get("sort")         ?? "createdAt_desc";
   const page        = Math.max(1, Number(searchParams.get("page") ?? 1));
   const limit       = Math.min(48, Number(searchParams.get("limit") ?? 24));
@@ -46,6 +48,8 @@ export async function GET(req: NextRequest) {
     status: "ACTIVE",
     OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
     user: { isDemo: false },
+    ...(sellerUserId && { userId: sellerUserId }),
+    ...(excludeId    && { NOT: { id: excludeId } }),
     ...(brand        && { brand }),
     ...(fuel         && { fuel }),
     ...(body         && { bodyType: body }),
