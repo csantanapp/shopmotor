@@ -12,6 +12,12 @@ const colorOptions     = ["Branco","Prata","Preto","Cinza","Vermelho","Azul","Ve
 
 interface FipeItem { code: string; name: string; }
 
+function formatBRL(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return "";
+  return Number(digits).toLocaleString("pt-BR");
+}
+
 function toTitleCase(str: string) {
   return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
@@ -213,7 +219,7 @@ export default function EditarPage({ params }: { params: { id: string } }) {
         yearFab:    Number(form.yearFab),
         yearModel:  Number(form.yearFab),
         km:         Number(form.km),
-        price:      Number(String(form.price).replace(/\D/g, "")),
+        price:      Number(form.price),
         doors:      form.doors      ? Number(form.doors)      : null,
         cylindercc: form.cylindercc ? Number(form.cylindercc) : null,
         condition:  form.condition === "Novo" ? "NEW" : "USED",
@@ -423,8 +429,17 @@ export default function EditarPage({ params }: { params: { id: string } }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Valor de venda (R$) *</label>
-            <input type="text" inputMode="numeric" value={form.price} onChange={e => set("price", e.target.value)} placeholder="0"
-              className="bg-primary-container/10 border-0 rounded-xl p-4 text-xl font-black focus:ring-2 focus:ring-primary-container outline-none" />
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-black text-on-surface-variant pointer-events-none">R$</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={formatBRL(form.price)}
+                onChange={e => set("price", e.target.value.replace(/\D/g, ""))}
+                placeholder="0"
+                className="w-full bg-primary-container/10 border-0 rounded-xl pl-12 pr-4 py-4 text-xl font-black focus:ring-2 focus:ring-primary-container outline-none"
+              />
+            </div>
           </div>
           <div className="flex flex-col gap-3 justify-center">
             {[{ field: "acceptTrade", label: "Aceito troca" }, { field: "financing", label: "Financiamento disponível" }].map(({ field, label }) => (
