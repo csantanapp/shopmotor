@@ -57,6 +57,14 @@ export default function AdminLojas() {
   const [subPlan, setSubPlan] = useState("NONE");
   const [subMonths, setSubMonths] = useState("1");
 
+  const [creating, setCreating] = useState(false);
+  const [createSaving, setCreateSaving] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const emptyForm = { name:"", email:"", password:"", phone:"", cnpj:"", companyName:"", tradeName:"", city:"", state:"", address:"", zipCode:"", subscriptionPlan:"NONE", subscriptionMonths:"1" };
+  const [newForm, setNewForm] = useState(emptyForm);
+
+  function setF(field: string, value: string) { setNewForm(f => ({ ...f, [field]: value })); }
+
   const load = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), q: search });
@@ -92,6 +100,23 @@ export default function AdminLojas() {
     load();
   }
 
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setCreateError("");
+    setCreateSaving(true);
+    const res = await fetch("/api/admin/lojas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newForm),
+    });
+    const data = await res.json();
+    setCreateSaving(false);
+    if (!res.ok) { setCreateError(data.error ?? "Erro ao criar loja."); return; }
+    setCreating(false);
+    setNewForm(emptyForm);
+    load();
+  }
+
   async function handleDelete(id: string) {
     if (!confirm("Excluir esta loja e todos seus dados? Esta ação é irreversível.")) return;
     setDeleting(id);
@@ -121,9 +146,18 @@ export default function AdminLojas() {
     <div className="p-6 lg:p-8 space-y-6">
 
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-black text-white">Lojas (PJ)</h1>
-        <p className="text-neutral-500 text-sm mt-1">{total} lojas cadastradas</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-white">Lojas (PJ)</h1>
+          <p className="text-neutral-500 text-sm mt-1">{total} lojas cadastradas</p>
+        </div>
+        <button
+          onClick={() => { setCreating(true); setCreateError(""); setNewForm(emptyForm); }}
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary-container text-on-primary-container rounded-xl text-sm font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all flex-shrink-0"
+        >
+          <Icon name="add" className="text-base" />
+          Nova loja
+        </button>
       </div>
 
       {/* Filtros */}
@@ -256,6 +290,116 @@ export default function AdminLojas() {
           </div>
         )}
       </div>
+
+      {/* Modal criar loja */}
+      {creating && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-[#111414] border border-white/10 rounded-2xl w-full max-w-xl my-8 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+              <h2 className="font-black text-white flex items-center gap-2"><Icon name="store" className="text-lg" />Nova Loja</h2>
+              <button onClick={() => setCreating(false)} className="text-neutral-500 hover:text-white transition-colors">
+                <Icon name="close" className="text-xl" />
+              </button>
+            </div>
+            <form onSubmit={handleCreate} className="p-6 space-y-5">
+              {createError && (
+                <div className="flex items-center gap-2 bg-red-500/10 text-red-400 rounded-xl px-4 py-3 text-sm">
+                  <Icon name="error" className="text-base flex-shrink-0" />{createError}
+                </div>
+              )}
+              <p className="text-xs font-black uppercase tracking-widest text-neutral-500">Dados da empresa</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="text-xs text-neutral-500 block mb-1.5">Razão Social *</label>
+                  <input required value={newForm.companyName} onChange={e => setF("companyName", e.target.value)}
+                    placeholder="Nome jurídico" className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500 block mb-1.5">Nome Fantasia</label>
+                  <input value={newForm.tradeName} onChange={e => setF("tradeName", e.target.value)}
+                    placeholder="Como é conhecida" className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500 block mb-1.5">CNPJ</label>
+                  <input value={newForm.cnpj} onChange={e => setF("cnpj", e.target.value)}
+                    placeholder="00.000.000/0001-00" className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+              </div>
+              <p className="text-xs font-black uppercase tracking-widest text-neutral-500 pt-1">Responsável &amp; Acesso</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="text-xs text-neutral-500 block mb-1.5">Nome do responsável *</label>
+                  <input required value={newForm.name} onChange={e => setF("name", e.target.value)}
+                    placeholder="Nome completo" className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500 block mb-1.5">E-mail *</label>
+                  <input required type="email" value={newForm.email} onChange={e => setF("email", e.target.value)}
+                    placeholder="loja@email.com" className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500 block mb-1.5">Senha *</label>
+                  <input required type="password" value={newForm.password} onChange={e => setF("password", e.target.value)}
+                    placeholder="Mín. 8 caracteres" className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-neutral-500 block mb-1.5">Telefone</label>
+                  <input value={newForm.phone} onChange={e => setF("phone", e.target.value)}
+                    placeholder="(11) 99999-9999" className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+              </div>
+              <p className="text-xs font-black uppercase tracking-widest text-neutral-500 pt-1">Endereço</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-neutral-500 block mb-1.5">Cidade</label>
+                  <input value={newForm.city} onChange={e => setF("city", e.target.value)}
+                    placeholder="Cidade" className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500 block mb-1.5">Estado</label>
+                  <input value={newForm.state} onChange={e => setF("state", e.target.value)}
+                    placeholder="SP" maxLength={2} className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-neutral-500 block mb-1.5">Endereço</label>
+                  <input value={newForm.address} onChange={e => setF("address", e.target.value)}
+                    placeholder="Rua, número, complemento" className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none placeholder:text-neutral-600" />
+                </div>
+              </div>
+              <p className="text-xs font-black uppercase tracking-widest text-neutral-500 pt-1">Assinatura inicial (opcional)</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-neutral-500 block mb-1.5">Plano</label>
+                  <select value={newForm.subscriptionPlan} onChange={e => setF("subscriptionPlan", e.target.value)}
+                    className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none">
+                    <option value="NONE">— Sem plano —</option>
+                    {SUBSCRIPTION_PLANS.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+                {newForm.subscriptionPlan !== "NONE" && (
+                  <div>
+                    <label className="text-xs text-neutral-500 block mb-1.5">Duração (meses)</label>
+                    <select value={newForm.subscriptionMonths} onChange={e => setF("subscriptionMonths", e.target.value)}
+                      className="w-full bg-[#1a1e1e] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none">
+                      {[1, 3, 6, 12].map(m => <option key={m} value={m}>{m} {m === 1 ? "mês" : "meses"}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setCreating(false)}
+                  className="flex-1 py-3 rounded-full border border-white/10 text-sm text-neutral-400 hover:bg-white/5 transition-colors">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={createSaving}
+                  className="flex-1 py-3 rounded-full bg-primary-container text-on-primary-container text-sm font-black uppercase tracking-widest hover:-translate-y-0.5 transition-all disabled:opacity-60">
+                  {createSaving ? "Criando..." : "Criar loja"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal detalhes + gerenciamento */}
       {selected && (() => {
