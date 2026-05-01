@@ -72,17 +72,57 @@ export default function CarroClient({ params }: { params: { id: string } }) {
         // Busca anúncios relacionados
         const v = data.vehicle;
         const isPJ = v.user?.accountType === "PJ";
-        let relatedUrl = "";
-        if (isPJ) {
-          relatedUrl = `/api/vehicles?userId=${v.user.id}&excludeId=${v.id}&limit=8&sort=createdAt_desc`;
-        } else if (v.bodyType) {
-          relatedUrl = `/api/vehicles?body=${encodeURIComponent(v.bodyType)}&excludeId=${v.id}&limit=8&sort=createdAt_desc`;
+        const TARGET = 8;
+
+        async function fetchVehicles(url: string): Promise<RelatedVehicle[]> {
+          try {
+            const r = await fetch(url);
+            if (!r.ok) return [];
+            const d = await r.json();
+            return d?.vehicles ?? [];
+          } catch { return []; }
         }
-        if (relatedUrl) {
-          fetch(relatedUrl)
-            .then(r => r.ok ? r.json() : null)
-            .then(d => { if (d?.vehicles) setRelated(d.vehicles); })
-            .catch(() => {});
+
+        function excludeIds(list: RelatedVehicle[], ...ids: string[]) {
+          const set = new Set(ids);
+          return list.filter(x => !set.has(x.id));
+        }
+
+        if (isPJ) {
+          // 1. Anúncios do próprio vendedor
+          const sellerVehicles = await fetchVehicles(
+            `/api/vehicles?userId=${v.user.id}&excludeId=${v.id}&limit=${TARGET}&sort=createdAt_desc`
+          );
+          if (sellerVehicles.length >= 4) {
+            setRelated(sellerVehicles.slice(0, TARGET));
+          } else {
+            // 2. Completa com mesma carroceria (qualquer vendedor)
+            const need = TARGET - sellerVehicles.length;
+            const sellerAndCurrentIds = [v.id, ...sellerVehicles.map((x: RelatedVehicle) => x.id)];
+            const bodyUrl = v.bodyType
+              ? `/api/vehicles?body=${encodeURIComponent(v.bodyType)}&excludeId=${v.id}&limit=${need + sellerVehicles.length}&sort=createdAt_desc`
+              : `/api/vehicles?excludeId=${v.id}&limit=${need + sellerVehicles.length}&sort=createdAt_desc`;
+            const bodyVehicles = excludeIds(await fetchVehicles(bodyUrl), ...sellerAndCurrentIds);
+            setRelated([...sellerVehicles, ...bodyVehicles.slice(0, need)]);
+          }
+        } else {
+          // PF: começa pela mesma carroceria
+          const bodyUrl = v.bodyType
+            ? `/api/vehicles?body=${encodeURIComponent(v.bodyType)}&excludeId=${v.id}&limit=${TARGET}&sort=createdAt_desc`
+            : null;
+          const bodyVehicles = bodyUrl ? await fetchVehicles(bodyUrl) : [];
+          if (bodyVehicles.length >= TARGET) {
+            setRelated(bodyVehicles.slice(0, TARGET));
+          } else {
+            // Completa com outras carrocerias
+            const need = TARGET - bodyVehicles.length;
+            const usedIds = [v.id, ...bodyVehicles.map((x: RelatedVehicle) => x.id)];
+            const fallback = excludeIds(
+              await fetchVehicles(`/api/vehicles?excludeId=${v.id}&limit=${need + bodyVehicles.length}&sort=createdAt_desc`),
+              ...usedIds
+            );
+            setRelated([...bodyVehicles, ...fallback.slice(0, need)]);
+          }
         }
 
         const { fipeBrandCode, fipeModelCode, fipeYearCode } = data.vehicle;
