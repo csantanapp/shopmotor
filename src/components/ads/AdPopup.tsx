@@ -41,7 +41,8 @@ export default function AdPopup() {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={close}>
       <div
-        className="relative bg-surface-container-lowest rounded-2xl overflow-hidden shadow-2xl max-w-md w-full"
+        className="relative bg-surface-container-lowest rounded-2xl overflow-hidden shadow-2xl w-full"
+        style={{ maxWidth: 550 }}
         onClick={e => e.stopPropagation()}
       >
         {/* Close */}
@@ -53,28 +54,30 @@ export default function AdPopup() {
           ✕
         </button>
 
-        {/* Image */}
+        {/* Image — 550×550 */}
         {ad.imageUrl && (
-          <div className="w-full aspect-video bg-surface-container overflow-hidden">
+          <div className="w-full bg-surface-container overflow-hidden" style={{ height: 550 }}>
             <img src={ad.imageUrl} alt={ad.title ?? "Anúncio"} className="w-full h-full object-cover" />
           </div>
         )}
 
         {/* Content */}
         {(ad.title || ad.subtitle || ad.linkUrl) && (
-          <div className="p-6">
-            {ad.title && <p className="text-lg font-black text-on-surface mb-1">{ad.title}</p>}
-            {ad.subtitle && <p className="text-sm text-on-surface-variant mb-4">{ad.subtitle}</p>}
+          <div className="p-6 flex flex-col gap-1">
+            {ad.title && <p className="text-lg font-black text-on-surface">{ad.title}</p>}
+            {ad.subtitle && <p className="text-sm text-on-surface-variant">{ad.subtitle}</p>}
             {ad.linkUrl && (
-              <Link
-                href={ad.linkUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={close}
-                className="inline-flex items-center gap-2 bg-primary-container text-on-primary-container font-black text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-opacity"
-              >
-                {ad.linkLabel ?? "Saiba mais"}
-              </Link>
+              <div className="mt-4">
+                <Link
+                  href={ad.linkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={close}
+                  className="inline-flex items-center gap-2 bg-primary-container text-on-primary-container font-black text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-opacity"
+                >
+                  {ad.linkLabel ?? "Saiba mais"}
+                </Link>
+              </div>
             )}
           </div>
         )}
