@@ -63,21 +63,21 @@ export default function AdPopup() {
 
         {/* Content */}
         {(ad.title || ad.subtitle || ad.linkUrl) && (
-          <div className="p-6 flex flex-col gap-1">
-            {ad.title && <p className="text-lg font-black text-on-surface">{ad.title}</p>}
-            {ad.subtitle && <p className="text-sm text-on-surface-variant">{ad.subtitle}</p>}
+          <div className="px-6 py-5 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              {ad.title && <p className="text-lg font-black text-on-surface leading-tight">{ad.title}</p>}
+              {ad.subtitle && <p className="text-sm text-on-surface-variant mt-0.5">{ad.subtitle}</p>}
+            </div>
             {ad.linkUrl && (
-              <div className="mt-4">
-                <Link
-                  href={ad.linkUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={close}
-                  className="inline-flex items-center gap-2 bg-primary-container text-on-primary-container font-black text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-opacity"
-                >
-                  {ad.linkLabel ?? "Saiba mais"}
-                </Link>
-              </div>
+              <Link
+                href={ad.linkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={close}
+                className="flex-shrink-0 inline-flex items-center gap-2 bg-primary-container text-on-primary-container font-black text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-opacity"
+              >
+                {ad.linkLabel ?? "Saiba mais"}
+              </Link>
             )}
           </div>
         )}
