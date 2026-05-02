@@ -54,19 +54,19 @@ export default function AdPopup() {
           ✕
         </button>
 
-        {/* Image — 550×550 */}
+        {/* Image — quadrado proporcional, máx 60vh em mobile */}
         {ad.imageUrl && (
-          <div className="w-full bg-surface-container overflow-hidden" style={{ height: 550 }}>
+          <div className="w-full bg-surface-container overflow-hidden" style={{ maxHeight: "60vh", aspectRatio: "1 / 1" }}>
             <img src={ad.imageUrl} alt={ad.title ?? "Anúncio"} className="w-full h-full object-cover" />
           </div>
         )}
 
         {/* Content */}
         {(ad.title || ad.subtitle || ad.linkUrl) && (
-          <div className="px-6 py-5 flex items-center justify-between gap-4">
+          <div className="px-4 py-4 md:px-6 md:py-5 flex items-center justify-between gap-3">
             <div className="min-w-0">
-              {ad.title && <p className="text-lg font-black text-on-surface leading-tight">{ad.title}</p>}
-              {ad.subtitle && <p className="text-sm text-on-surface-variant mt-0.5">{ad.subtitle}</p>}
+              {ad.title && <p className="text-base md:text-lg font-black text-on-surface leading-tight">{ad.title}</p>}
+              {ad.subtitle && <p className="text-xs md:text-sm text-on-surface-variant mt-0.5">{ad.subtitle}</p>}
             </div>
             {ad.linkUrl && (
               <Link
@@ -74,7 +74,7 @@ export default function AdPopup() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={close}
-                className="flex-shrink-0 inline-flex items-center gap-2 bg-primary-container text-on-primary-container font-black text-sm px-6 py-3 rounded-xl hover:opacity-90 transition-opacity"
+                className="flex-shrink-0 inline-flex items-center gap-2 bg-primary-container text-on-primary-container font-black text-xs md:text-sm px-4 md:px-6 py-2.5 md:py-3 rounded-xl hover:opacity-90 transition-opacity"
               >
                 {ad.linkLabel ?? "Saiba mais"}
               </Link>
