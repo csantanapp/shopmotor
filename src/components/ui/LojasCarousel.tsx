@@ -69,31 +69,21 @@ export default function LojasCarousel({ lojas }: { lojas: StoreUser[] }) {
           <div className="h-1 w-16 bg-primary-container mt-2" />
         </div>
 
-        {totalPages > 1 && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => { prev(); resetTimer(); }}
-              aria-label="Anterior"
-              className="w-9 h-9 bg-surface-container hover:bg-surface-container-high rounded-full flex items-center justify-center transition-colors"
-            >
-              <Icon name="chevron_left" className="text-xl" />
-            </button>
-            <span className="text-xs text-on-surface-variant font-bold tabular-nums">
-              {page + 1}/{totalPages}
-            </span>
-            <button
-              onClick={() => { next(); resetTimer(); }}
-              aria-label="Próximo"
-              className="w-9 h-9 bg-surface-container hover:bg-surface-container-high rounded-full flex items-center justify-center transition-colors"
-            >
-              <Icon name="chevron_right" className="text-xl" />
-            </button>
-          </div>
-        )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {visible.map((shop) => (
+      <div className="flex items-center gap-3">
+        {totalPages > 1 && (
+          <button
+            onClick={() => { prev(); resetTimer(); }}
+            aria-label="Anterior"
+            className="flex-shrink-0 w-9 h-9 bg-surface-container hover:bg-surface-container-high rounded-full flex items-center justify-center transition-colors"
+          >
+            <Icon name="chevron_left" className="text-xl" />
+          </button>
+        )}
+
+        <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
+          {visible.map((shop) => (
           <Link
             key={shop.id}
             href={shop.storeSlug ? `/loja/${shop.storeSlug}` : `/vendedor/${shop.id}`}
@@ -116,6 +106,17 @@ export default function LojasCarousel({ lojas }: { lojas: StoreUser[] }) {
             )}
           </Link>
         ))}
+        </div>
+
+        {totalPages > 1 && (
+          <button
+            onClick={() => { next(); resetTimer(); }}
+            aria-label="Próximo"
+            className="flex-shrink-0 w-9 h-9 bg-surface-container hover:bg-surface-container-high rounded-full flex items-center justify-center transition-colors"
+          >
+            <Icon name="chevron_right" className="text-xl" />
+          </button>
+        )}
       </div>
 
       {/* Dots */}
