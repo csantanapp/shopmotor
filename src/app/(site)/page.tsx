@@ -3,6 +3,7 @@ import Icon from "@/components/ui/Icon";
 import HeroSearch from "@/components/ui/HeroSearch";
 import HeroCarousel from "@/components/ui/HeroCarousel";
 import AdBanner from "@/components/ads/AdBanner";
+import LojasCarousel from "@/components/ui/LojasCarousel";
 import { prisma } from "@/lib/prisma";
 
 export const revalidate = 60; // revalida a cada 60 segundos
@@ -137,7 +138,7 @@ export default async function Home() {
     db.user.findMany({
       where: { accountType: "PJ", storeSlug: { not: null } },
       orderBy: { createdAt: "desc" },
-      take: 4,
+      take: 40,
       select: { id: true, name: true, tradeName: true, avatarUrl: true, storeSlug: true, city: true, state: true, _count: { select: { vehicles: true } } },
     }),
   ]);
@@ -354,42 +355,7 @@ export default async function Home() {
       </section>
 
       {/* ── LOJAS EM DESTAQUE ── */}
-      {lojas.length > 0 && (
-        <section className="max-w-screen-2xl mx-auto px-6 pb-20">
-          <div className="flex items-end justify-between mb-8">
-            <div>
-              <p className="text-xs font-black uppercase tracking-widest text-primary mb-2">Parceiros verificados</p>
-              <h3 className="text-2xl font-black uppercase tracking-tighter">Lojas em destaque</h3>
-              <div className="h-1 w-16 bg-primary-container mt-2" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {lojas.map((shop) => (
-              <Link
-                key={shop.id}
-                href={shop.storeSlug ? `/loja/${shop.storeSlug}` : `/vendedor/${shop.id}`}
-                className="bg-surface-container-lowest rounded-2xl p-5 flex flex-col items-center text-center border border-transparent hover:border-primary-container transition-all shadow-sm group"
-              >
-                <div className="w-16 h-16 bg-surface-container rounded-full mb-3 overflow-hidden flex items-center justify-center group-hover:ring-2 group-hover:ring-primary-container transition-all">
-                  {shop.avatarUrl
-                    ? <img src={shop.avatarUrl} alt={shop.name} className="w-full h-full object-cover" />
-                    : <Icon name="storefront" className="text-2xl text-outline" />
-                  }
-                </div>
-                <span className="font-bold text-sm text-on-surface uppercase tracking-tight mb-1 truncate w-full">
-                  {shop.tradeName ?? shop.name}
-                </span>
-                {(shop.city || shop.state) && (
-                  <span className="text-[11px] text-on-surface-variant flex items-center gap-1 justify-center">
-                    <Icon name="location_on" className="text-xs text-primary" />
-                    {[shop.city, shop.state].filter(Boolean).join(", ")}
-                  </span>
-                )}
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      {lojas.length > 0 && <LojasCarousel lojas={lojas} />}
 
       {/* ── SERVIÇOS ── */}
       <section className="bg-surface-container-highest/30 py-20">
