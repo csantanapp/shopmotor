@@ -8,10 +8,10 @@ import {
 
 const GOLD = "#ffd709";
 const GOLD2 = "#e6c200";
-const BORDER = "rgba(255,255,255,0.08)";
-const CARD_BG = "#1a1a1a";
-const MUTED = "rgba(255,255,255,0.35)";
-const TT = { background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 8, color: "#fff" };
+const BORDER = "rgba(0,0,0,0.08)";
+const CARD_BG = "#ffffff";
+const MUTED = "rgba(0,0,0,0.35)";
+const TT = { background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 8, color: "#111" };
 
 const searched = [
   { name: "Toyota Corolla", v: 8900 }, { name: "Honda Civic", v: 7600 },
@@ -23,7 +23,7 @@ const brands = [
   { name: "Honda", v: 24, fill: GOLD2 },
   { name: "VW", v: 18, fill: "#3b82f6" },
   { name: "Jeep", v: 16, fill: "#22c55e" },
-  { name: "Outros", v: 14, fill: "#6b7280" },
+  { name: "Outros", v: 14, fill: "#9ca3af" },
 ];
 const cities = [
   { city: "São Paulo, SP", demand: 38 },
@@ -41,9 +41,9 @@ export default function RelatoriosPage() {
   return (
     <ErpLayout title="Relatórios / BI" subtitle="Inteligência de mercado e demanda">
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
-          <h3 className="font-black text-white mb-1">Veículos mais buscados</h3>
-          <p className="text-xs text-white/40 mb-4">Top 6 — últimos 30 dias</p>
+        <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-1">Veículos mais buscados</h3>
+          <p className="text-xs text-gray-400 mb-4">Top 6 — últimos 30 dias</p>
           <div className="h-72">
             <ResponsiveContainer>
               <BarChart data={searched} layout="vertical">
@@ -57,9 +57,9 @@ export default function RelatoriosPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
-          <h3 className="font-black text-white mb-1">Marcas mais populares</h3>
-          <p className="text-xs text-white/40 mb-4">% do total</p>
+        <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-1">Marcas mais populares</h3>
+          <p className="text-xs text-gray-400 mb-4">% do total</p>
           <div className="h-72">
             <ResponsiveContainer>
               <PieChart>
@@ -73,17 +73,17 @@ export default function RelatoriosPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
-          <h3 className="font-black text-white mb-1">Cidades com mais demanda</h3>
-          <p className="text-xs text-white/40 mb-4">% do total de buscas</p>
+        <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-1">Cidades com mais demanda</h3>
+          <p className="text-xs text-gray-400 mb-4">% do total de buscas</p>
           <ul className="space-y-3">
             {cities.map((c) => (
               <li key={c.city}>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-bold text-white">{c.city}</span>
-                  <span className="font-black text-primary-container">{c.demand}%</span>
+                  <span className="font-bold text-gray-800">{c.city}</span>
+                  <span className="font-black text-yellow-700">{c.demand}%</span>
                 </div>
-                <div className="mt-1.5 h-2 w-full rounded-full bg-white/10">
+                <div className="mt-1.5 h-2 w-full rounded-full bg-gray-100">
                   <div className="h-full rounded-full bg-primary-container" style={{ width: `${c.demand * 2.5}%` }} />
                 </div>
               </li>
@@ -91,9 +91,9 @@ export default function RelatoriosPage() {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
-          <h3 className="font-black text-white mb-1">Leads por origem</h3>
-          <p className="text-xs text-white/40 mb-4">% do total mensal</p>
+        <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-1">Leads por origem</h3>
+          <p className="text-xs text-gray-400 mb-4">% do total mensal</p>
           <div className="h-72">
             <ResponsiveContainer>
               <BarChart data={origin}>

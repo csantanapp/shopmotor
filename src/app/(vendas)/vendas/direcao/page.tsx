@@ -10,10 +10,10 @@ import {
 
 const GOLD = "#ffd709";
 const GOLD2 = "#e6c200";
-const BORDER = "rgba(255,255,255,0.08)";
-const CARD_BG = "#1a1a1a";
-const MUTED = "rgba(255,255,255,0.35)";
-const TT = { background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 8, color: "#fff" };
+const BORDER = "rgba(0,0,0,0.08)";
+const CARD_BG = "#ffffff";
+const MUTED = "rgba(0,0,0,0.35)";
+const TT = { background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 8, color: "#111" };
 
 const leadsData = [
   { d: "Seg", leads: 24 }, { d: "Ter", leads: 31 }, { d: "Qua", leads: 28 },
@@ -35,26 +35,26 @@ const potential = [
 export default function DirecaoPage() {
   return (
     <ErpLayout title="Dashboard de Direção" subtitle="Sua semana de vendas em uma tela">
-      <section className="rounded-2xl border border-primary-container/30 bg-[#1a1500] p-6 md:p-8 mb-6">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-container/15 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-primary-container">
+      <section className="rounded-2xl border border-primary-container/40 bg-[#fffbe6] p-6 md:p-8 mb-6">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-container/20 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-yellow-700">
           Previsão de vendas
         </span>
-        <h2 className="mt-3 text-3xl md:text-4xl font-black text-white tracking-tight">
-          Você pode vender <span className="text-primary-container">7 veículos</span> esta semana
+        <h2 className="mt-3 text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
+          Você pode vender <span className="text-yellow-600">7 veículos</span> esta semana
         </h2>
-        <p className="mt-2 text-sm text-white/60">
+        <p className="mt-2 text-sm text-gray-500">
           Combinando leads quentes, anúncios em alta e ajustes de preço sugeridos.
         </p>
         <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           {[
-            { n: "3", t: "Leads prontos para fechamento", c: "text-green-400" },
-            { n: "2", t: "Veículos precisam ajuste de preço", c: "text-primary-container" },
-            { n: "2", t: "Anúncios para impulsionar", c: "text-blue-400" },
-            { n: "5", t: "Leads precisam resposta rápida", c: "text-red-400" },
+            { n: "3", t: "Leads prontos para fechamento", c: "text-green-600" },
+            { n: "2", t: "Veículos precisam ajuste de preço", c: "text-yellow-600" },
+            { n: "2", t: "Anúncios para impulsionar", c: "text-blue-600" },
+            { n: "5", t: "Leads precisam resposta rápida", c: "text-red-500" },
           ].map((b) => (
-            <div key={b.t} className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div key={b.t} className="rounded-xl border border-black/10 bg-white p-4">
               <p className={`text-3xl font-black ${b.c}`}>{b.n}</p>
-              <p className="mt-1 text-xs text-white/60">{b.t}</p>
+              <p className="mt-1 text-xs text-gray-500">{b.t}</p>
             </div>
           ))}
         </div>
@@ -69,13 +69,13 @@ export default function DirecaoPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3 mb-6">
-        <div className="lg:col-span-2 rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
+        <div className="lg:col-span-2 rounded-xl border border-black/10 bg-white p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-black text-white">Leads por dia</h3>
-              <p className="text-xs text-white/40">Últimos 7 dias</p>
+              <h3 className="font-black text-gray-900">Leads por dia</h3>
+              <p className="text-xs text-gray-400">Últimos 7 dias</p>
             </div>
-            <span className="text-xs font-bold text-green-400">+18% semana</span>
+            <span className="text-xs font-bold text-green-600">+18% semana</span>
           </div>
           <div className="h-64">
             <ResponsiveContainer>
@@ -96,9 +96,9 @@ export default function DirecaoPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
-          <h3 className="font-black text-white">Conversão por origem</h3>
-          <p className="text-xs text-white/40 mb-4">% leads → venda</p>
+        <div className="rounded-xl border border-black/10 bg-white p-6">
+          <h3 className="font-black text-gray-900">Conversão por origem</h3>
+          <p className="text-xs text-gray-400 mb-4">% leads → venda</p>
           <div className="h-64">
             <ResponsiveContainer>
               <BarChart data={conversion} layout="vertical">
@@ -114,9 +114,9 @@ export default function DirecaoPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2 mb-6">
-        <div className="rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
-          <h3 className="font-black text-white">Performance dos anúncios</h3>
-          <p className="text-xs text-white/40 mb-4">Visualizações por tipo de plano</p>
+        <div className="rounded-xl border border-black/10 bg-white p-6">
+          <h3 className="font-black text-gray-900">Performance dos anúncios</h3>
+          <p className="text-xs text-gray-400 mb-4">Visualizações por tipo de plano</p>
           <div className="h-64">
             <ResponsiveContainer>
               <BarChart data={adsPerf}>
@@ -130,9 +130,9 @@ export default function DirecaoPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
-          <h3 className="font-black text-white">Receita potencial por categoria</h3>
-          <p className="text-xs text-white/40 mb-4">em milhares (R$)</p>
+        <div className="rounded-xl border border-black/10 bg-white p-6">
+          <h3 className="font-black text-gray-900">Receita potencial por categoria</h3>
+          <p className="text-xs text-gray-400 mb-4">em milhares (R$)</p>
           <div className="h-64">
             <ResponsiveContainer>
               <LineChart data={potential}>
@@ -147,15 +147,15 @@ export default function DirecaoPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
+      <div className="rounded-xl border border-black/10 bg-white p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="font-black text-white">Veículos mais visualizados</h3>
-            <p className="text-xs text-white/40">Aproveite o pico de interesse</p>
+            <h3 className="font-black text-gray-900">Veículos mais visualizados</h3>
+            <p className="text-xs text-gray-400">Aproveite o pico de interesse</p>
           </div>
-          <span className="text-xs font-bold text-primary-container bg-primary-container/15 px-2 py-1 rounded-md uppercase tracking-wider">Hot</span>
+          <span className="text-xs font-bold text-yellow-700 bg-primary-container/20 px-2 py-1 rounded-md uppercase tracking-wider">Hot</span>
         </div>
-        <ul className="divide-y divide-white/5">
+        <ul className="divide-y divide-black/5">
           {[
             { name: "Toyota Corolla XEi 2023", views: 4210, contacts: 84, status: "ativo" },
             { name: "Jeep Compass Limited 2024", views: 3890, contacts: 71, status: "ativo" },
@@ -164,10 +164,10 @@ export default function DirecaoPage() {
           ].map((c, i) => (
             <li key={c.name} className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/10 text-xs font-black text-primary-container">{i + 1}</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-xs font-black text-gray-600">{i + 1}</span>
                 <div>
-                  <p className="text-sm font-bold text-white">{c.name}</p>
-                  <p className="text-xs text-white/40">{c.views.toLocaleString("pt-BR")} views · {c.contacts} contatos</p>
+                  <p className="text-sm font-bold text-gray-900">{c.name}</p>
+                  <p className="text-xs text-gray-400">{c.views.toLocaleString("pt-BR")} views · {c.contacts} contatos</p>
                 </div>
               </div>
               <ErpStatusBadge status={c.status} />

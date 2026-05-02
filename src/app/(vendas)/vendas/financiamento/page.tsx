@@ -16,7 +16,7 @@ const rows = [
 ];
 
 const chanceCls = (c: number) =>
-  c >= 75 ? "bg-green-500/15 text-green-400" : c >= 50 ? "bg-primary-container/15 text-primary-container" : "bg-red-500/15 text-red-400";
+  c >= 75 ? "bg-green-100 text-green-700" : c >= 50 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-600";
 
 export default function FinanciamentoPage() {
   const [toast, setToast] = useState("");
@@ -25,7 +25,7 @@ export default function FinanciamentoPage() {
   return (
     <ErpLayout title="Financiamento" subtitle="Leads de financiamento são oportunidades de alta intenção">
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-[#1a1a1a] border border-white/10 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
       )}
 
       <div className="grid gap-4 md:grid-cols-4 mb-6">
@@ -35,31 +35,31 @@ export default function FinanciamentoPage() {
         <ErpKpiCard label="Reprovados" value="9" icon="cancel" />
       </div>
 
-      <div className="mb-6 rounded-xl border border-primary-container/30 bg-primary-container/5 p-4 flex items-start gap-3">
-        <Icon name="local_fire_department" className="text-primary-container text-lg shrink-0 mt-0.5" />
+      <div className="mb-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 flex items-start gap-3">
+        <Icon name="local_fire_department" className="text-yellow-600 text-lg shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-black text-white">Cliente que simula financiamento tem 3x mais chance de fechar</p>
-          <p className="text-xs text-white/50">Priorize esses leads e envie a proposta em até 1 hora.</p>
+          <p className="text-sm font-black text-yellow-900">Cliente que simula financiamento tem 3x mais chance de fechar</p>
+          <p className="text-xs text-yellow-700">Priorize esses leads e envie a proposta em até 1 hora.</p>
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#1a1a1a]">
+      <div className="overflow-x-auto rounded-xl border border-black/10 bg-white shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-white/5 text-xs uppercase tracking-wider text-white/40">
+          <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-400 border-b border-black/10">
             <tr>
               {["Cliente", "Veículo", "Valor", "Entrada / Prazo", "Parcela", "Chance", "Status", ""].map((h) => (
                 <th key={h} className="px-4 py-3 text-left font-black">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-black/5">
             {rows.map((r) => (
-              <tr key={r.name} className="hover:bg-white/5 transition">
-                <td className="px-4 py-4 font-black text-white">{r.name}</td>
-                <td className="px-4 py-4 text-white/60">{r.car}</td>
-                <td className="px-4 py-4 font-black text-white">R$ {r.value.toLocaleString("pt-BR")}</td>
-                <td className="px-4 py-4 text-xs text-white/60">R$ {r.down.toLocaleString("pt-BR")} · {r.term}x</td>
-                <td className="px-4 py-4 text-white">R$ {r.parcel.toLocaleString("pt-BR")}</td>
+              <tr key={r.name} className="hover:bg-gray-50 transition">
+                <td className="px-4 py-4 font-black text-gray-900">{r.name}</td>
+                <td className="px-4 py-4 text-gray-500">{r.car}</td>
+                <td className="px-4 py-4 font-black text-gray-900">R$ {r.value.toLocaleString("pt-BR")}</td>
+                <td className="px-4 py-4 text-xs text-gray-500">R$ {r.down.toLocaleString("pt-BR")} · {r.term}x</td>
+                <td className="px-4 py-4 text-gray-700">R$ {r.parcel.toLocaleString("pt-BR")}</td>
                 <td className="px-4 py-4">
                   <span className={`inline-flex rounded-md px-2 py-0.5 text-xs font-black ${chanceCls(r.chance)}`}>{r.chance}%</span>
                 </td>
@@ -72,7 +72,7 @@ export default function FinanciamentoPage() {
                     <button onClick={() => fire(`WhatsApp: ${r.name}`)} className="rounded-md bg-green-500 p-1.5 text-white hover:opacity-90" title="WhatsApp">
                       <Icon name="chat" className="text-sm" />
                     </button>
-                    <button onClick={() => fire("Encaminhado ao parceiro")} className="rounded-md border border-white/10 p-1.5 hover:bg-white/10 text-white/60" title="Parceiro">
+                    <button onClick={() => fire("Encaminhado ao parceiro")} className="rounded-md border border-black/10 p-1.5 hover:bg-gray-100 text-gray-500" title="Parceiro">
                       <Icon name="share" className="text-sm" />
                     </button>
                   </div>

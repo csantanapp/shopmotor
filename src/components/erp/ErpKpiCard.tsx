@@ -19,16 +19,16 @@ export default function ErpKpiCard({
 }) {
   const up = delta !== undefined && delta >= 0;
   return (
-    <div className={`rounded-xl border p-5 flex flex-col gap-3 ${accent ? "border-primary-container/30 bg-primary-container/10" : "border-white/10 bg-[#1a1a1a]"}`}>
+    <div className={`rounded-xl border p-5 flex flex-col gap-3 bg-white ${accent ? "border-primary-container/40" : "border-black/10"}`}>
       <div className="flex items-center justify-between">
-        <p className="text-xs font-bold uppercase tracking-wider text-white/40">{label}</p>
-        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${accent ? "bg-primary-container text-black" : "bg-white/10 text-white/60"}`}>
+        <p className="text-xs font-bold uppercase tracking-wider text-gray-400">{label}</p>
+        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${accent ? "bg-primary-container text-black" : "bg-gray-100 text-gray-500"}`}>
           <Icon name={icon} className="text-base" />
         </div>
       </div>
-      <p className="text-2xl font-black text-white">{value}</p>
+      <p className="text-2xl font-black text-gray-900">{value}</p>
       {delta !== undefined && (
-        <p className={`text-xs font-semibold ${up ? "text-green-400" : "text-red-400"}`}>
+        <p className={`text-xs font-semibold ${up ? "text-green-600" : "text-red-500"}`}>
           {up ? "+" : ""}{delta}% {deltaLabel}
         </p>
       )}

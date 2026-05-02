@@ -13,7 +13,7 @@ export default function ErpLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#0f0f0f]">
+    <div className="min-h-screen bg-[#f5f5f5]">
       <ErpSidebar />
       <div className="md:pl-64">
         <ErpHeader title={title} subtitle={subtitle} action={action} />

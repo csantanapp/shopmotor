@@ -8,10 +8,10 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGri
 
 const GOLD = "#ffd709";
 const GOLD2 = "#e6c200";
-const BORDER = "rgba(255,255,255,0.08)";
-const CARD_BG = "#1a1a1a";
-const MUTED = "rgba(255,255,255,0.35)";
-const TT = { background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 8, color: "#fff" };
+const BORDER = "rgba(0,0,0,0.08)";
+const CARD_BG = "#ffffff";
+const MUTED = "rgba(0,0,0,0.35)";
+const TT = { background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 8, color: "#111" };
 
 const revenue = [
   { m: "Jan", v: 84 }, { m: "Fev", v: 96 }, { m: "Mar", v: 110 }, { m: "Abr", v: 128 },
@@ -22,7 +22,7 @@ const split = [
   { name: "Impulsionamento", value: 22, fill: GOLD2 },
   { name: "Leads financiamento", value: 14, fill: "#3b82f6" },
   { name: "Leads seguro", value: 10, fill: "#22c55e" },
-  { name: "Banners", value: 6, fill: "#6b7280" },
+  { name: "Banners", value: 6, fill: "#9ca3af" },
 ];
 
 const plans = [
@@ -38,7 +38,7 @@ export default function MonetizacaoPage() {
   return (
     <ErpLayout title="Monetização" subtitle="Visão comercial — receita por canal e planos">
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-[#1a1a1a] border border-white/10 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
       )}
 
       <div className="grid gap-4 md:grid-cols-4 mb-6">
@@ -49,9 +49,9 @@ export default function MonetizacaoPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3 mb-8">
-        <div className="lg:col-span-2 rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
-          <h3 className="font-black text-white mb-1">Receita por mês</h3>
-          <p className="text-xs text-white/40 mb-4">em milhares (R$)</p>
+        <div className="lg:col-span-2 rounded-xl border border-black/10 bg-white p-6 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-1">Receita por mês</h3>
+          <p className="text-xs text-gray-400 mb-4">em milhares (R$)</p>
           <div className="h-72">
             <ResponsiveContainer>
               <BarChart data={revenue}>
@@ -65,9 +65,9 @@ export default function MonetizacaoPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-[#1a1a1a] p-6">
-          <h3 className="font-black text-white mb-1">Receita por canal</h3>
-          <p className="text-xs text-white/40 mb-4">% do faturamento</p>
+        <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-1">Receita por canal</h3>
+          <p className="text-xs text-gray-400 mb-4">% do faturamento</p>
           <div className="h-72">
             <ResponsiveContainer>
               <PieChart>
@@ -82,21 +82,21 @@ export default function MonetizacaoPage() {
         </div>
       </div>
 
-      <h3 className="text-xs font-black uppercase tracking-wider text-white/40 mb-4">Planos para lojistas</h3>
+      <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-4">Planos para lojistas</h3>
       <div className="grid gap-6 md:grid-cols-3">
         {plans.map((p) => (
-          <div key={p.name} className={`rounded-xl border p-6 flex flex-col ${p.highlight ? "border-primary-container/40 bg-primary-container/10" : "border-white/10 bg-[#1a1a1a]"}`}>
-            <p className={`text-xs font-black uppercase tracking-wider ${p.highlight ? "text-primary-container" : "text-white/40"}`}>{p.name}</p>
-            <p className="mt-1 text-sm text-white/60">{p.tagline}</p>
-            <p className="mt-4 text-3xl font-black text-white">{p.price}<span className="text-sm font-normal text-white/40">/mês</span></p>
+          <div key={p.name} className={`rounded-xl border p-6 flex flex-col shadow-sm ${p.highlight ? "border-primary-container/50 bg-yellow-50" : "border-black/10 bg-white"}`}>
+            <p className={`text-xs font-black uppercase tracking-wider ${p.highlight ? "text-yellow-700" : "text-gray-400"}`}>{p.name}</p>
+            <p className="mt-1 text-sm text-gray-500">{p.tagline}</p>
+            <p className="mt-4 text-3xl font-black text-gray-900">{p.price}<span className="text-sm font-normal text-gray-400">/mês</span></p>
             <ul className="mt-4 space-y-2 flex-1">
               {p.features.map((f) => (
-                <li key={f} className="flex items-center gap-2 text-sm text-white/70">
-                  <Icon name="check" className="text-primary-container text-sm" /> {f}
+                <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                  <Icon name="check" className="text-yellow-600 text-sm" /> {f}
                 </li>
               ))}
             </ul>
-            <button onClick={() => fire(`Plano ${p.name} selecionado`)} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-black transition ${p.highlight ? "bg-primary-container text-black hover:opacity-90" : "border border-white/10 text-white hover:bg-white/10"}`}>
+            <button onClick={() => fire(`Plano ${p.name} selecionado`)} className={`mt-6 w-full rounded-xl py-2.5 text-sm font-black transition ${p.highlight ? "bg-primary-container text-black hover:opacity-90" : "border border-black/10 text-gray-700 hover:bg-gray-100"}`}>
               {p.cta}
             </button>
           </div>

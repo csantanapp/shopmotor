@@ -21,7 +21,7 @@ export default function SegurosPage() {
   return (
     <ErpLayout title="Seguro" subtitle="Leads de cotação — receita extra por cada venda">
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-[#1a1a1a] border border-white/10 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
       )}
 
       <div className="grid gap-4 md:grid-cols-4 mb-6">
@@ -31,34 +31,34 @@ export default function SegurosPage() {
         <ErpKpiCard label="Veículos cobertos" value="98" icon="directions_car" />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#1a1a1a]">
+      <div className="overflow-x-auto rounded-xl border border-black/10 bg-white shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-white/5 text-xs uppercase tracking-wider text-white/40">
+          <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-400 border-b border-black/10">
             <tr>
               {["Cliente", "Veículo", "Cidade", "Uso", "Parceiro", "Potencial", "Status", ""].map((h) => (
                 <th key={h} className="px-4 py-3 text-left font-black">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-black/5">
             {rows.map((r) => (
-              <tr key={r.name} className="hover:bg-white/5 transition">
-                <td className="px-4 py-4 font-black text-white">{r.name}</td>
-                <td className="px-4 py-4 text-white/60">{r.car}</td>
-                <td className="px-4 py-4 text-xs text-white/60">{r.city}</td>
-                <td className="px-4 py-4 text-xs text-white/60">{r.use}</td>
-                <td className="px-4 py-4 text-xs text-white/60">{r.broker}</td>
-                <td className="px-4 py-4 font-black text-green-400">R$ {r.revenue}</td>
+              <tr key={r.name} className="hover:bg-gray-50 transition">
+                <td className="px-4 py-4 font-black text-gray-900">{r.name}</td>
+                <td className="px-4 py-4 text-gray-500">{r.car}</td>
+                <td className="px-4 py-4 text-xs text-gray-500">{r.city}</td>
+                <td className="px-4 py-4 text-xs text-gray-500">{r.use}</td>
+                <td className="px-4 py-4 text-xs text-gray-500">{r.broker}</td>
+                <td className="px-4 py-4 font-black text-green-600">R$ {r.revenue}</td>
                 <td className="px-4 py-4"><ErpStatusBadge status={r.status} /></td>
                 <td className="px-4 py-4">
                   <div className="flex justify-end gap-1.5">
                     <button onClick={() => fire("Enviado para corretora")} className="rounded-md bg-primary-container p-1.5 text-black hover:opacity-90" title="Corretora">
                       <Icon name="send" className="text-sm" />
                     </button>
-                    <button onClick={() => fire("Iniciando ligação…")} className="rounded-md bg-white/10 p-1.5 text-white hover:bg-white/20" title="Ligar">
+                    <button onClick={() => fire("Iniciando ligação…")} className="rounded-md bg-gray-900 p-1.5 text-white hover:opacity-90" title="Ligar">
                       <Icon name="phone" className="text-sm" />
                     </button>
-                    <button className="rounded-md border border-white/10 p-1.5 hover:bg-white/10 text-white/60" title="Detalhes">
+                    <button className="rounded-md border border-black/10 p-1.5 hover:bg-gray-100 text-gray-500" title="Detalhes">
                       <Icon name="visibility" className="text-sm" />
                     </button>
                   </div>
