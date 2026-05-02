@@ -5,16 +5,16 @@ import { usePathname } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 
 const items = [
-  { href: "/erp",               label: "Central de Oportunidades", icon: "target"         },
-  { href: "/erp/direcao",       label: "Dashboard de Direção",     icon: "compass"        },
-  { href: "/erp/veiculos",      label: "Veículos",                 icon: "directions_car" },
-  { href: "/erp/leads",         label: "CRM de Leads",             icon: "group"          },
-  { href: "/erp/financiamento", label: "Financiamento",            icon: "account_balance"},
-  { href: "/erp/seguros",       label: "Seguro",                   icon: "shield"         },
-  { href: "/erp/anuncios",      label: "Impulsionamento",          icon: "rocket_launch"  },
-  { href: "/erp/monetizacao",   label: "Monetização",              icon: "payments"       },
-  { href: "/erp/relatorios",    label: "Relatórios",               icon: "bar_chart"      },
-  { href: "/erp/configuracoes", label: "Configurações",            icon: "settings"       },
+  { href: "/vendas",               label: "Central de Oportunidades", icon: "target"          },
+  { href: "/vendas/direcao",       label: "Dashboard de Direção",     icon: "explore"         },
+  { href: "/vendas/veiculos",      label: "Veículos",                 icon: "directions_car"  },
+  { href: "/vendas/leads",         label: "CRM de Leads",             icon: "group"           },
+  { href: "/vendas/financiamento", label: "Financiamento",            icon: "account_balance" },
+  { href: "/vendas/seguros",       label: "Seguro",                   icon: "shield"          },
+  { href: "/vendas/anuncios",      label: "Impulsionamento",          icon: "rocket_launch"   },
+  { href: "/vendas/monetizacao",   label: "Monetização",              icon: "payments"        },
+  { href: "/vendas/relatorios",    label: "Relatórios",               icon: "bar_chart"       },
+  { href: "/vendas/configuracoes", label: "Configurações",            icon: "settings"        },
 ];
 
 export default function ErpSidebar() {
@@ -29,7 +29,7 @@ export default function ErpSidebar() {
         </div>
         <div className="flex flex-col leading-none">
           <span className="text-sm font-black text-white tracking-wide">ShopMotor</span>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-container">ERP</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-container">Vendas</span>
         </div>
       </div>
 
@@ -40,7 +40,9 @@ export default function ErpSidebar() {
         </p>
         <ul className="space-y-0.5">
           {items.map((item) => {
-            const active = item.href === "/erp" ? pathname === "/erp" : pathname.startsWith(item.href);
+            const active = item.href === "/vendas"
+              ? pathname === "/vendas"
+              : pathname.startsWith(item.href);
             return (
               <li key={item.href}>
                 <Link
@@ -54,10 +56,7 @@ export default function ErpSidebar() {
                   {active && (
                     <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary-container" />
                   )}
-                  <Icon
-                    name={item.icon}
-                    className={`text-lg flex-shrink-0 ${active ? "text-primary-container" : ""}`}
-                  />
+                  <Icon name={item.icon} className={`text-lg flex-shrink-0 ${active ? "text-primary-container" : ""}`} />
                   <span>{item.label}</span>
                 </Link>
               </li>
@@ -66,11 +65,11 @@ export default function ErpSidebar() {
         </ul>
       </nav>
 
-      {/* Upgrade card */}
+      {/* Plan card */}
       <div className="m-3 rounded-xl border border-white/10 bg-white/5 p-4">
         <p className="text-xs font-black text-primary-container">Plano Elite</p>
         <p className="mt-1 text-[11px] text-white/50 leading-snug">
-          Acesso completo ao ERP e leads de financiamento.
+          Acesso completo ao sistema de vendas.
         </p>
         <Link
           href="/perfil/plano"

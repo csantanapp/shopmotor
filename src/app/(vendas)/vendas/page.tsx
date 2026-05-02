@@ -209,7 +209,7 @@ export default function CentralOportunidades() {
             </p>
           </div>
           <Link
-            href="/erp/direcao"
+            href="/vendas/direcao"
             className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary-container text-black px-5 py-2.5 text-sm font-black shadow-lg shadow-primary-container/20 transition hover:opacity-90"
           >
             Ver previsão da semana <Icon name="arrow_forward" className="text-base" />

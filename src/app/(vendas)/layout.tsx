@@ -2,15 +2,15 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
-export default function ErpRootLayout({ children }: { children: React.ReactNode }) {
+function ErpGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (loading) return;
-    if (!user) { router.push("/login?redirect=/erp"); return; }
+    if (!user) { router.push("/login?redirect=/vendas"); return; }
     if ((user as any).accountType !== "PJ") { router.push("/"); return; }
   }, [user, loading, router]);
 
@@ -23,4 +23,12 @@ export default function ErpRootLayout({ children }: { children: React.ReactNode 
   }
 
   return <>{children}</>;
+}
+
+export default function VendasLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthProvider>
+      <ErpGuard>{children}</ErpGuard>
+    </AuthProvider>
+  );
 }
