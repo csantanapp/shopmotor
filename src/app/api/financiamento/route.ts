@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 import { encrypt, maskCpf } from "@/lib/crypto";
 
+function safeEncrypt(value: string): string {
+  try { return encrypt(value); } catch { return maskCpf(value); }
+}
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Resolve plano ativo da loja a partir do userId
@@ -42,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.financiamentoLead.create({
       data: {
-        nome, cpf: encrypt(cpf), nascimento, email, cidade, whatsapp, prazo,
+        nome, cpf: safeEncrypt(cpf), nascimento, email, cidade, whatsapp, prazo,
         valorCarro, entrada, financiado, parcelas, pmt,
         storeSlug: storeSlug ?? null,
         storeUserId,
