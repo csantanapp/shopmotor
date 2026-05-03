@@ -70,7 +70,7 @@ export default function EstoquePage() {
               {filtered.map(v => (
                 <tr key={v.id} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-4">
-                    <div className="flex items-center gap-3">
+                    <Link href={`/vendas/estoque/${v.id}`} className="flex items-center gap-3 hover:opacity-80 transition">
                       {v.photos?.[0] ? (
                         <img src={v.photos[0].url} alt="" className="w-12 h-9 rounded-lg object-cover shrink-0" />
                       ) : (
@@ -82,7 +82,7 @@ export default function EstoquePage() {
                         <p className="font-black text-gray-900">{v.brand} {v.model}</p>
                         {v.version && <p className="text-xs text-gray-400">{v.version}</p>}
                       </div>
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-4 py-4 text-gray-700">{v.ano}</td>
                   <td className="px-4 py-4 font-black text-gray-900">R$ {v.price?.toLocaleString("pt-BR")}</td>
@@ -90,10 +90,16 @@ export default function EstoquePage() {
                   <td className="px-4 py-4"><ErpStatusBadge status={v.status.toLowerCase()} /></td>
                   <td className="px-4 py-4 text-xs text-gray-400">{new Date(v.createdAt).toLocaleDateString("pt-BR")}</td>
                   <td className="px-4 py-4">
-                    <Link href={`/vendas/veiculos/editar/${v.id}`}
-                      className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-black text-gray-600 hover:bg-gray-50 transition">
-                      Editar
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/vendas/estoque/${v.id}`}
+                        className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-black text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                        Ver ficha
+                      </Link>
+                      <Link href={`/vendas/veiculos/editar/${v.id}`}
+                        className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-black text-gray-600 hover:bg-gray-50 transition">
+                        Editar
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
