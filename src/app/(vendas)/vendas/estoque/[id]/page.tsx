@@ -67,9 +67,8 @@ function fmt(n?: number | null) {
 }
 function parseBRL(s: string) { return Number(s.replace(/\D/g, "")) || 0; }
 function formatBRL(raw: string | number) {
-  const n = typeof raw === "number" ? raw : parseBRL(String(raw));
-  if (!n) return "";
-  return (n / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const d = String(raw).replace(/\D/g, "");
+  return d ? Number(d).toLocaleString("pt-BR") : "";
 }
 
 function InfoRow({ label, value }: { label: string; value?: string | number | null }) {
@@ -158,7 +157,10 @@ export default function EstoqueDetalhe({ params }: { params: { id: string } }) {
             .then(r => r.json())
             .then(fipe => {
               if (fipe?.price) {
-                const num = Number(fipe.price.replace(/[^\d,]/g, "").replace(",", ".")) * 100;
+                // FIPE returns "R$ 72.878,00" — strip R$/spaces/dots, swap comma→dot
+                const num = Number(
+                  fipe.price.replace(/[^\d,]/g, "").replace(",", ".")
+                );
                 setFipeAtual(Math.round(num));
               }
               setFipeLoading(false);
