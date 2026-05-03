@@ -4,6 +4,25 @@ import { useState, useEffect } from "react";
 import ErpLayout from "@/components/erp/ErpLayout";
 import ErpKpiCard from "@/components/erp/ErpKpiCard";
 import Icon from "@/components/ui/Icon";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
+
+const GOLD  = "#ffd709";
+const GOLD2 = "#e6c200";
+const BORDER = "rgba(0,0,0,0.08)";
+const MUTED  = "rgba(0,0,0,0.35)";
+const TT = { background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, color: "#111" };
+
+const revenue = [
+  { m: "Jan", v: 84 }, { m: "Fev", v: 96 }, { m: "Mar", v: 110 }, { m: "Abr", v: 128 },
+  { m: "Mai", v: 142 }, { m: "Jun", v: 156 }, { m: "Jul", v: 168 }, { m: "Ago", v: 184 },
+];
+const split = [
+  { name: "Assinaturas",         value: 48, fill: GOLD },
+  { name: "Impulsionamento",     value: 22, fill: GOLD2 },
+  { name: "Leads financiamento", value: 14, fill: "#3b82f6" },
+  { name: "Leads seguro",        value: 10, fill: "#22c55e" },
+  { name: "Banners",             value:  6, fill: "#9ca3af" },
+];
 
 interface Subscription {
   id: string;
@@ -19,14 +38,7 @@ const PLANS = [
     name: "Starter",
     tagline: "Comece a vender online",
     price: 297,
-    features: [
-      "Perfil Loja com identidade visual",
-      "25 anúncios (20 grátis + 5 extras)",
-      "2 Destaques mensais inclusos",
-      "Vitrine personalizada",
-      "URL exclusiva + Selo de verificação",
-      "Acesso ao WhatsApp do lead",
-    ],
+    features: ["Perfil Loja com identidade visual", "25 anúncios (20 grátis + 5 extras)", "2 Destaques mensais inclusos", "Vitrine personalizada", "URL exclusiva + Selo de verificação", "Acesso ao WhatsApp do lead"],
     notIncluded: ["E-mail e telefone do lead", "Analytics", "Leads de financiamento"],
     cta: "Assinar Starter",
     highlight: false,
@@ -36,14 +48,7 @@ const PLANS = [
     name: "Pro",
     tagline: "Para lojistas em crescimento",
     price: 697,
-    features: [
-      "35 anúncios (20 grátis + 15 extras)",
-      "5 Destaques mensais inclusos",
-      "E-mail e telefone do lead",
-      "Analytics de anúncios",
-      "Redes sociais no perfil",
-      "Vitrine personalizada Pro",
-    ],
+    features: ["35 anúncios (20 grátis + 15 extras)", "5 Destaques mensais inclusos", "E-mail e telefone do lead", "Analytics de anúncios", "Redes sociais no perfil", "Vitrine personalizada Pro"],
     notIncluded: ["Leads de financiamento", "Destaque na Home"],
     cta: "Assinar Pro",
     highlight: true,
@@ -53,14 +58,7 @@ const PLANS = [
     name: "Elite",
     tagline: "Distribuição preferencial de leads",
     price: 1197,
-    features: [
-      "50 anúncios (20 grátis + 30 extras)",
-      "10 Destaques mensais inclusos",
-      "Leads de financiamento e seguro",
-      "Destaque Lojas na Home",
-      "Analytics avançado",
-      "Vitrine personalizada Elite",
-    ],
+    features: ["50 anúncios (20 grátis + 30 extras)", "10 Destaques mensais inclusos", "Leads de financiamento e seguro", "Destaque Lojas na Home", "Analytics avançado", "Vitrine personalizada Elite"],
     notIncluded: [],
     cta: "Assinar Elite",
     highlight: false,
@@ -79,7 +77,7 @@ function planColor(plan: string) {
 
 export default function MonetizacaoPage() {
   const [sub, setSub]         = useState<Subscription | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [subLoading, setSubLoading] = useState(true);
   const [toast, setToast]     = useState("");
 
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
@@ -87,8 +85,8 @@ export default function MonetizacaoPage() {
   useEffect(() => {
     fetch("/api/payments/subscription")
       .then(r => r.json())
-      .then(d => { setSub(d.subscription ?? null); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(d => { setSub(d.subscription ?? null); setSubLoading(false); })
+      .catch(() => setSubLoading(false));
   }, []);
 
   async function subscribe(planKey: string) {
@@ -109,36 +107,56 @@ export default function MonetizacaoPage() {
   const left = sub?.endsAt ? daysLeft(sub.endsAt) : null;
 
   return (
-    <ErpLayout title="Monetização" subtitle="Seu plano atual e opções de upgrade">
+    <ErpLayout title="Monetização" subtitle="Visão comercial — receita por canal e planos">
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
       )}
 
       {/* KPIs */}
-      {!loading && (
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
-          <ErpKpiCard
-            label="Plano atual"
-            value={sub ? currentPlan?.name ?? sub.plan : "Grátis"}
-            icon="workspace_premium"
-            accent={!!sub}
-          />
-          <ErpKpiCard
-            label="Valor mensal"
-            value={sub ? `R$ ${sub.amount.toLocaleString("pt-BR")}` : "R$ 0"}
-            icon="payments"
-          />
-          <ErpKpiCard
-            label="Expira em"
-            value={left !== null ? `${left} dias` : "—"}
-            icon="calendar_today"
-            accent={left !== null && left <= 7}
-          />
-        </div>
-      )}
+      <div className="grid gap-4 md:grid-cols-4 mb-6">
+        <ErpKpiCard label="Faturamento (mês)" value="R$ 184k" delta={9}  deltaLabel="vs. mês anterior"  icon="payments"           accent />
+        <ErpKpiCard label="MRR (recorrente)"  value="R$ 62k"  delta={5}  deltaLabel="assinaturas ativas" icon="trending_up" />
+        <ErpKpiCard label="Receita impulsos"  value="R$ 41k"  delta={18} deltaLabel="alta no mês"        icon="receipt" />
+        <ErpKpiCard label="Lojistas Pro+Elite" value="124"    delta={12} deltaLabel="upgrade no mês"     icon="workspace_premium" />
+      </div>
 
-      {/* Status atual */}
-      {!loading && sub && (
+      {/* Gráficos */}
+      <div className="grid gap-6 lg:grid-cols-3 mb-8">
+        <div className="lg:col-span-2 rounded-xl border border-black/10 bg-white p-6 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-1">Receita por mês</h3>
+          <p className="text-xs text-gray-400 mb-4">em milhares (R$)</p>
+          <div className="h-72">
+            <ResponsiveContainer>
+              <BarChart data={revenue}>
+                <CartesianGrid strokeDasharray="3 3" stroke={BORDER} vertical={false} />
+                <XAxis dataKey="m" stroke={MUTED} fontSize={12} />
+                <YAxis stroke={MUTED} fontSize={12} />
+                <Tooltip contentStyle={TT} />
+                <Bar dataKey="v" fill={GOLD} radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-1">Receita por canal</h3>
+          <p className="text-xs text-gray-400 mb-4">% do faturamento</p>
+          <div className="h-72">
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie data={split} dataKey="value" innerRadius={55} outerRadius={90} paddingAngle={3}>
+                  {split.map((s) => <Cell key={s.name} fill={s.fill} />)}
+                </Pie>
+                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 11, color: MUTED }} />
+                <Tooltip contentStyle={TT} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Plano atual do lojista */}
+      {!subLoading && sub && (
         <div className={`rounded-xl border p-5 mb-8 flex items-center gap-4 ${planColor(sub.plan)}`}>
           <Icon name="workspace_premium" className="text-2xl shrink-0" />
           <div className="flex-1 min-w-0">
@@ -148,14 +166,12 @@ export default function MonetizacaoPage() {
             </p>
           </div>
           {left !== null && left <= 7 && (
-            <span className="shrink-0 rounded-full bg-red-100 text-red-700 border border-red-300 px-3 py-1 text-xs font-black">
-              Renovar em breve
-            </span>
+            <span className="shrink-0 rounded-full bg-red-100 text-red-700 border border-red-300 px-3 py-1 text-xs font-black">Renovar em breve</span>
           )}
         </div>
       )}
 
-      {!loading && !sub && (
+      {!subLoading && !sub && (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-5 mb-8 flex items-start gap-3">
           <Icon name="info" className="text-yellow-600 text-xl shrink-0 mt-0.5" />
           <div>
@@ -165,8 +181,8 @@ export default function MonetizacaoPage() {
         </div>
       )}
 
-      {/* Planos */}
-      <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-4">Planos disponíveis</h3>
+      {/* Cards de planos */}
+      <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-4">Planos para lojistas</h3>
       <div className="grid gap-6 md:grid-cols-3">
         {PLANS.map((p) => {
           const isCurrent = sub?.plan === p.key;
@@ -202,21 +218,6 @@ export default function MonetizacaoPage() {
             </div>
           );
         })}
-      </div>
-
-      {/* Help */}
-      <div className="mt-8 rounded-xl border border-black/10 bg-white p-5 flex items-start gap-3">
-        <Icon name="support_agent" className="text-gray-400 text-xl shrink-0 mt-0.5" />
-        <div>
-          <p className="font-black text-gray-900 text-sm">Dúvidas sobre planos?</p>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Fale com nosso time comercial via{" "}
-            <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="text-yellow-700 font-black hover:underline">
-              WhatsApp
-            </a>{" "}
-            ou acesse <strong>Configurações → Plano</strong> para gerenciar sua assinatura.
-          </p>
-        </div>
       </div>
     </ErpLayout>
   );
