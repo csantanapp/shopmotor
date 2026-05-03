@@ -31,8 +31,10 @@ export async function GET() {
       createdAt:   u.createdAt,
       accountType: u.accountType,
       cnpj:        safeDecrypt(u.cnpj),
-      companyName: u.companyName,
-      tradeName:   u.tradeName,
+      companyName:    u.companyName,
+      tradeName:      u.tradeName,
+      storeBannerUrl: u.storeBannerUrl,
+      storeSlug:      u.storeSlug,
     },
   });
 }

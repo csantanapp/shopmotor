@@ -364,6 +364,10 @@ export default function EstoqueDetalhe({ params }: { params: { id: string } }) {
             className="flex items-center gap-1.5 rounded-xl bg-primary-container text-black px-4 py-2 text-sm font-black hover:opacity-90 transition">
             <Icon name="edit" className="text-sm" /> Editar
           </Link>
+          <a href={`/vendas/estoque/${id}/print`} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-black text-gray-600 hover:bg-gray-50 transition">
+            <Icon name="print" className="text-sm" /> Imprimir Ficha
+          </a>
           {vehicle.city && (
             <a href={`/carro/${id}`} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 rounded-xl border border-black/10 px-4 py-2 text-sm font-black text-gray-600 hover:bg-gray-50 transition">

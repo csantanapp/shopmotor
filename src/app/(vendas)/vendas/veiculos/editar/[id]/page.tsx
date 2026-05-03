@@ -286,6 +286,18 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
       setError("Selecione a marca, modelo, ano e informe a quilometragem."); return;
     }
     if (step === STEPS.length - 1) {
+      // fetch current FIPE price to store as fipePrice (entry value)
+      let fipePrice: number | null = null;
+      if (form.fipeBrandCode && form.fipeModelCode && form.fipeYearCode) {
+        try {
+          const fipeRes = await fetch(`/api/fipe/brands/${form.fipeBrandCode}/models/${form.fipeModelCode}/years/${form.fipeYearCode}?vehicleType=${vehicleType}`);
+          const fipeData = await fipeRes.json();
+          if (fipeData?.price) {
+            fipePrice = Math.round(Number(fipeData.price.replace(/[^\d,]/g, "").replace(",", ".")));
+          }
+        } catch { /* non-blocking */ }
+      }
+
       // save
       setSaving(true);
       const res = await fetch(`/api/vehicles/${id}`, {
@@ -301,6 +313,7 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
           doors:      form.doors      ? Number(form.doors)      : null,
           cylindercc: form.cylindercc ? Number(form.cylindercc) : null,
           condition:  form.condition === "Novo" ? "NEW" : "USED",
+          ...(fipePrice != null && { fipePrice }),
         }),
       });
       if (newPhotos.length > 0) {

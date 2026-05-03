@@ -105,6 +105,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         ...(body.fipeBrandCode !== undefined && { fipeBrandCode: body.fipeBrandCode }),
         ...(body.fipeModelCode !== undefined && { fipeModelCode: body.fipeModelCode }),
         ...(body.fipeYearCode  !== undefined && { fipeYearCode:  body.fipeYearCode }),
+        ...(body.fipePrice     !== undefined && { fipePrice:     body.fipePrice != null ? Number(body.fipePrice) : null }),
         ...(body.motoType      !== undefined && { motoType:      body.motoType || null }),
         ...(body.cylindercc    !== undefined && { cylindercc:    body.cylindercc ? Number(body.cylindercc) : null }),
       },
