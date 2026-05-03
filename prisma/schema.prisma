@@ -154,6 +154,7 @@ model Vehicle {
   features          VehicleFeature[]
   photos            VehiclePhoto[]
   aquisicao         VehicleAquisicao?
+  despesas          VehicleDespesa[]
   user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([brand, model])
@@ -179,6 +180,7 @@ model ClienteFornecedor {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   vehicles  VehicleAquisicao[]
+  despesas  VehicleDespesa[]
 
   @@index([userId])
   @@map("clientes_fornecedores")
@@ -205,6 +207,22 @@ model VehicleAquisicao {
   clienteFornecedor    ClienteFornecedor?  @relation(fields: [clienteFornecedorId], references: [id])
 
   @@map("vehicle_aquisicoes")
+}
+
+model VehicleDespesa {
+  id                  String              @id @default(cuid())
+  vehicleId           String
+  nome                String
+  data                DateTime
+  valor               Int
+  clienteFornecedorId String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  vehicle             Vehicle             @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  clienteFornecedor   ClienteFornecedor?  @relation(fields: [clienteFornecedorId], references: [id])
+
+  @@index([vehicleId])
+  @@map("vehicle_despesas")
 }
 
 model VehiclePhoto {
