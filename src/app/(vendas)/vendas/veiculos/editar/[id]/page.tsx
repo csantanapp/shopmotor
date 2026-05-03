@@ -48,6 +48,11 @@ function formatBRL(raw: string) {
   const d = raw.replace(/\D/g, "");
   return d ? Number(d).toLocaleString("pt-BR") : "";
 }
+function maskPhoneInline(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 10) return d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").replace(/-$/, "");
+  return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").replace(/-$/, "");
+}
 
 /* ─── component ─────────────────────────────────────────────────────── */
 export default function EditarVeiculoPage({ params }: { params: { id: string } }) {
@@ -95,7 +100,7 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
   });
   const [clientes, setClientes] = useState<{ id: string; tipo: string; nome: string; documento: string }[]>([]);
   const [showNovoCliente, setShowNovoCliente] = useState(false);
-  const [novoCliente, setNovoCliente] = useState({ tipo: "PF", nome: "", documento: "" });
+  const [novoCliente, setNovoCliente] = useState({ tipo: "PF", nome: "", documento: "", telefone: "", email: "", endereco: "", cidade: "", estado: "", cep: "" });
   const [savingCliente, setSavingCliente] = useState(false);
 
   // Photos
@@ -239,7 +244,7 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
       setClientes(prev => [...prev, data.item]);
       setAquisicao(a => ({ ...a, clienteFornecedorId: data.item.id }));
       setShowNovoCliente(false);
-      setNovoCliente({ tipo: "PF", nome: "", documento: "" });
+      setNovoCliente({ tipo: "PF", nome: "", documento: "", telefone: "", email: "", endereco: "", cidade: "", estado: "", cep: "" });
     }
     setSavingCliente(false);
   }
@@ -705,7 +710,7 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
                     ))}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <EField label="Nome *">
+                    <EField label="Nome *" className="md:col-span-2">
                       <input type="text" value={novoCliente.nome}
                         onChange={e => setNovoCliente(n => ({ ...n, nome: e.target.value }))}
                         className={iCls} placeholder="Nome completo" />
@@ -714,6 +719,36 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
                       <input type="text" value={novoCliente.documento}
                         onChange={e => setNovoCliente(n => ({ ...n, documento: e.target.value }))}
                         className={iCls} placeholder={novoCliente.tipo === "PF" ? "000.000.000-00" : "00.000.000/0000-00"} />
+                    </EField>
+                    <EField label="Telefone">
+                      <input type="tel" value={novoCliente.telefone}
+                        onChange={e => setNovoCliente(n => ({ ...n, telefone: maskPhoneInline(e.target.value) }))}
+                        className={iCls} placeholder="(00) 00000-0000" maxLength={15} />
+                    </EField>
+                    <EField label="E-mail" className="md:col-span-2">
+                      <input type="email" value={novoCliente.email}
+                        onChange={e => setNovoCliente(n => ({ ...n, email: e.target.value }))}
+                        className={iCls} placeholder="email@exemplo.com" />
+                    </EField>
+                    <EField label="Endereço" className="md:col-span-2">
+                      <input type="text" value={novoCliente.endereco}
+                        onChange={e => setNovoCliente(n => ({ ...n, endereco: e.target.value }))}
+                        className={iCls} placeholder="Rua, número, complemento" />
+                    </EField>
+                    <EField label="Cidade">
+                      <input type="text" value={novoCliente.cidade}
+                        onChange={e => setNovoCliente(n => ({ ...n, cidade: e.target.value }))}
+                        className={iCls} placeholder="São Paulo" />
+                    </EField>
+                    <EField label="Estado">
+                      <input type="text" value={novoCliente.estado}
+                        onChange={e => setNovoCliente(n => ({ ...n, estado: e.target.value.toUpperCase().slice(0, 2) }))}
+                        className={iCls} placeholder="SP" maxLength={2} />
+                    </EField>
+                    <EField label="CEP">
+                      <input type="text" value={novoCliente.cep}
+                        onChange={e => setNovoCliente(n => ({ ...n, cep: e.target.value.replace(/\D/g,"").replace(/(\d{5})(\d{0,3})/,"$1-$2").slice(0,9) }))}
+                        className={iCls} placeholder="00000-000" />
                     </EField>
                   </div>
                   <div className="flex gap-3">

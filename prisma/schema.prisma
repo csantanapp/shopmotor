@@ -169,6 +169,13 @@ model ClienteFornecedor {
   tipo      String   @default("PF") // "PF" | "PJ"
   nome      String
   documento String   // CPF ou CNPJ
+  telefone  String?
+  email     String?
+  endereco  String?
+  cidade    String?
+  estado    String?
+  cep       String?
+  updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   vehicles  VehicleAquisicao[]

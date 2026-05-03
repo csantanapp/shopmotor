@@ -8,6 +8,7 @@ export async function GET() {
   const items = await prisma.clienteFornecedor.findMany({
     where: { userId: user.id },
     orderBy: { nome: "asc" },
+    include: { _count: { select: { vehicles: true } } },
   });
   return NextResponse.json({ items });
 }
@@ -15,10 +16,10 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { tipo, nome, documento } = await req.json();
+  const { tipo, nome, documento, telefone, email, endereco, cidade, estado, cep } = await req.json();
   if (!nome || !documento) return NextResponse.json({ error: "Nome e documento são obrigatórios." }, { status: 400 });
   const item = await prisma.clienteFornecedor.create({
-    data: { userId: user.id, tipo: tipo ?? "PF", nome, documento },
+    data: { userId: user.id, tipo: tipo ?? "PF", nome, documento, telefone, email, endereco, cidade, estado, cep },
   });
   return NextResponse.json({ item });
 }
