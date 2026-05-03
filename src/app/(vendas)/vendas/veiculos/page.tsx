@@ -260,7 +260,7 @@ export default function VeiculosPage() {
                     <Icon name="visibility" className="text-xs" /> Ver anúncio
                   </Link>
                   <Link
-                    href={`/perfil/editar/${v.id}`}
+                    href={`/vendas/veiculos/editar/${v.id}`}
                     className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-black/10 py-2 text-xs font-black text-gray-600 hover:bg-gray-50 transition"
                   >
                     <Icon name="edit" className="text-xs" /> Editar
