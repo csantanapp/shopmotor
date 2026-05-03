@@ -1,87 +1,252 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ErpLayout from "@/components/erp/ErpLayout";
 import ErpKpiCard from "@/components/erp/ErpKpiCard";
-import ErpStatusBadge from "@/components/erp/ErpStatusBadge";
 import Icon from "@/components/ui/Icon";
 
-const rows = [
-  { name: "Rafael Souza", car: "Toyota Corolla 2023", value: 142900, down: 30000, term: 60, parcel: 2980, status: "novo", chance: 82 },
-  { name: "Marcos Lima", car: "Jeep Compass Limited", value: 198500, down: 50000, term: 60, parcel: 4120, status: "analise", chance: 78 },
-  { name: "Larissa Mota", car: "Jeep Renegade Sport", value: 119000, down: 25000, term: 48, parcel: 2480, status: "aprovado", chance: 91 },
-  { name: "Bruno Costa", car: "VW Nivus Highline", value: 132500, down: 28000, term: 60, parcel: 2750, status: "analise", chance: 64 },
-  { name: "Camila Faria", car: "Honda Fit EXL", value: 89900, down: 15000, term: 60, parcel: 1880, status: "reprovado", chance: 18 },
-  { name: "Ana Beatriz", car: "VW T-Cross", value: 138900, down: 35000, term: 48, parcel: 2890, status: "aprovado", chance: 88 },
+interface Lead {
+  id: string;
+  nome: string;
+  email: string;
+  whatsapp: string;
+  cidade: string;
+  nascimento: string;
+  valorCarro: number;
+  entrada: number;
+  financiado: number;
+  parcelas: number;
+  pmt: number;
+  prazo: string;
+  status: string;
+  createdAt: string;
+  storeSlug?: string;
+}
+
+const STATUS_OPTIONS = [
+  { val: "novo",       label: "Novo",       cls: "bg-blue-100 text-blue-700 border-blue-300" },
+  { val: "contatado",  label: "Contatado",  cls: "bg-yellow-100 text-yellow-700 border-yellow-300" },
+  { val: "convertido", label: "Convertido", cls: "bg-green-100 text-green-700 border-green-300" },
+  { val: "descartado", label: "Descartado", cls: "bg-gray-100 text-gray-500 border-gray-300" },
 ];
 
-const chanceCls = (c: number) =>
-  c >= 75 ? "bg-green-100 text-green-700" : c >= 50 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-600";
+function statusStyle(s: string) {
+  return STATUS_OPTIONS.find(o => o.val === s)?.cls ?? "bg-gray-100 text-gray-500 border-gray-300";
+}
+
+function statusLabel(s: string) {
+  return STATUS_OPTIONS.find(o => o.val === s)?.label ?? s;
+}
+
+function timeAgo(dateStr: string) {
+  const m = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+  if (m < 60) return `há ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `há ${h}h`;
+  const d = Math.floor(h / 24);
+  return `há ${d}d`;
+}
+
+const chanceCls = (pmt: number, valorCarro: number) => {
+  const ratio = pmt / (valorCarro / 60);
+  if (ratio <= 1.05) return "bg-green-100 text-green-700";
+  if (ratio <= 1.2)  return "bg-yellow-100 text-yellow-700";
+  return "bg-red-100 text-red-600";
+};
 
 export default function FinanciamentoPage() {
-  const [toast, setToast] = useState("");
+  const [leads, setLeads]       = useState<Lead[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState("");
+  const [filter, setFilter]     = useState("todos");
+  const [toast, setToast]       = useState("");
+  const [updating, setUpdating] = useState<string | null>(null);
+
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
+  const load = useCallback(async (status?: string) => {
+    setLoading(true);
+    const qs = status && status !== "todos" ? `?status=${status}` : "";
+    const res = await fetch(`/api/perfil/leads-financiamento${qs}`);
+    const data = await res.json();
+    if (!res.ok) { setError(data.error ?? "Erro ao carregar leads"); setLoading(false); return; }
+    setLeads(data.items ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(filter); }, [load, filter]);
+
+  async function updateStatus(id: string, status: string) {
+    setUpdating(id);
+    const res = await fetch("/api/perfil/leads-financiamento", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    if (res.ok) {
+      setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+      fire("Status atualizado");
+    }
+    setUpdating(null);
+  }
+
+  const novos      = leads.filter(l => l.status === "novo").length;
+  const contatados = leads.filter(l => l.status === "contatado").length;
+  const convertidos = leads.filter(l => l.status === "convertido").length;
+  const descartados = leads.filter(l => l.status === "descartado").length;
+
   return (
-    <ErpLayout title="Financiamento" subtitle="Leads de financiamento são oportunidades de alta intenção">
+    <ErpLayout title="Financiamento" subtitle="Leads de financiamento recebidos no seu perfil">
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
       )}
 
+      {/* KPIs */}
       <div className="grid gap-4 md:grid-cols-4 mb-6">
-        <ErpKpiCard label="Novos" value="12" icon="account_balance" />
-        <ErpKpiCard label="Em análise" value="28" icon="hourglass_empty" />
-        <ErpKpiCard label="Aprovados" value="41" delta={14} deltaLabel="este mês" icon="check_circle" accent />
-        <ErpKpiCard label="Reprovados" value="9" icon="cancel" />
+        <ErpKpiCard label="Novos" value={String(novos)} icon="account_balance" accent={novos > 0} />
+        <ErpKpiCard label="Contatados" value={String(contatados)} icon="phone" />
+        <ErpKpiCard label="Convertidos" value={String(convertidos)} icon="check_circle" />
+        <ErpKpiCard label="Total" value={String(leads.length)} icon="bar_chart" />
       </div>
 
-      <div className="mb-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 flex items-start gap-3">
-        <Icon name="local_fire_department" className="text-yellow-600 text-lg shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-black text-yellow-900">Cliente que simula financiamento tem 3x mais chance de fechar</p>
-          <p className="text-xs text-yellow-700">Priorize esses leads e envie a proposta em até 1 hora.</p>
+      {/* Alerta plano */}
+      {error && (
+        <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-5 mb-6 flex items-start gap-3">
+          <Icon name="workspace_premium" className="text-yellow-600 text-xl shrink-0 mt-0.5" />
+          <div>
+            <p className="font-black text-yellow-900">Plano Elite necessário</p>
+            <p className="text-sm text-yellow-700 mt-1">
+              Leads de financiamento são exclusivos para lojistas com plano Elite ativo.
+              Faça upgrade em <strong>Configurações → Plano</strong>.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="overflow-x-auto rounded-xl border border-black/10 bg-white shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-400 border-b border-black/10">
-            <tr>
-              {["Cliente", "Veículo", "Valor", "Entrada / Prazo", "Parcela", "Chance", "Status", ""].map((h) => (
-                <th key={h} className="px-4 py-3 text-left font-black">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {rows.map((r) => (
-              <tr key={r.name} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-4 font-black text-gray-900">{r.name}</td>
-                <td className="px-4 py-4 text-gray-500">{r.car}</td>
-                <td className="px-4 py-4 font-black text-gray-900">R$ {r.value.toLocaleString("pt-BR")}</td>
-                <td className="px-4 py-4 text-xs text-gray-500">R$ {r.down.toLocaleString("pt-BR")} · {r.term}x</td>
-                <td className="px-4 py-4 text-gray-700">R$ {r.parcel.toLocaleString("pt-BR")}</td>
-                <td className="px-4 py-4">
-                  <span className={`inline-flex rounded-md px-2 py-0.5 text-xs font-black ${chanceCls(r.chance)}`}>{r.chance}%</span>
-                </td>
-                <td className="px-4 py-4"><ErpStatusBadge status={r.status} /></td>
-                <td className="px-4 py-4">
-                  <div className="flex justify-end gap-1.5">
-                    <button onClick={() => fire(`Proposta enviada a ${r.name}`)} className="rounded-md bg-primary-container p-1.5 text-black hover:opacity-90" title="Enviar proposta">
-                      <Icon name="description" className="text-sm" />
-                    </button>
-                    <button onClick={() => fire(`WhatsApp: ${r.name}`)} className="rounded-md bg-green-500 p-1.5 text-white hover:opacity-90" title="WhatsApp">
-                      <Icon name="chat" className="text-sm" />
-                    </button>
-                    <button onClick={() => fire("Encaminhado ao parceiro")} className="rounded-md border border-black/10 p-1.5 hover:bg-gray-100 text-gray-500" title="Parceiro">
-                      <Icon name="share" className="text-sm" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+      {!error && (
+        <>
+          {/* Dica */}
+          <div className="mb-6 rounded-xl border border-yellow-200 bg-yellow-50 p-4 flex items-start gap-3">
+            <Icon name="local_fire_department" className="text-yellow-600 text-lg shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-black text-yellow-900">Cliente que simula financiamento tem 3× mais chance de fechar</p>
+              <p className="text-xs text-yellow-700">Priorize esses leads e envie a proposta em até 1 hora.</p>
+            </div>
+          </div>
+
+          {/* Filtros */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[{ val: "todos", label: "Todos" }, ...STATUS_OPTIONS].map(f => (
+              <button
+                key={f.val}
+                onClick={() => setFilter(f.val)}
+                className={`rounded-xl border px-3 py-1.5 text-sm font-bold transition ${filter === f.val ? "border-primary-container bg-primary-container/10 text-yellow-700" : "border-black/10 bg-white text-gray-500 hover:bg-gray-50"}`}
+              >
+                {f.label}
+              </button>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          {/* Loading */}
+          {loading && (
+            <div className="flex items-center justify-center py-24">
+              <span className="h-8 w-8 rounded-full border-2 border-primary-container/30 border-t-primary-container animate-spin" />
+            </div>
+          )}
+
+          {/* Empty */}
+          {!loading && leads.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <Icon name="account_balance" className="text-5xl text-gray-200 mb-4" />
+              <p className="text-lg font-black text-gray-400">Nenhum lead ainda</p>
+              <p className="text-sm text-gray-400 mt-1">Quando compradores simularem financiamento no seu perfil, aparecerão aqui.</p>
+            </div>
+          )}
+
+          {/* Tabela */}
+          {!loading && leads.length > 0 && (
+            <div className="overflow-x-auto rounded-xl border border-black/10 bg-white shadow-sm">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-400 border-b border-black/10">
+                  <tr>
+                    {["Cliente", "Contato", "Valor do carro", "Entrada / Prazo", "Parcela est.", "Chance", "Status", "Recebido", ""].map(h => (
+                      <th key={h} className="px-4 py-3 text-left font-black whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-black/5">
+                  {leads.map(l => (
+                    <tr key={l.id} className="hover:bg-gray-50 transition">
+                      <td className="px-4 py-4">
+                        <p className="font-black text-gray-900">{l.nome}</p>
+                        <p className="text-xs text-gray-400">{l.cidade}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="text-gray-700">{l.whatsapp}</p>
+                        <p className="text-xs text-gray-400 truncate max-w-[160px]">{l.email}</p>
+                      </td>
+                      <td className="px-4 py-4 font-black text-gray-900 whitespace-nowrap">
+                        R$ {l.valorCarro.toLocaleString("pt-BR")}
+                      </td>
+                      <td className="px-4 py-4 text-xs text-gray-600 whitespace-nowrap">
+                        R$ {l.entrada.toLocaleString("pt-BR")} · {l.parcelas}×
+                      </td>
+                      <td className="px-4 py-4 font-bold text-gray-800 whitespace-nowrap">
+                        R$ {l.pmt.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className={`inline-flex rounded-md px-2 py-0.5 text-xs font-black ${chanceCls(l.pmt, l.valorCarro)}`}>
+                          {l.entrada >= l.valorCarro * 0.3 ? "Alta" : l.entrada >= l.valorCarro * 0.15 ? "Média" : "Baixa"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <select
+                          value={l.status}
+                          disabled={updating === l.id}
+                          onChange={e => updateStatus(l.id, e.target.value)}
+                          className={`rounded-full border px-2 py-0.5 text-xs font-black outline-none cursor-pointer ${statusStyle(l.status)}`}
+                        >
+                          {STATUS_OPTIONS.map(o => (
+                            <option key={o.val} value={o.val}>{o.label}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-4 py-4 text-xs text-gray-400 whitespace-nowrap">{timeAgo(l.createdAt)}</td>
+                      <td className="px-4 py-4">
+                        <div className="flex justify-end gap-1.5">
+                          <a
+                            href={`https://wa.me/55${l.whatsapp.replace(/\D/g, "")}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="rounded-md bg-green-500 p-1.5 text-white hover:opacity-90 transition"
+                            title="WhatsApp"
+                          >
+                            <Icon name="chat" className="text-sm" />
+                          </a>
+                          <a
+                            href={`mailto:${l.email}`}
+                            className="rounded-md border border-black/10 p-1.5 text-gray-500 hover:bg-gray-100 transition"
+                            title="E-mail"
+                          >
+                            <Icon name="mail" className="text-sm" />
+                          </a>
+                          <button
+                            onClick={() => updateStatus(l.id, "convertido")}
+                            disabled={l.status === "convertido" || updating === l.id}
+                            className="rounded-md bg-primary-container p-1.5 text-black hover:opacity-90 disabled:opacity-30 transition"
+                            title="Marcar como convertido"
+                          >
+                            <Icon name="check" className="text-sm" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
     </ErpLayout>
   );
 }
