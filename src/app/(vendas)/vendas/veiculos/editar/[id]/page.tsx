@@ -81,6 +81,23 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
     features: [] as string[],
   });
 
+  const [aquisicao, setAquisicao] = useState({
+    proveniencia: "",
+    responsavel: "",
+    clienteFornecedorId: "",
+    valorPago: "",
+    valorQuitacao: "",
+    valorFinalAquisicao: "",
+    valorNotaFiscal: "",
+    valorMinimoVenda: "",
+    comissaoTipo: "PERCENT",
+    comissao: "",
+  });
+  const [clientes, setClientes] = useState<{ id: string; tipo: string; nome: string; documento: string }[]>([]);
+  const [showNovoCliente, setShowNovoCliente] = useState(false);
+  const [novoCliente, setNovoCliente] = useState({ tipo: "PF", nome: "", documento: "" });
+  const [savingCliente, setSavingCliente] = useState(false);
+
   // Photos
   const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]);
   const [newPhotos, setNewPhotos]           = useState<File[]>([]);
@@ -154,6 +171,28 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
       .catch(() => router.push("/vendas/veiculos"));
   }, [id, router]);
 
+  useEffect(() => {
+    if (!id) return;
+    fetch(`/api/vehicles/${id}/aquisicao`).then(r => r.json()).then(d => {
+      if (d.aquisicao) {
+        const a = d.aquisicao;
+        setAquisicao({
+          proveniencia: a.proveniencia ?? "",
+          responsavel: a.responsavel ?? "",
+          clienteFornecedorId: a.clienteFornecedorId ?? "",
+          valorPago: a.valorPago ? String(a.valorPago) : "",
+          valorQuitacao: a.valorQuitacao ? String(a.valorQuitacao) : "",
+          valorFinalAquisicao: a.valorFinalAquisicao ? String(a.valorFinalAquisicao) : "",
+          valorNotaFiscal: a.valorNotaFiscal ? String(a.valorNotaFiscal) : "",
+          valorMinimoVenda: a.valorMinimoVenda ? String(a.valorMinimoVenda) : "",
+          comissaoTipo: a.comissaoTipo ?? "PERCENT",
+          comissao: a.comissao ? String(a.comissao) : "",
+        });
+      }
+    });
+    fetch("/api/perfil/clientes-fornecedores").then(r => r.json()).then(d => setClientes(d.items ?? []));
+  }, [id]);
+
   function set(field: string, value: string | boolean) { setForm(f => ({ ...f, [field]: value })); }
   function toggleFeature(feat: string) {
     setForm(f => ({
@@ -185,6 +224,24 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
 
   function onYearChange(code: string, name: string) {
     setForm(f => ({ ...f, fipeYearCode: code, yearFab: String(parseInt(name)), yearModel: String(parseInt(name)), fuel: fuelFromFipe(name) }));
+  }
+
+  async function saveNovoCliente() {
+    if (!novoCliente.nome || !novoCliente.documento) return;
+    setSavingCliente(true);
+    const res = await fetch("/api/perfil/clientes-fornecedores", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(novoCliente),
+    });
+    const data = await res.json();
+    if (data.item) {
+      setClientes(prev => [...prev, data.item]);
+      setAquisicao(a => ({ ...a, clienteFornecedorId: data.item.id }));
+      setShowNovoCliente(false);
+      setNovoCliente({ tipo: "PF", nome: "", documento: "" });
+    }
+    setSavingCliente(false);
   }
 
   async function deletePhoto(photoId: string) {
@@ -250,6 +307,24 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
       if (!res.ok) {
         try { const d = await res.json(); setError(d.error ?? "Erro ao salvar."); } catch { setError("Erro ao salvar."); }
         return;
+      }
+      if (aquisicao.proveniencia) {
+        await fetch(`/api/vehicles/${id}/aquisicao`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            proveniencia: aquisicao.proveniencia,
+            responsavel: aquisicao.responsavel || null,
+            clienteFornecedorId: aquisicao.clienteFornecedorId || null,
+            valorPago: aquisicao.valorPago ? Number(aquisicao.valorPago.replace(/\D/g,"")) : null,
+            valorQuitacao: aquisicao.valorQuitacao ? Number(aquisicao.valorQuitacao.replace(/\D/g,"")) : null,
+            valorFinalAquisicao: aquisicao.valorFinalAquisicao ? Number(aquisicao.valorFinalAquisicao.replace(/\D/g,"")) : null,
+            valorNotaFiscal: aquisicao.valorNotaFiscal ? Number(aquisicao.valorNotaFiscal.replace(/\D/g,"")) : null,
+            valorMinimoVenda: aquisicao.valorMinimoVenda ? Number(aquisicao.valorMinimoVenda.replace(/\D/g,"")) : null,
+            comissaoTipo: aquisicao.comissaoTipo || null,
+            comissao: aquisicao.comissao ? Number(aquisicao.comissao) : null,
+          }),
+        });
       }
       router.push("/vendas/veiculos");
       return;
@@ -470,6 +545,7 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
 
           {/* ── STEP 2: Preço ── */}
           {step === 2 && (
+            <div className="space-y-5">
             <Section title="Preço">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <EField label="Valor de venda (R$) *">
@@ -492,6 +568,169 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
                 </div>
               </div>
             </Section>
+
+            {/* AQUISIÇÃO */}
+            <Section title="Aquisição">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <EField label="Proveniência" className="md:col-span-2">
+                  <div className="flex gap-3">
+                    {["COMPRA","TROCA","CONSIGNADO"].map(opt => (
+                      <label key={opt} className="flex-1 cursor-pointer">
+                        <input type="radio" name="proveniencia" value={opt}
+                          checked={aquisicao.proveniencia === opt}
+                          onChange={() => setAquisicao(a => ({ ...a, proveniencia: opt }))}
+                          className="sr-only peer" />
+                        <div className="flex items-center justify-center border-2 border-black/10 peer-checked:border-primary-container peer-checked:bg-primary-container/10 rounded-xl p-3 text-sm font-bold text-gray-700 transition-all cursor-pointer">
+                          {opt.charAt(0) + opt.slice(1).toLowerCase()}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </EField>
+
+                {(aquisicao.proveniencia === "COMPRA" || aquisicao.proveniencia === "TROCA") && (
+                  <>
+                    <EField label="Valor pago no veículo (R$)">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R$</span>
+                        <input type="text" inputMode="numeric"
+                          value={formatBRL(aquisicao.valorPago)}
+                          onChange={e => setAquisicao(a => ({ ...a, valorPago: e.target.value.replace(/\D/g,"") }))}
+                          className={`${iCls} pl-9`} placeholder="0" />
+                      </div>
+                    </EField>
+                    <EField label="Valor de quitação (R$)">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R$</span>
+                        <input type="text" inputMode="numeric"
+                          value={formatBRL(aquisicao.valorQuitacao)}
+                          onChange={e => setAquisicao(a => ({ ...a, valorQuitacao: e.target.value.replace(/\D/g,"") }))}
+                          className={`${iCls} pl-9`} placeholder="0" />
+                      </div>
+                    </EField>
+                    <EField label="Valor final de aquisição (R$)">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R$</span>
+                        <input type="text" inputMode="numeric"
+                          value={formatBRL(aquisicao.valorFinalAquisicao)}
+                          onChange={e => setAquisicao(a => ({ ...a, valorFinalAquisicao: e.target.value.replace(/\D/g,"") }))}
+                          className={`${iCls} pl-9`} placeholder="0" />
+                      </div>
+                    </EField>
+                    <EField label="Responsável pela aquisição">
+                      <input type="text" value={aquisicao.responsavel}
+                        onChange={e => setAquisicao(a => ({ ...a, responsavel: e.target.value }))}
+                        className={iCls} placeholder="Nome do responsável" />
+                    </EField>
+                  </>
+                )}
+
+                {aquisicao.proveniencia === "CONSIGNADO" && (
+                  <>
+                    <EField label="Valor do veículo na Nota Fiscal (R$)">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R$</span>
+                        <input type="text" inputMode="numeric"
+                          value={formatBRL(aquisicao.valorNotaFiscal)}
+                          onChange={e => setAquisicao(a => ({ ...a, valorNotaFiscal: e.target.value.replace(/\D/g,"") }))}
+                          className={`${iCls} pl-9`} placeholder="0" />
+                      </div>
+                    </EField>
+                    <EField label="Valor mínimo de venda (R$)">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R$</span>
+                        <input type="text" inputMode="numeric"
+                          value={formatBRL(aquisicao.valorMinimoVenda)}
+                          onChange={e => setAquisicao(a => ({ ...a, valorMinimoVenda: e.target.value.replace(/\D/g,"") }))}
+                          className={`${iCls} pl-9`} placeholder="0" />
+                      </div>
+                    </EField>
+                    <EField label="Tipo de comissão">
+                      <div className="flex gap-3">
+                        {[{ v: "PERCENT", l: "% Percentual" }, { v: "FIXO", l: "R$ Fixo" }].map(({ v, l }) => (
+                          <label key={v} className="flex-1 cursor-pointer">
+                            <input type="radio" checked={aquisicao.comissaoTipo === v}
+                              onChange={() => setAquisicao(a => ({ ...a, comissaoTipo: v }))}
+                              className="sr-only peer" />
+                            <div className="flex items-center justify-center border-2 border-black/10 peer-checked:border-primary-container peer-checked:bg-primary-container/10 rounded-xl p-3 text-sm font-bold text-gray-700 transition-all cursor-pointer">{l}</div>
+                          </label>
+                        ))}
+                      </div>
+                    </EField>
+                    <EField label={`Comissão (${aquisicao.comissaoTipo === "PERCENT" ? "%" : "R$"})`}>
+                      <input type="number" value={aquisicao.comissao}
+                        onChange={e => setAquisicao(a => ({ ...a, comissao: e.target.value }))}
+                        className={iCls} placeholder={aquisicao.comissaoTipo === "PERCENT" ? "Ex: 5" : "Ex: 1500"} />
+                    </EField>
+                    <EField label="Responsável pela aquisição">
+                      <input type="text" value={aquisicao.responsavel}
+                        onChange={e => setAquisicao(a => ({ ...a, responsavel: e.target.value }))}
+                        className={iCls} placeholder="Nome do responsável" />
+                    </EField>
+                  </>
+                )}
+
+                {aquisicao.proveniencia && (
+                  <EField label="Cliente / Fornecedor" className="md:col-span-2">
+                    <div className="flex gap-2">
+                      <select value={aquisicao.clienteFornecedorId}
+                        onChange={e => setAquisicao(a => ({ ...a, clienteFornecedorId: e.target.value }))}
+                        className={`${iCls} flex-1`}>
+                        <option value="">Selecione ou cadastre</option>
+                        {clientes.map(c => (
+                          <option key={c.id} value={c.id}>{c.nome} ({c.tipo === "PF" ? "CPF" : "CNPJ"}: {c.documento})</option>
+                        ))}
+                      </select>
+                      <button type="button" onClick={() => setShowNovoCliente(true)}
+                        className="shrink-0 rounded-xl border border-black/10 px-4 text-sm font-black text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                        + Novo
+                      </button>
+                    </div>
+                  </EField>
+                )}
+              </div>
+
+              {/* Modal novo cliente */}
+              {showNovoCliente && (
+                <div className="mt-5 rounded-xl border border-primary-container/40 bg-yellow-50 p-5 space-y-4">
+                  <p className="font-black text-gray-900 text-sm">Cadastrar Cliente / Fornecedor</p>
+                  <div className="flex gap-4">
+                    {[{ v: "PF", l: "Pessoa Física" }, { v: "PJ", l: "Pessoa Jurídica" }].map(({ v, l }) => (
+                      <label key={v} className="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" checked={novoCliente.tipo === v}
+                          onChange={() => setNovoCliente(n => ({ ...n, tipo: v, documento: "" }))}
+                          className="w-4 h-4 accent-yellow-500" />
+                        <span className="text-sm font-medium text-gray-700">{l}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <EField label="Nome *">
+                      <input type="text" value={novoCliente.nome}
+                        onChange={e => setNovoCliente(n => ({ ...n, nome: e.target.value }))}
+                        className={iCls} placeholder="Nome completo" />
+                    </EField>
+                    <EField label={novoCliente.tipo === "PF" ? "CPF *" : "CNPJ *"}>
+                      <input type="text" value={novoCliente.documento}
+                        onChange={e => setNovoCliente(n => ({ ...n, documento: e.target.value }))}
+                        className={iCls} placeholder={novoCliente.tipo === "PF" ? "000.000.000-00" : "00.000.000/0000-00"} />
+                    </EField>
+                  </div>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={saveNovoCliente} disabled={savingCliente}
+                      className="flex items-center gap-2 bg-primary-container text-black px-6 py-2 rounded-xl text-sm font-black hover:opacity-90 disabled:opacity-50">
+                      {savingCliente && <span className="w-3 h-3 border-2 border-black/20 border-t-black rounded-full animate-spin" />}
+                      Salvar
+                    </button>
+                    <button type="button" onClick={() => setShowNovoCliente(false)}
+                      className="px-6 py-2 rounded-xl border border-black/10 text-sm text-gray-500 hover:bg-gray-50">
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </Section>
+            </div>
           )}
 
           {/* ── STEP 3: Fotos ── */}
