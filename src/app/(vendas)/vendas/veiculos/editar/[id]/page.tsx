@@ -323,7 +323,7 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
             clienteFornecedorId: aquisicao.clienteFornecedorId || null,
             valorPago: aquisicao.valorPago ? Number(aquisicao.valorPago.replace(/\D/g,"")) : null,
             valorQuitacao: aquisicao.valorQuitacao ? Number(aquisicao.valorQuitacao.replace(/\D/g,"")) : null,
-            valorFinalAquisicao: aquisicao.valorFinalAquisicao ? Number(aquisicao.valorFinalAquisicao.replace(/\D/g,"")) : null,
+            valorFinalAquisicao: (Number(aquisicao.valorPago || 0) + Number(aquisicao.valorQuitacao || 0)) || null,
             valorNotaFiscal: aquisicao.valorNotaFiscal ? Number(aquisicao.valorNotaFiscal.replace(/\D/g,"")) : null,
             valorMinimoVenda: aquisicao.valorMinimoVenda ? Number(aquisicao.valorMinimoVenda.replace(/\D/g,"")) : null,
             comissaoTipo: aquisicao.comissaoTipo || null,
@@ -616,11 +616,11 @@ export default function EditarVeiculoPage({ params }: { params: { id: string } }
                     <EField label="Valor final de aquisição (R$)">
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R$</span>
-                        <input type="text" inputMode="numeric"
-                          value={formatBRL(aquisicao.valorFinalAquisicao)}
-                          onChange={e => setAquisicao(a => ({ ...a, valorFinalAquisicao: e.target.value.replace(/\D/g,"") }))}
-                          className={`${iCls} pl-9`} placeholder="0" />
+                        <input type="text" readOnly
+                          value={formatBRL(String((Number(aquisicao.valorPago || 0) + Number(aquisicao.valorQuitacao || 0)) || ""))}
+                          className={`${iCls} pl-9 bg-gray-50 text-gray-500 cursor-default`} placeholder="0" />
                       </div>
+                      <p className="text-[11px] text-gray-400 mt-1">Calculado automaticamente: Valor pago + Valor de quitação</p>
                     </EField>
                     <EField label="Responsável pela aquisição">
                       <input type="text" value={aquisicao.responsavel}
