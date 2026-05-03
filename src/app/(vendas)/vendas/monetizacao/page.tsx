@@ -6,28 +6,25 @@ import ErpKpiCard from "@/components/erp/ErpKpiCard";
 import Icon from "@/components/ui/Icon";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
 
-const GOLD  = "#ffd709";
-const GOLD2 = "#e6c200";
+const GOLD   = "#ffd709";
 const BORDER = "rgba(0,0,0,0.08)";
 const MUTED  = "rgba(0,0,0,0.35)";
 const TT = { background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, color: "#111" };
 
-const revenue = [
-  { m: "Jan", v: 84 }, { m: "Fev", v: 96 }, { m: "Mar", v: 110 }, { m: "Abr", v: 128 },
-  { m: "Mai", v: 142 }, { m: "Jun", v: 156 }, { m: "Jul", v: 168 }, { m: "Ago", v: 184 },
-];
-const split = [
-  { name: "Assinaturas",         value: 48, fill: GOLD },
-  { name: "Impulsionamento",     value: 22, fill: GOLD2 },
-  { name: "Leads financiamento", value: 14, fill: "#3b82f6" },
-  { name: "Leads seguro",        value: 10, fill: "#22c55e" },
-  { name: "Banners",             value:  6, fill: "#9ca3af" },
-];
+interface MonData {
+  faturamentoMes: number;
+  mrr: number;
+  avgPrice: number;
+  avgMonthlySales: number;
+  despesasMes: number;
+  liquidoMes: number;
+  activeSub: { plan: string; amount: number; endsAt: string } | null;
+  revenueChart: { m: string; v: number }[];
+  canal: { name: string; value: number; fill: string }[];
+}
 
 interface Subscription {
-  id: string;
   plan: string;
-  status: string;
   amount: number;
   endsAt: string;
 }
@@ -75,18 +72,27 @@ function planColor(plan: string) {
   return "text-gray-700 bg-gray-50 border-gray-300";
 }
 
+function fmt(n: number) {
+  return n.toLocaleString("pt-BR");
+}
+
 export default function MonetizacaoPage() {
+  const [data, setData]       = useState<MonData | null>(null);
   const [sub, setSub]         = useState<Subscription | null>(null);
-  const [subLoading, setSubLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [toast, setToast]     = useState("");
 
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   useEffect(() => {
-    fetch("/api/payments/subscription")
-      .then(r => r.json())
-      .then(d => { setSub(d.subscription ?? null); setSubLoading(false); })
-      .catch(() => setSubLoading(false));
+    Promise.all([
+      fetch("/api/perfil/monetizacao").then(r => r.json()),
+      fetch("/api/payments/subscription").then(r => r.json()),
+    ]).then(([mon, payment]) => {
+      setData(mon);
+      setSub(payment.subscription ?? null);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   async function subscribe(planKey: string) {
@@ -95,12 +101,9 @@ export default function MonetizacaoPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plan: planKey }),
     });
-    const data = await res.json();
-    if (data.initPoint) {
-      window.location.href = data.initPoint;
-    } else {
-      fire(data.error ?? "Erro ao iniciar assinatura");
-    }
+    const d = await res.json();
+    if (d.initPoint) window.location.href = d.initPoint;
+    else fire(d.error ?? "Erro ao iniciar assinatura");
   }
 
   const currentPlan = PLANS.find(p => p.key === sub?.plan);
@@ -114,27 +117,53 @@ export default function MonetizacaoPage() {
 
       {/* KPIs */}
       <div className="grid gap-4 md:grid-cols-4 mb-6">
-        <ErpKpiCard label="Faturamento (mês)" value="R$ 184k" delta={9}  deltaLabel="vs. mês anterior"  icon="payments"           accent />
-        <ErpKpiCard label="MRR (recorrente)"  value="R$ 62k"  delta={5}  deltaLabel="assinaturas ativas" icon="trending_up" />
-        <ErpKpiCard label="Receita impulsos"  value="R$ 41k"  delta={18} deltaLabel="alta no mês"        icon="receipt" />
-        <ErpKpiCard label="Lojistas Pro+Elite" value="124"    delta={12} deltaLabel="upgrade no mês"     icon="workspace_premium" />
+        <ErpKpiCard
+          label="Faturamento (mês)"
+          value={loading ? "—" : `${data?.faturamentoMes ?? 0} vendas`}
+          icon="payments"
+          accent={!loading && (data?.faturamentoMes ?? 0) > 0}
+        />
+        <ErpKpiCard
+          label="MRR (recorrente)"
+          value={loading ? "—" : `R$ ${fmt(data?.mrr ?? 0)}`}
+          deltaLabel={loading ? "" : `Ticket médio R$ ${fmt(data?.avgPrice ?? 0)}`}
+          icon="trending_up"
+        />
+        <ErpKpiCard
+          label="Despesas (Mês)"
+          value={loading ? "—" : `R$ ${fmt(data?.despesasMes ?? 0)}`}
+          deltaLabel={sub ? `Plano ${currentPlan?.name ?? sub.plan}` : "Sem plano ativo"}
+          icon="receipt"
+        />
+        <ErpKpiCard
+          label="Líquido mês"
+          value={loading ? "—" : `R$ ${fmt(data?.liquidoMes ?? 0)}`}
+          icon="account_balance"
+          accent={!loading && (data?.liquidoMes ?? 0) > 0}
+        />
       </div>
 
       {/* Gráficos */}
       <div className="grid gap-6 lg:grid-cols-3 mb-8">
         <div className="lg:col-span-2 rounded-xl border border-black/10 bg-white p-6 shadow-sm">
           <h3 className="font-black text-gray-900 mb-1">Receita por mês</h3>
-          <p className="text-xs text-gray-400 mb-4">em milhares (R$)</p>
+          <p className="text-xs text-gray-400 mb-4">Pagamentos de assinaturas (R$)</p>
           <div className="h-72">
-            <ResponsiveContainer>
-              <BarChart data={revenue}>
-                <CartesianGrid strokeDasharray="3 3" stroke={BORDER} vertical={false} />
-                <XAxis dataKey="m" stroke={MUTED} fontSize={12} />
-                <YAxis stroke={MUTED} fontSize={12} />
-                <Tooltip contentStyle={TT} />
-                <Bar dataKey="v" fill={GOLD} radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <span className="h-8 w-8 rounded-full border-2 border-primary-container/30 border-t-primary-container animate-spin" />
+              </div>
+            ) : (
+              <ResponsiveContainer>
+                <BarChart data={data?.revenueChart ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={BORDER} vertical={false} />
+                  <XAxis dataKey="m" stroke={MUTED} fontSize={12} />
+                  <YAxis stroke={MUTED} fontSize={12} tickFormatter={v => `R$${v}`} />
+                  <Tooltip contentStyle={TT} formatter={(v: unknown) => [`R$ ${fmt(v as number)}`, "Receita"]} />
+                  <Bar dataKey="v" fill={GOLD} radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -142,21 +171,27 @@ export default function MonetizacaoPage() {
           <h3 className="font-black text-gray-900 mb-1">Receita por canal</h3>
           <p className="text-xs text-gray-400 mb-4">% do faturamento</p>
           <div className="h-72">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={split} dataKey="value" innerRadius={55} outerRadius={90} paddingAngle={3}>
-                  {split.map((s) => <Cell key={s.name} fill={s.fill} />)}
-                </Pie>
-                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 11, color: MUTED }} />
-                <Tooltip contentStyle={TT} />
-              </PieChart>
-            </ResponsiveContainer>
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <span className="h-8 w-8 rounded-full border-2 border-primary-container/30 border-t-primary-container animate-spin" />
+              </div>
+            ) : (
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie data={data?.canal ?? []} dataKey="value" innerRadius={55} outerRadius={90} paddingAngle={3}>
+                    {(data?.canal ?? []).map((s) => <Cell key={s.name} fill={s.fill} />)}
+                  </Pie>
+                  <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 11, color: MUTED }} />
+                  <Tooltip contentStyle={TT} formatter={(v: unknown) => [`${v}%`, ""]} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Plano atual do lojista */}
-      {!subLoading && sub && (
+      {/* Plano atual */}
+      {!loading && sub && (
         <div className={`rounded-xl border p-5 mb-8 flex items-center gap-4 ${planColor(sub.plan)}`}>
           <Icon name="workspace_premium" className="text-2xl shrink-0" />
           <div className="flex-1 min-w-0">
@@ -171,7 +206,7 @@ export default function MonetizacaoPage() {
         </div>
       )}
 
-      {!subLoading && !sub && (
+      {!loading && !sub && (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-5 mb-8 flex items-start gap-3">
           <Icon name="info" className="text-yellow-600 text-xl shrink-0 mt-0.5" />
           <div>
@@ -194,7 +229,7 @@ export default function MonetizacaoPage() {
               <p className={`text-xs font-black uppercase tracking-wider ${p.highlight ? "text-yellow-700" : "text-gray-400"}`}>{p.name}</p>
               <p className="mt-1 text-sm text-gray-500">{p.tagline}</p>
               <p className="mt-4 text-3xl font-black text-gray-900">
-                R$ {p.price.toLocaleString("pt-BR")}<span className="text-sm font-normal text-gray-400">/mês</span>
+                R$ {fmt(p.price)}<span className="text-sm font-normal text-gray-400">/mês</span>
               </p>
               <ul className="mt-4 space-y-2 flex-1">
                 {p.features.map((f) => (
