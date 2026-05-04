@@ -12,9 +12,9 @@ async function getActivePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE
 }
 
 // Mascara email/phone para quem não tem plano PRO ou ELITE
-function maskContact(user: { id: string; name: string; avatarUrl: string | null; email: string; phone: string | null; sharePhone: boolean }, canSeeContact: boolean) {
+function maskContact(user: { id: string; name: string; avatarUrl: string | null; phone: string | null; sharePhone: boolean }, canSeeContact: boolean) {
   if (canSeeContact) return user;
-  return { ...user, email: null, phone: null, sharePhone: false };
+  return { ...user, phone: null, sharePhone: false };
 }
 
 /* GET — lista conversas do usuário logado */
@@ -28,8 +28,8 @@ export async function GET() {
       orderBy: { updatedAt: "desc" },
       include: {
         vehicle: { select: { id: true, brand: true, model: true, photos: { where: { isCover: true }, take: 1 } } },
-        buyer:   { select: { id: true, name: true, avatarUrl: true, email: true, phone: true, sharePhone: true } },
-        seller:  { select: { id: true, name: true, avatarUrl: true, email: true, phone: true, sharePhone: true } },
+        buyer:   { select: { id: true, name: true, avatarUrl: true, phone: true, sharePhone: true } },
+        seller:  { select: { id: true, name: true, avatarUrl: true, phone: true, sharePhone: true } },
         messages: { orderBy: { createdAt: "desc" }, take: 1 },
       },
     });

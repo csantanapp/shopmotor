@@ -65,6 +65,8 @@ export default function CadastroPage() {
     if (submitting.current) return;
     setError("");
 
+    if (form.password.length < 8) { setError("A senha deve ter no mínimo 8 caracteres."); return; }
+    if (!/[A-Z]/.test(form.password) || !/[0-9]/.test(form.password)) { setError("A senha deve conter ao menos 1 letra maiúscula e 1 número."); return; }
     if (form.password !== form.confirmPassword) { setError("As senhas não coincidem."); return; }
     if (!form.termos) { setError("Aceite os Termos de Uso para continuar."); return; }
     if (accountType === "PJ" && !form.cnpj) { setError("Informe o CNPJ."); return; }
@@ -368,7 +370,7 @@ export default function CadastroPage() {
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-outline"><Icon name="lock" className="text-xl" /></span>
                   <input id="senha" type={showPassword ? "text" : "password"} autoComplete="new-password" spellCheck={false} required
-                    placeholder="Mínimo 8 caracteres"
+                    placeholder="Mín. 8 chars, 1 maiúscula e 1 número"
                     value={form.password} onChange={e => set("password", e.target.value)}
                     className="w-full pl-12 pr-12 py-3.5 rounded-xl border border-outline-variant bg-surface text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary-container focus:border-transparent transition-colors" />
                   <button type="button" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}

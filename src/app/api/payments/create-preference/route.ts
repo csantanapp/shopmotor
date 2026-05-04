@@ -41,8 +41,12 @@ export async function POST(req: NextRequest) {
       && (coupon.maxUses === null || coupon.usesCount < coupon.maxUses);
 
     if (isValid) {
-      const alreadyUsed = await db.couponUse.findFirst({ where: { couponId: coupon.id, userId: user.id } });
-      if (!alreadyUsed) {
+      // Dupla verificação: CouponUse registrado OU pagamento pendente/aprovado já vinculado a este cupom
+      const [alreadyUsed, pendingPayment] = await Promise.all([
+        db.couponUse.findFirst({ where: { couponId: coupon.id, userId: user.id } }),
+        prisma.payment.findFirst({ where: { userId: user.id, couponId: coupon.id, status: { in: ["pending", "approved"] } } }),
+      ]);
+      if (!alreadyUsed && !pendingPayment) {
         discountAmount = coupon.discountType === "percent"
           ? plan.price * (coupon.discountValue / 100)
           : Math.min(coupon.discountValue, plan.price);

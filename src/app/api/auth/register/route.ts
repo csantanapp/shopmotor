@@ -41,6 +41,8 @@ export async function POST(req: NextRequest) {
 
     if (password.length < 8)
       return NextResponse.json({ error: "A senha deve ter no mínimo 8 caracteres." }, { status: 400 });
+    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password))
+      return NextResponse.json({ error: "A senha deve conter ao menos 1 letra maiúscula e 1 número." }, { status: 400 });
 
     // Validações PJ
     if (accountType === "PJ") {
