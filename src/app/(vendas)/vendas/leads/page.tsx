@@ -113,7 +113,7 @@ export default function LeadsPage() {
     const data = await res.json();
     const convs: ApiConversation[] = data.conversations ?? [];
     setConversations(convs);
-    const me = convs.find(c => c.sellerId)?.sellerId ?? "";
+    const me: string = data.currentUserId ?? convs.find(c => c.sellerId)?.sellerId ?? "";
     setUserId(me);
 
     const initial: Record<string, ColKey> = {};

@@ -58,7 +58,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ conversations: masked, canSeeContact });
+    return NextResponse.json({ conversations: masked, canSeeContact, currentUserId: user.id });
   } catch (err) {
     console.error("[GET /api/conversations]", err);
     return NextResponse.json({ error: "Erro interno.", detail: String(err) }, { status: 500 });
