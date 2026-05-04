@@ -12,9 +12,12 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawRedirect = searchParams.get("redirect") ?? "/perfil";
+  // Bloqueia open redirect: aceita apenas paths internos (começa com / mas não com //)
+  const isSafeRedirect = (url: string) => url.startsWith("/") && !url.startsWith("//") && !url.startsWith("/\\");
+  const safeRedirect = isSafeRedirect(rawRedirect) ? rawRedirect : "/perfil";
   // Se o redirect for para uma subrota admin inexistente, cai no dashboard admin
   const VALID_ADMIN_ROUTES = ["/admin", "/admin/receita", "/admin/anuncios", "/admin/usuarios", "/admin/lojas", "/admin/mensagens", "/admin/faq", "/admin/analytics", "/admin/leads", "/admin/assinaturas", "/admin/seo", "/admin/scripts", "/admin/seguros", "/admin/lgpd"];
-  const redirect = rawRedirect.startsWith("/admin") && !VALID_ADMIN_ROUTES.includes(rawRedirect) ? "/admin" : rawRedirect;
+  const redirect = safeRedirect.startsWith("/admin") && !VALID_ADMIN_ROUTES.includes(safeRedirect) ? "/admin" : safeRedirect;
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
