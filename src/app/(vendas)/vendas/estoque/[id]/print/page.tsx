@@ -87,12 +87,7 @@ export default function PrintFicha({ params }: { params: { id: string } }) {
     );
   }
 
-  const coverPhoto = vehicle.photos.find(p => p.isCover) ?? vehicle.photos[0];
-  const otherPhotos = vehicle.photos.filter(p => !p.isCover).slice(0, 3);
   const storeName = store.tradeName ?? store.companyName ?? store.name;
-  const aq = vehicle.aquisicao;
-  const custoAquisicao = aq?.valorFinalAquisicao ?? aq?.valorPago ?? aq?.valorNotaFiscal ?? null;
-  const margemPrevista = custoAquisicao != null ? vehicle.price - custoAquisicao : null;
   const vehicleFeatures = vehicle.features.map(f => f.name);
   const fipeEntrada = vehicle.fipePrice ?? null;
 
@@ -159,30 +154,14 @@ export default function PrintFicha({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* BODY — 3 colunas */}
-        <div style={{ display: "flex", gap: "14px", flex: 1 }}>
+        {/* BODY — 2 colunas: dados + valores */}
+        <div style={{ display: "flex", gap: "20px", flex: 1 }}>
 
-          {/* COL 1 — Fotos */}
-          <div style={{ width: "30%", display: "flex", flexDirection: "column", gap: 6 }}>
-            {coverPhoto ? (
-              <img src={coverPhoto.url} alt="" style={{ width: "100%", aspectRatio: "4/3", objectFit: "cover", borderRadius: 8, border: "1px solid #eee" }} />
-            ) : (
-              <div style={{ width: "100%", aspectRatio: "4/3", background: "#f5f5f5", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>🚗</div>
-            )}
-            {otherPhotos.length > 0 && (
-              <div style={{ display: "flex", gap: 4 }}>
-                {otherPhotos.map((p, i) => (
-                  <img key={i} src={p.url} alt="" style={{ flex: 1, aspectRatio: "4/3", objectFit: "cover", borderRadius: 5, border: "1px solid #eee" }} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* COL 2 — Dados + Especificações */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+          {/* COL 1 — Especificações + Opcionais + Descrição */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
 
             {/* Dados principais */}
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <tbody>
                 {[
                   ["Ano / Modelo",  `${vehicle.yearFab} / ${vehicle.yearModel}`],
@@ -196,8 +175,8 @@ export default function PrintFicha({ params }: { params: { id: string } }) {
                   ...(vehicle.city ? [["Localização", `${vehicle.city}${vehicle.state ? `/${vehicle.state}` : ""}`]] : []),
                 ].map(([label, value], i) => (
                   <tr key={i} style={{ background: i % 2 === 0 ? "#fafafa" : "#fff" }}>
-                    <td style={{ padding: "4px 8px", fontWeight: 700, color: "#666", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", width: "40%", borderBottom: "1px solid #f0f0f0" }}>{label}</td>
-                    <td style={{ padding: "4px 8px", fontWeight: 700, color: "#111", borderBottom: "1px solid #f0f0f0" }}>{value}</td>
+                    <td style={{ padding: "5px 10px", fontWeight: 700, color: "#777", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", width: "38%", borderBottom: "1px solid #efefef" }}>{label}</td>
+                    <td style={{ padding: "5px 10px", fontWeight: 700, color: "#111", fontSize: 12, borderBottom: "1px solid #efefef" }}>{value}</td>
                   </tr>
                 ))}
               </tbody>
@@ -206,10 +185,10 @@ export default function PrintFicha({ params }: { params: { id: string } }) {
             {/* Opcionais */}
             {vehicleFeatures.length > 0 && (
               <div>
-                <div style={{ fontSize: 9, fontWeight: 900, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 }}>Opcionais e características</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                <div style={{ fontSize: 9, fontWeight: 900, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 6 }}>Opcionais e características</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                   {vehicleFeatures.map((f, i) => (
-                    <span key={i} style={{ fontSize: 9, background: "#f5f5f5", border: "1px solid #e5e5e5", borderRadius: 20, padding: "2px 7px", fontWeight: 700, color: "#444" }}>
+                    <span key={i} style={{ fontSize: 10, background: "#f5f5f5", border: "1px solid #e0e0e0", borderRadius: 20, padding: "3px 9px", fontWeight: 700, color: "#444" }}>
                       {f}
                     </span>
                   ))}
@@ -220,66 +199,43 @@ export default function PrintFicha({ params }: { params: { id: string } }) {
             {/* Descrição */}
             {vehicle.description && (
               <div>
-                <div style={{ fontSize: 9, fontWeight: 900, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>Descrição</div>
-                <p style={{ fontSize: 10, color: "#555", lineHeight: 1.5, margin: 0, maxHeight: 56, overflow: "hidden" }}>{vehicle.description}</p>
+                <div style={{ fontSize: 9, fontWeight: 900, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 5 }}>Descrição</div>
+                <p style={{ fontSize: 11, color: "#555", lineHeight: 1.6, margin: 0 }}>{vehicle.description}</p>
               </div>
             )}
           </div>
 
-          {/* COL 3 — Valores + FIPE */}
-          <div style={{ width: "26%", display: "flex", flexDirection: "column", gap: 8 }}>
+          {/* COL 2 — Valor em destaque + FIPE */}
+          <div style={{ width: "30%", display: "flex", flexDirection: "column", gap: 10 }}>
 
-            {/* Valor de venda */}
-            <div style={{ background: "#ffd709", borderRadius: 10, padding: "12px 14px" }}>
-              <div style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.12em", color: "#7a6200", marginBottom: 4 }}>Valor de venda</div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#111", lineHeight: 1 }}>{fmt(vehicle.price)}</div>
+            {/* Valor de venda — destaque */}
+            <div style={{ background: "#ffd709", borderRadius: 14, padding: "20px 18px", textAlign: "center", boxShadow: "0 4px 16px rgba(255,215,9,0.35)" }}>
+              <div style={{ fontSize: 10, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.18em", color: "#7a6200", marginBottom: 6 }}>Valor de venda</div>
+              <div style={{ fontSize: 30, fontWeight: 900, color: "#111", lineHeight: 1, letterSpacing: "-0.5px" }}>{fmt(vehicle.price)}</div>
             </div>
-
-            {/* Custo / Margem — apenas para uso interno, pode omitir para cliente */}
-            {custoAquisicao != null && (
-              <div style={{ border: "1px solid #eee", borderRadius: 10, padding: "10px 12px", background: "#fafafa" }}>
-                <div style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", marginBottom: 6 }}>Dados internos</div>
-                <table style={{ width: "100%", fontSize: 10, borderCollapse: "collapse" }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ padding: "2px 0", color: "#666" }}>Custo aquisição</td>
-                      <td style={{ padding: "2px 0", fontWeight: 700, textAlign: "right" }}>{fmt(custoAquisicao)}</td>
-                    </tr>
-                    {margemPrevista != null && (
-                      <tr>
-                        <td style={{ padding: "2px 0", color: "#666" }}>Margem prevista</td>
-                        <td style={{ padding: "2px 0", fontWeight: 900, textAlign: "right", color: margemPrevista > 0 ? "#16a34a" : "#dc2626" }}>
-                          {fmt(margemPrevista)}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
 
             {/* FIPE */}
             {(fipeEntrada || fipeAtual) && (
-              <div style={{ border: "1px solid #eee", borderRadius: 10, padding: "10px 12px", background: "#fafafa" }}>
-                <div style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", marginBottom: 6 }}>Tabela FIPE</div>
-                <table style={{ width: "100%", fontSize: 10, borderCollapse: "collapse" }}>
+              <div style={{ border: "1px solid #e8e8e8", borderRadius: 12, padding: "12px 14px", background: "#fafafa" }}>
+                <div style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.14em", color: "#aaa", marginBottom: 8 }}>Tabela FIPE</div>
+                <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
                   <tbody>
                     {fipeEntrada != null && (
                       <tr>
-                        <td style={{ padding: "2px 0", color: "#666" }}>Valor na entrada</td>
-                        <td style={{ padding: "2px 0", fontWeight: 700, textAlign: "right" }}>{fmt(fipeEntrada)}</td>
+                        <td style={{ padding: "3px 0", color: "#777" }}>Valor na entrada</td>
+                        <td style={{ padding: "3px 0", fontWeight: 700, textAlign: "right", color: "#333" }}>{fmt(fipeEntrada)}</td>
                       </tr>
                     )}
                     {fipeAtual != null && (
                       <tr>
-                        <td style={{ padding: "2px 0", color: "#666" }}>Valor atual</td>
-                        <td style={{ padding: "2px 0", fontWeight: 700, textAlign: "right" }}>{fmt(fipeAtual)}</td>
+                        <td style={{ padding: "3px 0", color: "#777" }}>Valor atual</td>
+                        <td style={{ padding: "3px 0", fontWeight: 700, textAlign: "right", color: "#333" }}>{fmt(fipeAtual)}</td>
                       </tr>
                     )}
                     {fipeEntrada != null && fipeAtual != null && (
-                      <tr>
-                        <td style={{ padding: "2px 0", color: "#666" }}>Variação</td>
-                        <td style={{ padding: "2px 0", fontWeight: 900, textAlign: "right", color: fipeAtual >= fipeEntrada ? "#16a34a" : "#dc2626" }}>
+                      <tr style={{ borderTop: "1px solid #eee" }}>
+                        <td style={{ padding: "4px 0", color: "#777", paddingTop: 6 }}>Variação</td>
+                        <td style={{ padding: "4px 0", paddingTop: 6, fontWeight: 900, textAlign: "right", color: fipeAtual >= fipeEntrada ? "#16a34a" : "#dc2626" }}>
                           {fipeAtual >= fipeEntrada ? "+" : ""}{fmt(fipeAtual - fipeEntrada)}
                         </td>
                       </tr>
@@ -289,8 +245,8 @@ export default function PrintFicha({ params }: { params: { id: string } }) {
               </div>
             )}
 
-            {/* Rodapé da coluna */}
-            <div style={{ marginTop: "auto", fontSize: 9, color: "#bbb", textAlign: "center", paddingTop: 8, borderTop: "1px solid #f0f0f0" }}>
+            {/* Rodapé */}
+            <div style={{ marginTop: "auto", fontSize: 9, color: "#ccc", textAlign: "center", paddingTop: 10, borderTop: "1px solid #f0f0f0" }}>
               Ficha gerada em {new Date().toLocaleDateString("pt-BR")} via ShopMotor
             </div>
           </div>
