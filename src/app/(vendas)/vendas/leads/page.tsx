@@ -182,22 +182,25 @@ export default function LeadsPage() {
     if (!active) return;
     setMsgLoading(true);
     fetch(`/api/conversations/${active.id}/messages`)
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : { messages: [] })
       .then(d => setMessages(d.messages ?? []))
+      .catch(() => {})
       .finally(() => setMsgLoading(false));
-    // Load CRM data
+    // Load CRM data — table may not exist in production yet, never crash
     fetch(`/api/conversations/${active.id}/crm`)
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (!d.crm) return;
+        if (!d?.crm) return;
         setCrm(d.crm);
         setValorInput(d.crm.valorProposta ? String(d.crm.valorProposta) : "");
         setMotivoText(d.crm.motivoPerda ?? "");
-      });
+      })
+      .catch(() => {});
     // Load notas
     fetch(`/api/conversations/${active.id}/notas`)
-      .then(r => r.json())
-      .then(d => setNotas(d.notas ?? []));
+      .then(r => r.ok ? r.json() : { notas: [] })
+      .then(d => setNotas(d.notas ?? []))
+      .catch(() => {});
     setPanelTab("chat");
     setShowEncerrar(false);
     setEncerrarChoice(null);
@@ -471,7 +474,7 @@ export default function LeadsPage() {
               <Avatar name={active.buyer.name} url={active.buyer.avatarUrl} />
               <div className="flex-1 min-w-0">
                 <p className="font-black text-gray-900 truncate">{active.buyer.name}</p>
-                <p className="text-xs text-gray-400 truncate">{active.vehicle.brand} {active.vehicle.model}</p>
+                <p className="text-xs text-gray-400 truncate">{active.vehicle?.brand} {active.vehicle?.model}</p>
               </div>
               <div className="flex gap-1.5 shrink-0">
                 {active.buyer.phone && (
@@ -705,7 +708,7 @@ export default function LeadsPage() {
                   <p className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2">Dados do lead</p>
                   {active.buyer.email && <p className="text-xs text-gray-600"><span className="text-gray-400">Email: </span>{active.buyer.email}</p>}
                   {active.buyer.phone && <p className="text-xs text-gray-600"><span className="text-gray-400">Tel: </span>{active.buyer.phone}</p>}
-                  <p className="text-xs text-gray-600"><span className="text-gray-400">Veículo: </span>{active.vehicle.brand} {active.vehicle.model}</p>
+                  <p className="text-xs text-gray-600"><span className="text-gray-400">Veículo: </span>{active.vehicle?.brand} {active.vehicle?.model}</p>
                 </div>
               </div>
             )}
@@ -803,7 +806,7 @@ export default function LeadsPage() {
                     {colLeads.map(c => {
                       const lastMsg = c.messages[0];
                       const isUnread = !col.end && lastMsg && lastMsg.senderId !== userId;
-                      const cover = c.vehicle.photos[0]?.url;
+                      const cover = c.vehicle?.photos[0]?.url;
 
                       return (
                         <div
@@ -831,7 +834,7 @@ export default function LeadsPage() {
                             <Avatar name={c.buyer.name} url={c.buyer.avatarUrl} size="sm" />
                             <div className="flex-1 min-w-0">
                               <p className={`text-sm truncate ${isUnread ? "font-black text-gray-900" : "font-bold text-gray-800"}`}>{c.buyer.name}</p>
-                              <p className="text-xs text-gray-400 truncate">{c.vehicle.brand} {c.vehicle.model}</p>
+                              <p className="text-xs text-gray-400 truncate">{c.vehicle?.brand} {c.vehicle?.model}</p>
                             </div>
                             {cover && (
                               <div className="h-9 w-12 rounded-md overflow-hidden bg-gray-100 shrink-0">
