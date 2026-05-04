@@ -2,14 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createSession, COOKIE_NAME, SECURE_COOKIE_OPTIONS } from "@/lib/auth";
 
+const isSafeRedirect = (url: string) => url.startsWith("/") && !url.startsWith("//") && !url.startsWith("/\\");
+
 export async function GET(req: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-  const code = req.nextUrl.searchParams.get("code");
-  const state = req.nextUrl.searchParams.get("state") ?? "/perfil";
+  const code  = req.nextUrl.searchParams.get("code");
+  const state = req.nextUrl.searchParams.get("state") ?? "";
 
   if (!code) {
     return NextResponse.redirect(`${baseUrl}/login?error=google_cancelled`);
   }
+
+  // CSRF validation: state must be "{csrfToken}|{redirect}"
+  const [csrfToken, ...redirectParts] = state.split("|");
+  const redirectPath = redirectParts.join("|") || "/perfil";
+  const storedCsrf = req.cookies.get("oauth_csrf")?.value;
+
+  if (!csrfToken || !storedCsrf || csrfToken !== storedCsrf) {
+    return NextResponse.redirect(`${baseUrl}/login?error=google_csrf`);
+  }
+
+  const safeRedirect = isSafeRedirect(redirectPath) ? redirectPath : "/perfil";
 
   try {
     // 1. Exchange code for tokens
@@ -80,10 +93,12 @@ export async function GET(req: NextRequest) {
     const isNew = !(user as any).profileComplete;
     const destination = isNew
       ? `${baseUrl}/perfil/conta?welcome=google`
-      : `${baseUrl}${state}`;
+      : `${baseUrl}${safeRedirect}`;
 
     const response = NextResponse.redirect(destination);
     response.cookies.set(COOKIE_NAME, token, { ...SECURE_COOKIE_OPTIONS, expires: expiresAt });
+    // Clear CSRF cookie
+    response.cookies.set("oauth_csrf", "", { ...SECURE_COOKIE_OPTIONS, maxAge: 0 });
 
     return response;
   } catch (err) {
