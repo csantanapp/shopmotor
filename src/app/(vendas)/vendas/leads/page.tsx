@@ -173,13 +173,19 @@ export default function LeadsPage() {
     // Load financing leads (no plan gate needed — page already guards)
     fetch("/api/perfil/leads-financiamento")
       .then(r => r.ok ? r.json() : { items: [] })
-      .then(d => setFinLeads(d.items ?? []))
+      .then(d => setFinLeads((d.items ?? []).map((item: FinLead & { notas: unknown }) => ({
+        ...item,
+        notas: Array.isArray(item.notas) ? item.notas
+          : typeof item.notas === "string" ? (() => { try { return JSON.parse(item.notas as string); } catch { return []; } })()
+          : [],
+      }))))
       .catch(() => {});
   }, [load]);
 
   // Load messages when active changes
   useEffect(() => {
     if (!active) return;
+    setMessages([]);
     setMsgLoading(true);
     fetch(`/api/conversations/${active.id}/messages`)
       .then(r => r.ok ? r.json() : { messages: [] })
@@ -581,12 +587,12 @@ export default function LeadsPage() {
                     const mine = m.senderId === userId;
                     return (
                       <div key={m.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
-                        {!mine && <Avatar name={m.sender.name} url={m.sender.avatarUrl} size="sm" />}
+                        {!mine && <Avatar name={m.sender?.name ?? ""} url={m.sender?.avatarUrl} size="sm" />}
                         <div className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 ${mine ? "rounded-br-none bg-primary-container text-black" : "rounded-bl-none bg-white border border-black/10 text-gray-800"}`}>
                           <p className="text-sm leading-snug">{m.text}</p>
                           <p className={`text-[10px] mt-1 ${mine ? "text-black/50 text-right" : "text-gray-400"}`}>{timeAgo(m.createdAt)}</p>
                         </div>
-                        {mine && <Avatar name={m.sender.name} url={m.sender.avatarUrl} size="sm" />}
+                        {mine && <Avatar name={m.sender?.name ?? ""} url={m.sender?.avatarUrl} size="sm" />}
                       </div>
                     );
                   })}
