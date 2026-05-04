@@ -5,7 +5,12 @@ import { prisma } from "@/lib/prisma";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
+  let body: { name?: string; email?: string; subject?: string; message?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Body inválido." }, { status: 400 });
+  }
   const { name, email, subject, message } = body;
 
   if (!name || !email || !subject || !message) {

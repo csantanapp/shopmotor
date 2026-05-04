@@ -40,9 +40,15 @@ export async function PATCH(req: NextRequest) {
   const user = await getCurrentUser() as any;
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id, status } = await req.json();
+  let body: { id?: string; status?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Body inválido." }, { status: 400 });
+  }
+  const { id, status } = body;
   const allowed = ["novo", "contatado", "convertido", "descartado"];
-  if (!allowed.includes(status)) return NextResponse.json({ error: "Status inválido" }, { status: 400 });
+  if (!id || !status || !allowed.includes(status)) return NextResponse.json({ error: "Status inválido" }, { status: 400 });
 
   const lead = await prisma.financiamentoLead.findUnique({ where: { id }, select: { storeUserId: true } });
   if (lead?.storeUserId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
