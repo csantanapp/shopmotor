@@ -43,13 +43,24 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ users, total, page, pages: Math.ceil(total / limit) });
 }
 
+const ALLOWED_PATCH_FIELDS = new Set(["name", "phone", "city", "state", "plan", "nickname", "gender"]);
+
 export async function PATCH(req: NextRequest) {
   const err = await requireAdmin(req);
   if (err) return err;
 
   const db = prisma;
-  const { id, ...data } = await req.json();
-  if (!id) return NextResponse.json({ error: "ID obrigatório." }, { status: 400 });
+  let body: Record<string, unknown>;
+  try { body = await req.json(); } catch { return NextResponse.json({ error: "JSON inválido." }, { status: 400 }); }
+
+  const { id, ...raw } = body;
+  if (!id || typeof id !== "string") return NextResponse.json({ error: "ID obrigatório." }, { status: 400 });
+
+  const data: Record<string, unknown> = {};
+  for (const key of Object.keys(raw)) {
+    if (ALLOWED_PATCH_FIELDS.has(key)) data[key] = raw[key];
+  }
+  if (Object.keys(data).length === 0) return NextResponse.json({ error: "Nenhum campo válido para atualizar." }, { status: 400 });
 
   const user = await db.user.update({ where: { id }, data });
   return NextResponse.json({ user });
