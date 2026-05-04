@@ -7,17 +7,18 @@ import Icon from "@/components/ui/Icon";
 
 interface Vehicle {
   id: string;
-  marca: string;
-  modelo: string;
-  versao?: string;
-  ano: number;
-  preco: number;
+  brand: string;
+  model: string;
+  version?: string;
+  yearFab: number;
+  price: number;
   views: number;
   boostLevel: string;
   boostPlan: string;
   boostUntil?: string;
   status: string;
   photos: { url: string }[];
+  _count: { conversations: number };
 }
 
 const PLANS = [
@@ -64,15 +65,16 @@ function daysLeft(until?: string) {
 }
 
 function carLabel(v: Vehicle) {
-  return `${v.marca} ${v.modelo}${v.versao ? ` ${v.versao}` : ""} ${v.ano}`;
+  return `${v.brand} ${v.model}${v.version ? ` ${v.version}` : ""} ${v.yearFab}`;
 }
 
 export default function AnunciosPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [toast, setToast]       = useState("");
-  const [boosting, setBoosting] = useState<string | null>(null);
-  const [pickPlan, setPickPlan] = useState<string | null>(null); // vehicleId waiting for plan selection
+  const [vehicles, setVehicles]   = useState<Vehicle[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [toast, setToast]         = useState("");
+  const [boosting, setBoosting]   = useState<string | null>(null);
+  const [pickPlan, setPickPlan]   = useState<string | null>(null);
+  const [expandedAd, setExpandedAd] = useState<string | null>(null);
 
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -198,7 +200,7 @@ export default function AnunciosPage() {
                   {(v.views ?? 0).toLocaleString("pt-BR")} visitas
                 </p>
                 <h4 className="mt-1 font-black text-gray-900 text-sm leading-tight">{carLabel(v)}</h4>
-                <p className="text-xs text-gray-400 mt-0.5">R$ {v.preco?.toLocaleString("pt-BR")}</p>
+                <p className="text-xs text-gray-400 mt-0.5">R$ {v.price?.toLocaleString("pt-BR")}</p>
                 <button
                   disabled={boosting === v.id}
                   onClick={() => setPickPlan(v.id)}
@@ -224,33 +226,87 @@ export default function AnunciosPage() {
               <p className="text-sm text-gray-400 mt-1">Escolha um plano acima para começar.</p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {active.map((v) => {
                 const left = daysLeft(v.boostUntil);
+                const conversations = v._count?.conversations ?? 0;
+                const isExpanded = expandedAd === v.id;
                 return (
-                  <div key={v.id} className="rounded-xl border border-black/10 bg-white p-5 shadow-sm">
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs text-gray-400 uppercase tracking-wider">Anúncio</p>
-                        <h4 className="mt-1 font-black text-gray-900 text-sm truncate leading-tight">{carLabel(v)}</h4>
-                        {left && <p className="text-xs text-gray-400 mt-0.5">{left}d restantes</p>}
-                      </div>
-                      <ErpStatusBadge status={boostTier(v)} />
-                    </div>
-                    <div className="grid grid-cols-1 gap-2 text-center mb-3">
-                      <div className="rounded-md bg-gray-50 border border-black/5 py-2">
-                        <Icon name="visibility" className="text-sm text-gray-400 mx-auto block" />
-                        <p className="mt-0.5 text-sm font-black text-gray-900">{(v.views ?? 0).toLocaleString("pt-BR")}</p>
-                        <p className="text-[10px] text-gray-400">visitas</p>
-                      </div>
-                    </div>
+                  <div key={v.id} className="rounded-xl border border-black/10 bg-white shadow-sm overflow-hidden">
+                    {/* Header — click to expand analytics */}
                     <button
-                      disabled={boosting === v.id}
-                      onClick={() => removeBoost(v.id)}
-                      className="w-full rounded-lg border border-black/10 py-1.5 text-xs text-gray-500 hover:bg-gray-50 transition disabled:opacity-40"
+                      className="w-full text-left p-5 hover:bg-gray-50/50 transition"
+                      onClick={() => setExpandedAd(isExpanded ? null : v.id)}
                     >
-                      Cancelar impulso
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-gray-400 uppercase tracking-wider">Anúncio ativo</p>
+                          <h4 className="mt-1 font-black text-gray-900 text-sm leading-tight">{carLabel(v)}</h4>
+                          {left && <p className="text-xs text-gray-400 mt-0.5">{left} dias restantes</p>}
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <ErpStatusBadge status={boostTier(v)} />
+                          <Icon name={isExpanded ? "expand_less" : "expand_more"} className="text-sm text-gray-400" />
+                        </div>
+                      </div>
+                      {/* Mini stats preview */}
+                      <div className="grid grid-cols-2 gap-2 text-center">
+                        <div className="rounded-md bg-gray-50 border border-black/5 py-2 px-1">
+                          <Icon name="visibility" className="text-sm text-gray-400 mx-auto block" />
+                          <p className="mt-0.5 text-sm font-black text-gray-900">{(v.views ?? 0).toLocaleString("pt-BR")}</p>
+                          <p className="text-[10px] text-gray-400">visualizações</p>
+                        </div>
+                        <div className="rounded-md bg-green-50 border border-green-100 py-2 px-1">
+                          <Icon name="chat_bubble" className="text-sm text-green-500 mx-auto block" />
+                          <p className="mt-0.5 text-sm font-black text-gray-900">{conversations.toLocaleString("pt-BR")}</p>
+                          <p className="text-[10px] text-gray-400">oportunidades</p>
+                        </div>
+                      </div>
                     </button>
+
+                    {/* Expanded analytics panel */}
+                    {isExpanded && (
+                      <div className="border-t border-black/5 px-5 py-4 bg-gray-50 space-y-3">
+                        <p className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-2">Analytics do anúncio</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2 text-gray-600">
+                              <Icon name="visibility" className="text-sm" />
+                              <span>Pessoas alcançadas</span>
+                            </div>
+                            <span className="font-black text-gray-900">{(v.views ?? 0).toLocaleString("pt-BR")}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2 text-gray-600">
+                              <Icon name="chat_bubble" className="text-sm" />
+                              <span>Oportunidades geradas</span>
+                            </div>
+                            <span className="font-black text-green-700">{conversations.toLocaleString("pt-BR")}</span>
+                          </div>
+                          {v.views > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2 text-gray-600">
+                                <Icon name="percent" className="text-sm" />
+                                <span>Taxa de conversão</span>
+                              </div>
+                              <span className="font-black text-gray-900">
+                                {((conversations / v.views) * 100).toFixed(1)}%
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="px-5 pb-4">
+                      <button
+                        disabled={boosting === v.id}
+                        onClick={() => removeBoost(v.id)}
+                        className="w-full rounded-lg border border-black/10 py-1.5 text-xs text-gray-500 hover:bg-gray-50 transition disabled:opacity-40"
+                      >
+                        Cancelar impulso
+                      </button>
+                    </div>
                   </div>
                 );
               })}
