@@ -168,7 +168,8 @@ model Vehicle {
 model ClienteFornecedor {
   id        String   @id @default(cuid())
   userId    String
-  tipo      String   @default("PF") // "PF" | "PJ"
+  tipo      String   @default("PF")      // "PF" | "PJ"
+  categoria String   @default("CLIENTE") // "CLIENTE" | "FORNECEDOR" | "AMBOS"
   nome      String
   documento String   // CPF ou CNPJ
   telefone  String?

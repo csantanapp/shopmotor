@@ -16,10 +16,10 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { tipo, nome, documento, telefone, email, endereco, cidade, estado, cep } = await req.json();
+  const { tipo, categoria, nome, documento, telefone, email, endereco, cidade, estado, cep } = await req.json();
   if (!nome || !documento) return NextResponse.json({ error: "Nome e documento são obrigatórios." }, { status: 400 });
   const item = await prisma.clienteFornecedor.create({
-    data: { userId: user.id, tipo: tipo ?? "PF", nome, documento, telefone, email, endereco, cidade, estado, cep },
+    data: { userId: user.id, tipo: tipo ?? "PF", categoria: categoria ?? "CLIENTE", nome, documento, telefone, email, endereco, cidade, estado, cep },
   });
   return NextResponse.json({ item });
 }

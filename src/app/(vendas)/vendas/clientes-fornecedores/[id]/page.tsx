@@ -48,7 +48,7 @@ export default function ClienteDetailPage({ params }: { params: { id: string } }
   const [confirm, setConfirm] = useState(false);
 
   const [form, setForm] = useState({
-    tipo: "PF", nome: "", documento: "", telefone: "",
+    tipo: "PF", categoria: "CLIENTE", nome: "", documento: "", telefone: "",
     email: "", endereco: "", cidade: "", estado: "", cep: "",
   });
 
@@ -65,6 +65,7 @@ export default function ClienteDetailPage({ params }: { params: { id: string } }
         const v = d.item;
         setForm({
           tipo:      v.tipo      ?? "PF",
+          categoria: v.categoria ?? "CLIENTE",
           nome:      v.nome      ?? "",
           documento: v.documento ?? "",
           telefone:  v.telefone  ?? "",
@@ -108,7 +109,7 @@ export default function ClienteDetailPage({ params }: { params: { id: string } }
   return (
     <ErpLayout
       title={loading ? "Ficha Cadastral" : form.nome}
-      subtitle={loading ? "" : `${form.tipo === "PF" ? "Pessoa Física" : "Pessoa Jurídica"} · ${form.documento}`}
+      subtitle={loading ? "" : `${form.categoria === "CLIENTE" ? "Cliente" : form.categoria === "FORNECEDOR" ? "Fornecedor" : "Cliente / Fornecedor"} · ${form.tipo === "PF" ? "Pessoa Física" : "Pessoa Jurídica"} · ${form.documento}`}
     >
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
@@ -131,6 +132,16 @@ export default function ClienteDetailPage({ params }: { params: { id: string } }
           {/* Ficha */}
           <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm space-y-5">
             <h2 className="font-black text-gray-900 border-b border-black/5 pb-4">Dados cadastrais</h2>
+
+            {/* Categoria */}
+            <div className="flex gap-4">
+              {[{ v: "CLIENTE", l: "Cliente" }, { v: "FORNECEDOR", l: "Fornecedor" }, { v: "AMBOS", l: "Ambos" }].map(({ v, l }) => (
+                <label key={v} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" checked={form.categoria === v} onChange={() => setF("categoria", v)} className="w-4 h-4 accent-yellow-500" />
+                  <span className="text-sm font-medium text-gray-700">{l}</span>
+                </label>
+              ))}
+            </div>
 
             {/* Tipo */}
             <div className="flex gap-6">
