@@ -79,8 +79,18 @@ export async function POST(req: NextRequest) {
     });
     if (!paymentRecord) return NextResponse.json({ ok: true });
 
-    // Idempotência: já aprovado
-    if (paymentRecord.status === "approved") return NextResponse.json({ ok: true });
+    // Idempotência: mesmo mpPaymentId já processado
+    if (paymentRecord.mpPaymentId === mpId) return NextResponse.json({ ok: true });
+
+    // Idempotência atômica: só atualiza se ainda não estiver aprovado.
+    // Se dois webhooks chegarem ao mesmo tempo, apenas um fará o UPDATE (o outro afeta 0 linhas).
+    const updated = await prisma.payment.updateMany({
+      where: { id: paymentRecord.id, status: { not: "approved" } },
+      data:  { status: "approved", mpPaymentId: mpId },
+    });
+
+    // Outra instância já processou — retornar sem re-processar
+    if (updated.count === 0) return NextResponse.json({ ok: true });
 
     const plan = PLANS[paymentRecord.plan];
     if (!plan) return NextResponse.json({ ok: true });
@@ -94,27 +104,21 @@ export async function POST(req: NextRequest) {
       await Promise.all([
         db.couponUse.create({ data: { couponId, userId: paymentRecord.userId, paymentId: paymentRecord.id } }),
         db.coupon.update({ where: { id: couponId }, data: { usesCount: { increment: 1 } } }),
-      ]);
+      ]).catch(() => {}); // ignora se cupom já foi registrado
     }
 
-    await Promise.all([
-      prisma.payment.update({
-        where: { id: paymentRecord.id },
-        data: { status: "approved", mpPaymentId: mpId },
-      }),
-      paymentRecord.vehicleId
-        ? prisma.vehicle.update({
-            where: { id: paymentRecord.vehicleId },
-            data: {
-              status:        "ACTIVE",
-              boostLevel:    plan.boostLevel,
-              boostPlan:     paymentRecord.plan as BoostPlan,
-              boostUntil,
-              boostTopUntil: boostUntil,
-            },
-          })
-        : Promise.resolve(),
-    ]);
+    if (paymentRecord.vehicleId) {
+      await prisma.vehicle.update({
+        where: { id: paymentRecord.vehicleId },
+        data: {
+          status:        "ACTIVE",
+          boostLevel:    plan.boostLevel,
+          boostPlan:     paymentRecord.plan as BoostPlan,
+          boostUntil,
+          boostTopUntil: boostUntil,
+        },
+      });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
