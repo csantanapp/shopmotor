@@ -6,6 +6,21 @@ import ErpLayout from "@/components/erp/ErpLayout";
 import Icon from "@/components/ui/Icon";
 import Link from "next/link";
 
+interface CrmHistoryEntry {
+  id: string;
+  vehicle: string;
+  vehicleId: string | null;
+  stage: string;
+  tags: string[];
+  valorProposta: number | null;
+  interesse: string | null;
+  motivoPerda: string | null;
+  mensagens: number;
+  notas: { id: string; texto: string; autorNome: string; createdAt: string }[];
+  updatedAt: string;
+  createdAt: string;
+}
+
 interface Aquisicao {
   proveniencia: string;
   vehicle: { id: string; brand: string; model: string; version?: string; yearFab: number; price: number; status: string };
@@ -41,6 +56,7 @@ export default function ClienteDetailPage({ params }: { params: { id: string } }
   const router = useRouter();
 
   const [item, setItem]       = useState<Cliente | null>(null);
+  const [crmHistory, setCrmHistory] = useState<CrmHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -76,6 +92,10 @@ export default function ClienteDetailPage({ params }: { params: { id: string } }
           cep:       v.cep       ?? "",
         });
         setLoading(false);
+        // Load CRM history
+        fetch(`/api/perfil/clientes-fornecedores/${id}/crm-history`)
+          .then(r => r.json())
+          .then(d => setCrmHistory(d.history ?? []));
       })
       .catch(() => router.push("/vendas/clientes-fornecedores"));
   }, [id, router]);
@@ -229,6 +249,81 @@ export default function ClienteDetailPage({ params }: { params: { id: string } }
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* CRM History */}
+          {crmHistory.length > 0 && (
+            <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm space-y-4">
+              <h2 className="font-black text-gray-900 border-b border-black/5 pb-4">
+                Histórico CRM <span className="text-gray-400 font-normal text-sm">({crmHistory.length} negociação{crmHistory.length !== 1 ? "ões" : ""})</span>
+              </h2>
+              <div className="space-y-4">
+                {crmHistory.map(entry => {
+                  const stageCls: Record<string, string> = {
+                    novo: "bg-blue-100 text-blue-700",
+                    atendimento: "bg-orange-100 text-orange-700",
+                    proposta: "bg-purple-100 text-purple-700",
+                    vendido: "bg-green-100 text-green-700",
+                    perdido: "bg-red-100 text-red-600",
+                  };
+                  const stageLabel: Record<string, string> = {
+                    novo: "Novo lead", atendimento: "Em Atendimento", proposta: "Proposta enviada",
+                    vendido: "Vendido", perdido: "Perdido",
+                  };
+                  return (
+                    <div key={entry.id} className="rounded-xl border border-black/5 bg-gray-50 p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-black text-gray-900 text-sm">{entry.vehicle}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{new Date(entry.createdAt).toLocaleDateString("pt-BR")}</p>
+                        </div>
+                        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${stageCls[entry.stage] ?? "bg-gray-100 text-gray-500"}`}>
+                          {stageLabel[entry.stage] ?? entry.stage}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+                        <span className="flex items-center gap-1"><Icon name="chat" className="text-sm text-gray-400" /> {entry.mensagens} mensagem{entry.mensagens !== 1 ? "s" : ""}</span>
+                        {entry.valorProposta && <span className="flex items-center gap-1 text-green-700 font-bold"><Icon name="sell" className="text-sm" /> R$ {entry.valorProposta.toLocaleString("pt-BR")}</span>}
+                        {entry.interesse && <span className="flex items-center gap-1"><Icon name="star" className="text-sm text-yellow-500" /> {entry.interesse}</span>}
+                      </div>
+
+                      {entry.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {entry.tags.map((tag: string) => (
+                            <span key={tag} className="rounded-full bg-white border border-black/10 px-2.5 py-0.5 text-[10px] font-bold text-gray-600">{tag}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      {entry.motivoPerda && (
+                        <div className="rounded-lg bg-red-50 border border-red-100 px-3 py-2 text-xs text-red-700">
+                          <span className="font-black">Motivo da perda: </span>{entry.motivoPerda}
+                        </div>
+                      )}
+
+                      {entry.notas.length > 0 && (
+                        <div className="space-y-2 pt-1">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Anotações</p>
+                          {entry.notas.map(n => (
+                            <div key={n.id} className="rounded-lg bg-yellow-50 border border-yellow-100 px-3 py-2">
+                              <p className="text-xs text-gray-700 leading-relaxed">{n.texto}</p>
+                              <p className="text-[10px] text-gray-400 mt-1">{n.autorNome} · {new Date(n.createdAt).toLocaleDateString("pt-BR")}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {entry.vehicleId && (
+                        <Link href={`/vendas/leads`} className="inline-flex items-center gap-1 text-xs font-black text-primary-container hover:opacity-80 transition">
+                          Ver conversa no CRM <Icon name="arrow_forward" className="text-xs" />
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
