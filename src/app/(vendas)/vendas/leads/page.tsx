@@ -39,6 +39,31 @@ interface LeadNota {
   createdAt: string;
 }
 
+interface FinLead {
+  id: string;
+  nome: string;
+  email: string;
+  whatsapp: string;
+  cidade: string;
+  nascimento: string;
+  valorCarro: number;
+  entrada: number;
+  financiado: number;
+  parcelas: number;
+  pmt: number;
+  prazo: string;
+  status: string;
+  notas?: { texto: string; autorNome: string; createdAt: string }[];
+  createdAt: string;
+}
+
+const FIN_STATUS_TO_COL: Record<string, ColKey> = {
+  novo: "novo", contatado: "atendimento", convertido: "vendido", descartado: "perdido",
+};
+const COL_TO_FIN_STATUS: Record<string, string> = {
+  novo: "novo", atendimento: "contatado", proposta: "contatado", vendido: "convertido", perdido: "descartado",
+};
+
 type ColKey = "novo" | "atendimento" | "proposta" | "vendido" | "perdido";
 type PanelTab = "chat" | "crm" | "notas";
 
@@ -104,6 +129,13 @@ export default function LeadsPage() {
   const [notaText, setNotaText] = useState("");
   const [addingNota, setAddingNota] = useState(false);
 
+  // Financing leads
+  const [finLeads, setFinLeads] = useState<FinLead[]>([]);
+  const [activeFin, setActiveFin] = useState<FinLead | null>(null);
+  const [finNotaText, setFinNotaText] = useState("");
+  const [addingFinNota, setAddingFinNota] = useState(false);
+  const [finUpdating, setFinUpdating] = useState(false);
+
   // Encerrar flow
   const [showEncerrar, setShowEncerrar] = useState(false);
   const [encerrarChoice, setEncerrarChoice] = useState<"vendido" | "perdido" | null>(null);
@@ -136,7 +168,14 @@ export default function LeadsPage() {
     localStorage.setItem("crm_stages", JSON.stringify(initial));
   }, []);
 
-  useEffect(() => { load().finally(() => setLoading(false)); }, [load]);
+  useEffect(() => {
+    load().finally(() => setLoading(false));
+    // Load financing leads (no plan gate needed — page already guards)
+    fetch("/api/perfil/leads-financiamento")
+      .then(r => r.ok ? r.json() : { items: [] })
+      .then(d => setFinLeads(d.items ?? []))
+      .catch(() => {});
+  }, [load]);
 
   // Load messages when active changes
   useEffect(() => {
@@ -252,6 +291,38 @@ export default function LeadsPage() {
     saveCrm({ tags: updated });
   }
 
+  async function openFin(fl: FinLead) {
+    setActiveFin({ ...fl, notas: fl.notas ?? [] });
+    setFinNotaText("");
+    const res = await fetch(`/api/perfil/leads-financiamento/${fl.id}`);
+    const data = await res.json();
+    if (data.lead) setActiveFin(data.lead);
+  }
+
+  async function finMoveStage(fl: FinLead, col: ColKey) {
+    const newStatus = COL_TO_FIN_STATUS[col] ?? "novo";
+    setFinLeads(prev => prev.map(l => l.id === fl.id ? { ...l, status: newStatus } : l));
+    if (activeFin?.id === fl.id) setActiveFin(prev => prev ? { ...prev, status: newStatus } : null);
+    await fetch(`/api/perfil/leads-financiamento/${fl.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+  }
+
+  async function addFinNota() {
+    if (!finNotaText.trim() || !activeFin) return;
+    setAddingFinNota(true);
+    const res = await fetch(`/api/perfil/leads-financiamento/${activeFin.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ addNota: finNotaText.trim(), autorNome: "Atendente" }),
+    });
+    const data = await res.json();
+    if (data.notas) { setActiveFin(prev => prev ? { ...prev, notas: data.notas } : null); setFinNotaText(""); }
+    setAddingFinNota(false);
+  }
+
   const leads = conversations.filter(c => c.sellerId === userId);
   const totalUnread = leads.filter(c => {
     const stage = stageMap[c.id];
@@ -265,6 +336,127 @@ export default function LeadsPage() {
       title="CRM de Alta Pressão"
       subtitle="Mova leads entre as etapas — responda primeiro os mais quentes"
     >
+      {/* Financing lead drawer */}
+      {activeFin && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="flex-1 bg-black/30" onClick={() => setActiveFin(null)} />
+          <div className="w-full max-w-sm bg-white flex flex-col shadow-2xl border-l border-black/10 overflow-y-auto">
+            <div className="sticky top-0 bg-white flex items-center gap-3 p-4 border-b border-black/10 z-10">
+              <button onClick={() => setActiveFin(null)} className="rounded-lg border border-black/10 p-1.5 hover:bg-gray-100">
+                <Icon name="close" className="text-gray-600 text-base" />
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-gray-900 truncate">{activeFin.nome}</p>
+                <p className="text-xs text-gray-400">Lead de financiamento · {activeFin.cidade}</p>
+              </div>
+            </div>
+
+            <div className="p-4 space-y-4 flex-1">
+              {/* Stage pills */}
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2">Etapa no CRM</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {COLUMNS.map(col => (
+                    <button
+                      key={col.key}
+                      onClick={() => finMoveStage(activeFin, col.key)}
+                      disabled={finUpdating}
+                      className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider transition ${FIN_STATUS_TO_COL[activeFin.status] === col.key ? "bg-primary-container text-black" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+                    >
+                      {col.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dados pessoais */}
+              <div className="rounded-xl border border-black/10 bg-gray-50 p-4 space-y-2.5">
+                <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">Dados pessoais</p>
+                {[
+                  ["Nascimento", activeFin.nascimento],
+                  ["Cidade", activeFin.cidade],
+                  ["WhatsApp", activeFin.whatsapp],
+                  ["E-mail", activeFin.email],
+                  ["Prazo de compra", activeFin.prazo],
+                ].map(([l, v]) => (
+                  <div key={l} className="flex justify-between gap-2 text-xs border-b border-black/5 pb-2 last:border-0 last:pb-0">
+                    <span className="text-gray-400 font-bold">{l}</span>
+                    <span className="font-black text-gray-900 text-right">{v}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Simulação */}
+              <div className="rounded-xl border border-black/10 bg-gray-50 p-4 space-y-2.5">
+                <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">Simulação de financiamento</p>
+                {[
+                  ["Valor do veículo", fmt(activeFin.valorCarro)],
+                  ["Entrada", fmt(activeFin.entrada)],
+                  ["Valor financiado", fmt(activeFin.financiado)],
+                  ["Parcelas", `${activeFin.parcelas}×`],
+                  ["Parcela estimada", fmt(activeFin.pmt)],
+                ].map(([l, v]) => (
+                  <div key={l} className="flex justify-between gap-2 text-xs border-b border-black/5 pb-2 last:border-0 last:pb-0">
+                    <span className="text-gray-400 font-bold">{l}</span>
+                    <span className="font-black text-gray-900 text-right">{v}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Ações */}
+              <div className="flex gap-2">
+                <a
+                  href={`https://wa.me/55${activeFin.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-green-500 py-2.5 text-sm font-black text-white hover:opacity-90 transition"
+                >
+                  <Icon name="chat" className="text-sm" /> WhatsApp
+                </a>
+                <a
+                  href={`mailto:${activeFin.email}`}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-black/10 py-2.5 text-sm font-black text-gray-700 hover:bg-gray-50 transition"
+                >
+                  <Icon name="mail" className="text-sm" /> E-mail
+                </a>
+              </div>
+
+              {/* Anotações */}
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-3">Anotações</p>
+                {(!activeFin.notas || activeFin.notas.length === 0) && (
+                  <div className="rounded-xl border border-dashed border-black/10 py-5 text-center mb-3">
+                    <p className="text-xs text-gray-400">Nenhuma anotação ainda</p>
+                  </div>
+                )}
+                {activeFin.notas?.map((n, i) => (
+                  <div key={i} className="mb-2 rounded-xl border border-black/5 bg-yellow-50 p-3">
+                    <p className="text-sm text-gray-800 leading-relaxed">{n.texto}</p>
+                    <div className="mt-1.5 flex justify-between">
+                      <p className="text-[10px] font-bold text-gray-400">{n.autorNome}</p>
+                      <p className="text-[10px] text-gray-400">{timeAgo(n.createdAt)}</p>
+                    </div>
+                  </div>
+                ))}
+                <textarea
+                  value={finNotaText}
+                  onChange={e => setFinNotaText(e.target.value)}
+                  rows={3}
+                  placeholder="Escreva uma anotação sobre este lead…"
+                  className="w-full rounded-xl border border-black/10 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-primary-container/50 focus:bg-white resize-none transition"
+                />
+                <button
+                  onClick={addFinNota}
+                  disabled={!finNotaText.trim() || addingFinNota}
+                  className="mt-2 w-full rounded-xl bg-primary-container py-2.5 text-sm font-black text-black disabled:opacity-40 hover:opacity-90 transition"
+                >
+                  Salvar anotação
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Chat/CRM panel slide-over */}
       {active && (
         <div className="fixed inset-0 z-50 flex">
@@ -583,6 +775,8 @@ export default function LeadsPage() {
           <div className="flex gap-4 min-w-max">
             {COLUMNS.map(col => {
               const colLeads = leads.filter(c => stageMap[c.id] === col.key);
+              const colFinLeads = finLeads.filter(fl => FIN_STATUS_TO_COL[fl.status] === col.key);
+              const totalCount = colLeads.length + colFinLeads.length;
               const NEXT_STAGE: Record<ColKey, ColKey | null> = {
                 novo: "atendimento", atendimento: "proposta", proposta: null, vendido: null, perdido: null,
               };
@@ -595,11 +789,11 @@ export default function LeadsPage() {
                       <span className={`h-2 w-2 rounded-full ${col.dot}`} />
                       <h3 className="text-sm font-black text-gray-800">{col.title}</h3>
                     </div>
-                    <span className="text-xs font-bold text-gray-400">{colLeads.length}</span>
+                    <span className="text-xs font-bold text-gray-400">{totalCount}</span>
                   </div>
 
                   <div className="flex flex-col gap-2.5 p-3 flex-1">
-                    {colLeads.length === 0 && (
+                    {totalCount === 0 && (
                       <div className="flex flex-col items-center justify-center py-8 text-center">
                         <p className="text-xs text-gray-300 font-bold">
                           {col.end ? (col.key === "vendido" ? "Nenhuma venda ainda" : "Nenhum perdido") : "Nenhum lead aqui"}
@@ -686,6 +880,51 @@ export default function LeadsPage() {
                         </div>
                       );
                     })}
+
+                    {/* Financing lead cards */}
+                    {colFinLeads.map(fl => (
+                      <div
+                        key={`fin-${fl.id}`}
+                        onClick={() => openFin(fl)}
+                        className="cursor-pointer rounded-xl border border-blue-200 bg-white p-3 hover:shadow-md hover:border-yellow-300 transition"
+                      >
+                        <div className="mb-2 flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-200 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-blue-600">
+                          <Icon name="account_balance" className="text-xs" /> Financiamento
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <Avatar name={fl.nome} url={null} size="sm" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-800 truncate">{fl.nome}</p>
+                            <p className="text-xs text-gray-400 truncate">{fl.cidade}</p>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-xs text-gray-500 leading-snug">
+                          Carro: {fmt(fl.valorCarro)} · {fl.parcelas}× de {fmt(fl.pmt)}
+                        </p>
+                        <div className="mt-3 flex items-center justify-between gap-2">
+                          <span className="text-[10px] text-gray-400">{timeAgo(fl.createdAt)}</span>
+                          {!col.end && (
+                            <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
+                              <a
+                                href={`https://wa.me/55${fl.whatsapp.replace(/\D/g, "")}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="flex items-center justify-center rounded-md bg-green-500 p-1.5 text-white hover:opacity-90"
+                              >
+                                <Icon name="chat" className="text-[11px]" />
+                              </a>
+                              {nextStage && (
+                                <button
+                                  onClick={() => finMoveStage(fl, nextStage)}
+                                  className="flex items-center gap-1 rounded-md border border-black/10 px-2 py-1 text-[10px] font-black text-gray-600 hover:bg-gray-100 transition"
+                                >
+                                  Mover <Icon name="chevron_right" className="text-[10px]" />
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
