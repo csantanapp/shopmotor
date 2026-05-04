@@ -387,20 +387,17 @@ export default function VeiculosPage() {
 
                 {/* Sugestões */}
                 {suggestions.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-[11px] font-black uppercase tracking-wider text-yellow-700 mb-2">Sugestões automáticas</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {suggestions.map(s => {
-                        const sg = suggMap[s];
-                        return (
-                          <button key={s}
-                            onClick={() => s === "impulsionar" ? setBoostVehicleId(v.id) : fire(`Ação: ${sg.label}`)}
-                            className="inline-flex items-center gap-1 rounded-md bg-primary-container px-2.5 py-1 text-[11px] font-black text-black hover:opacity-90">
-                            <Icon name={sg.icon} className="text-xs" /> {sg.label}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  <div className="mt-3 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2.5 space-y-1.5">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-yellow-700 mb-1">Sugestões para melhorar</p>
+                    {suggestions.map(s => {
+                      const sg = suggMap[s];
+                      return (
+                        <div key={s} className="flex items-center gap-2 text-xs text-yellow-800">
+                          <Icon name={sg.icon} className="text-sm text-yellow-600 shrink-0" />
+                          <span>{sg.label}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
