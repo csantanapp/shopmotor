@@ -163,6 +163,7 @@ model Vehicle {
 
   @@index([brand, model])
   @@index([state, city])
+  @@index([userId])
   @@index([price])
   @@index([status])
   @@map("vehicles")
