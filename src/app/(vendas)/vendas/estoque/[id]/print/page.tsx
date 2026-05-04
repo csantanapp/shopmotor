@@ -133,11 +133,11 @@ export default function PrintFicha({ params }: { params: { id: string } }) {
 
           {/* Vehicle title (center) */}
           <div style={{ textAlign: "center", flex: 1, padding: "0 20px" }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: "#111", lineHeight: 1.1 }}>
+            <div style={{ fontSize: 50, fontWeight: 900, color: "#111", lineHeight: 1.05 }}>
               {vehicle.brand} {vehicle.model}
             </div>
             {vehicle.version && (
-              <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>{vehicle.version}</div>
+              <div style={{ fontSize: 17, color: "#555", marginTop: 4 }}>{vehicle.version}</div>
             )}
           </div>
 
