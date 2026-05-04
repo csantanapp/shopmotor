@@ -98,6 +98,8 @@ export default function LeadsPage() {
   const [crm, setCrm] = useState<LeadCrm>({ stage: "novo", tags: [], valorProposta: null, interesse: null, motivoPerda: null });
   const [crmSaving, setCrmSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
+  const [valorInput, setValorInput] = useState("");
+  const [motivoText, setMotivoText] = useState("");
   const [notas, setNotas] = useState<LeadNota[]>([]);
   const [notaText, setNotaText] = useState("");
   const [addingNota, setAddingNota] = useState(false);
@@ -147,7 +149,12 @@ export default function LeadsPage() {
     // Load CRM data
     fetch(`/api/conversations/${active.id}/crm`)
       .then(r => r.json())
-      .then(d => d.crm && setCrm(d.crm));
+      .then(d => {
+        if (!d.crm) return;
+        setCrm(d.crm);
+        setValorInput(d.crm.valorProposta ? String(d.crm.valorProposta) : "");
+        setMotivoText(d.crm.motivoPerda ?? "");
+      });
     // Load notas
     fetch(`/api/conversations/${active.id}/notas`)
       .then(r => r.json())
@@ -157,6 +164,9 @@ export default function LeadsPage() {
     setEncerrarChoice(null);
     setMotivoInput("");
     setTagInput("");
+    setValorInput("");
+    setMotivoText("");
+    setCrm({ stage: "novo", tags: [], valorProposta: null, interesse: null, motivoPerda: null });
   }, [active]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -430,13 +440,22 @@ export default function LeadsPage() {
                 {/* Valor da proposta */}
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2">Valor da proposta (R$)</p>
-                  <input
-                    type="number"
-                    defaultValue={crm.valorProposta ?? ""}
-                    onBlur={e => saveCrm({ valorProposta: e.target.value ? Number(e.target.value) : null })}
-                    placeholder="Ex: 45000"
-                    className="w-full rounded-xl border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary-container/50"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={valorInput}
+                      onChange={e => setValorInput(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && saveCrm({ valorProposta: valorInput ? Number(valorInput) : null })}
+                      placeholder="Ex: 45000"
+                      className="flex-1 rounded-xl border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary-container/50"
+                    />
+                    <button
+                      onClick={() => saveCrm({ valorProposta: valorInput ? Number(valorInput) : null })}
+                      className="rounded-xl bg-primary-container px-3 py-2 text-xs font-black text-black hover:opacity-90 transition"
+                    >
+                      Salvar
+                    </button>
+                  </div>
                   {crm.valorProposta && (
                     <p className="mt-1 text-xs text-gray-400">{fmt(crm.valorProposta)}</p>
                   )}
@@ -473,12 +492,19 @@ export default function LeadsPage() {
                 {stageMap[active.id] === "perdido" && (
                   <div>
                     <p className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2">Motivo da perda</p>
-                    <input
-                      defaultValue={crm.motivoPerda ?? ""}
-                      onBlur={e => saveCrm({ motivoPerda: e.target.value })}
+                    <textarea
+                      value={motivoText}
+                      onChange={e => setMotivoText(e.target.value)}
+                      rows={2}
                       placeholder="Descreva o motivo…"
-                      className="w-full rounded-xl border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary-container/50"
+                      className="w-full rounded-xl border border-black/10 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary-container/50 resize-none"
                     />
+                    <button
+                      onClick={() => saveCrm({ motivoPerda: motivoText })}
+                      className="mt-1.5 rounded-xl bg-primary-container px-3 py-1.5 text-xs font-black text-black hover:opacity-90 transition"
+                    >
+                      Salvar motivo
+                    </button>
                   </div>
                 )}
 
