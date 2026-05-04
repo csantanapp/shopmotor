@@ -11,7 +11,7 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     include: {
       photos: { where: { isCover: true }, take: 1 },
-      _count: { select: { conversations: true } },
+      _count: { select: { conversations: true, favorites: true } },
     },
   });
 

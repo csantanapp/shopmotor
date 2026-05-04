@@ -24,6 +24,7 @@ interface ApiVehicle {
   km: number;
   boostLevel: string;
   photos: { url: string; isCover: boolean }[];
+  _count: { favorites: number };
 }
 
 const statusMap: Record<VehicleStatus, string> = {
@@ -357,9 +358,9 @@ export default function VeiculosPage() {
                     <p className="text-[10px] text-gray-400 uppercase">Fotos</p>
                   </div>
                   <div className="rounded-md bg-gray-50 border border-black/5 py-2">
-                    <Icon name="rocket_launch" className="text-sm text-gray-400 mx-auto block" />
-                    <p className="mt-0.5 text-sm font-black text-gray-900 capitalize">{v.boostLevel === "NONE" ? "—" : v.boostLevel.toLowerCase()}</p>
-                    <p className="text-[10px] text-gray-400 uppercase">Impulso</p>
+                    <Icon name="favorite" className="text-sm text-red-400 mx-auto block" />
+                    <p className="mt-0.5 text-sm font-black text-gray-900">{(v._count?.favorites ?? 0).toLocaleString("pt-BR")}</p>
+                    <p className="text-[10px] text-gray-400 uppercase">Favoritos</p>
                   </div>
                 </div>
 

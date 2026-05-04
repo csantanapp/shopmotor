@@ -20,6 +20,7 @@ const items = [
   { href: "/vendas/monetizacao",   label: "Financeiro",               icon: "payments"        },
   { href: "/vendas/relatorios",    label: "Relatórios",               icon: "bar_chart"       },
   { href: "/vendas/configuracoes", label: "Configurações",            icon: "settings"        },
+  { href: "/vendas/ajuda",        label: "Ajuda",                    icon: "help"            },
 ];
 
 export default function ErpSidebar() {
