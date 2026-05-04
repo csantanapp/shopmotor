@@ -172,11 +172,9 @@ export default function LeadsPage() {
     // Load financing leads (no plan gate needed — page already guards)
     fetch("/api/perfil/leads-financiamento")
       .then(r => r.ok ? r.json() : { items: [] })
-      .then(d => setFinLeads((d.items ?? []).map((item: FinLead & { notas: unknown }) => ({
+      .then(d => setFinLeads((d.items ?? []).map((item: FinLead) => ({
         ...item,
-        notas: Array.isArray(item.notas) ? item.notas
-          : typeof item.notas === "string" ? (() => { try { return JSON.parse(item.notas as string); } catch { return []; } })()
-          : [],
+        notas: Array.isArray(item.notas) ? item.notas : [],
       }))))
       .catch(() => {});
   }, [load]);

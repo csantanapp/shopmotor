@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
+type Nota = { texto: string; autorNome: string; createdAt: string };
+
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -11,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   });
   if (!lead) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  return NextResponse.json({ lead: { ...lead, notas: JSON.parse(lead.notas ?? "[]") } });
+  return NextResponse.json({ lead });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -27,13 +29,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   // Add a nota
   if (body.addNota) {
-    const notas = JSON.parse(lead.notas ?? "[]");
-    notas.push({ texto: body.addNota, autorNome: body.autorNome ?? "Atendente", createdAt: new Date().toISOString() });
+    const existing = Array.isArray(lead.notas) ? (lead.notas as Nota[]) : [];
+    const notas: Nota[] = [...existing, { texto: body.addNota, autorNome: body.autorNome ?? "Atendente", createdAt: new Date().toISOString() }];
     const updated = await prisma.financiamentoLead.update({
       where: { id: params.id },
-      data: { notas: JSON.stringify(notas) },
+      data: { notas },
     });
-    return NextResponse.json({ notas: JSON.parse(updated.notas) });
+    return NextResponse.json({ notas: updated.notas });
   }
 
   // Update status

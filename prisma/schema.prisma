@@ -493,7 +493,7 @@ model FinanciamentoLead {
   parcelas    Int
   pmt         Float
   status      String   @default("novo") // "novo" | "contatado" | "convertido" | "descartado"
-  notas       String   @default("[]")   // JSON array of {texto, autorNome, createdAt}
+  notas       Json     @default("[]")    // array of {texto, autorNome, createdAt}
   storeSlug   String?  // loja que gerou o lead (opcional)
   storeUserId String?  // userId do lojista
   vehicleId   String?  // veículo que originou o lead
