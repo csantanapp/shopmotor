@@ -30,7 +30,6 @@ interface ApiConversation {
   buyer: { id: string; name: string; avatarUrl?: string | null; phone?: string | null; email?: string | null };
   seller: { id: string; name: string; avatarUrl?: string | null };
   messages: ApiMessage[];
-  crm?: { stage: string; tags: string; valorProposta: number | null; interesse: string | null; motivoPerda: string | null } | null;
 }
 
 interface LeadNota {
@@ -110,23 +109,29 @@ export default function LeadsPage() {
 
   const load = useCallback(async () => {
     const res = await fetch("/api/conversations");
+    if (!res.ok) return;
     const data = await res.json();
     const convs: ApiConversation[] = data.conversations ?? [];
     setConversations(convs);
-    const me: string = data.currentUserId ?? convs.find(c => c.sellerId)?.sellerId ?? "";
+    const me: string = data.currentUserId ?? "";
     setUserId(me);
+
+    // Load saved stages from localStorage first (fast), then sync any missing ones
+    const saved: Record<string, ColKey> = (() => {
+      try { return JSON.parse(localStorage.getItem("crm_stages") ?? "{}"); } catch { return {}; }
+    })();
 
     const initial: Record<string, ColKey> = {};
     convs.forEach(c => {
-      const dbStage = c.crm?.stage as ColKey | undefined;
-      if (dbStage && COLUMNS.some(col => col.key === dbStage)) {
-        initial[c.id] = dbStage;
+      if (saved[c.id] && COLUMNS.some(col => col.key === saved[c.id])) {
+        initial[c.id] = saved[c.id];
       } else {
         const last = c.messages[0];
         initial[c.id] = !last || last.senderId === c.buyerId ? "novo" : "atendimento";
       }
     });
     setStageMap(initial);
+    localStorage.setItem("crm_stages", JSON.stringify(initial));
   }, []);
 
   useEffect(() => { load().finally(() => setLoading(false)); }, [load]);
