@@ -200,6 +200,14 @@ export default function LeadsPage() {
         setCrm(d.crm);
         setValorInput(d.crm.valorProposta ? String(d.crm.valorProposta) : "");
         setMotivoText(d.crm.motivoPerda ?? "");
+        // Sync stage from DB into stageMap + localStorage
+        if (d.crm.stage && COLUMNS.some(col => col.key === d.crm.stage)) {
+          setStageMap(prev => {
+            const updated = { ...prev, [active.id]: d.crm.stage as ColKey };
+            try { localStorage.setItem("crm_stages", JSON.stringify(updated)); } catch { /* noop */ }
+            return updated;
+          });
+        }
       })
       .catch(() => {});
     // Load notas
@@ -220,7 +228,11 @@ export default function LeadsPage() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   async function moveStage(convId: string, stage: ColKey) {
-    setStageMap(prev => ({ ...prev, [convId]: stage }));
+    setStageMap(prev => {
+      const updated = { ...prev, [convId]: stage };
+      try { localStorage.setItem("crm_stages", JSON.stringify(updated)); } catch { /* noop */ }
+      return updated;
+    });
     await fetch(`/api/conversations/${convId}/crm`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
