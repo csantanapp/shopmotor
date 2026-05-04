@@ -215,33 +215,13 @@ export default function PrintFicha({ params }: { params: { id: string } }) {
             </div>
 
             {/* FIPE */}
-            {(fipeEntrada || fipeAtual) && (
+            {fipeEntrada != null && (
               <div style={{ border: "1px solid #e8e8e8", borderRadius: 12, padding: "12px 14px", background: "#fafafa" }}>
                 <div style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.14em", color: "#aaa", marginBottom: 8 }}>Tabela FIPE</div>
-                <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
-                  <tbody>
-                    {fipeEntrada != null && (
-                      <tr>
-                        <td style={{ padding: "3px 0", color: "#777" }}>Valor na entrada</td>
-                        <td style={{ padding: "3px 0", fontWeight: 700, textAlign: "right", color: "#333" }}>{fmt(fipeEntrada)}</td>
-                      </tr>
-                    )}
-                    {fipeAtual != null && (
-                      <tr>
-                        <td style={{ padding: "3px 0", color: "#777" }}>Valor atual</td>
-                        <td style={{ padding: "3px 0", fontWeight: 700, textAlign: "right", color: "#333" }}>{fmt(fipeAtual)}</td>
-                      </tr>
-                    )}
-                    {fipeEntrada != null && fipeAtual != null && (
-                      <tr style={{ borderTop: "1px solid #eee" }}>
-                        <td style={{ padding: "4px 0", color: "#777", paddingTop: 6 }}>Variação</td>
-                        <td style={{ padding: "4px 0", paddingTop: 6, fontWeight: 900, textAlign: "right", color: fipeAtual >= fipeEntrada ? "#16a34a" : "#dc2626" }}>
-                          {fipeAtual >= fipeEntrada ? "+" : ""}{fmt(fipeAtual - fipeEntrada)}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 11, color: "#777" }}>Valor na entrada</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#333" }}>{fmt(fipeEntrada)}</span>
+                </div>
               </div>
             )}
 
