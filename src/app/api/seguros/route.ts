@@ -7,7 +7,7 @@ async function getStorePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE"
     where: { userId, status: "active", endsAt: { gt: new Date() } },
     select: { plan: true },
   });
-  return sub?.plan ?? null;
+  return (sub?.plan ?? null) as "STARTER" | "PRO" | "ELITE" | null;
 }
 
 export async function POST(req: NextRequest) {

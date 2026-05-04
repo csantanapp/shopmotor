@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ initPoint: preference.init_point });
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 

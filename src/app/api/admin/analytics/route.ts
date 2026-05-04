@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
       for (const r of cityRows) {
         const key = `${r.country}|${r.region ?? ""}|${r.city ?? ""}`;
         if (map[key]) map[key].count++;
-        else map[key] = { country: r.country, region: r.region ?? null, city: r.city ?? null, count: 1 };
+        else map[key] = { country: String(r.country ?? ""), region: r.region ?? null, city: r.city ?? null, count: 1 };
       }
       return Object.values(map).sort((a, b) => b.count - a.count).slice(0, 15);
     })(),

@@ -38,7 +38,7 @@ function isRateLimited(ip: string, pathname: string): boolean {
   // Limpeza periódica para não acumular memória
   if (hitMap.size > 10_000) {
     for (const [k, timestamps] of hitMap) {
-      if (timestamps.every(t => now - t > 300_000)) hitMap.delete(k);
+      if (timestamps.every((t: number) => now - t > 300_000)) hitMap.delete(k);
     }
   }
 
@@ -78,7 +78,7 @@ export async function middleware(req: NextRequest) {
     }
     try {
       const { payload } = await jwtVerify(token, JWT_SECRET);
-      if ((payload as any).role !== "ADMIN") {
+      if ((payload as { role?: string }).role !== "ADMIN") {
         return NextResponse.redirect(new URL("/", req.url));
       }
     } catch {

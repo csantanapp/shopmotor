@@ -88,18 +88,18 @@ export default function CentralMensagensPage() {
   }
 
   async function bulkArchive() {
-    await Promise.all([...selected].map(id => archive(id)));
+    await Promise.all(Array.from(selected).map(id => archive(id)));
     setSelected(new Set());
   }
 
   async function bulkDelete() {
-    await Promise.all([...selected].map(id => fetch(`/api/admin/cms-messages/${id}`, { method: "DELETE" })));
+    await Promise.all(Array.from(selected).map(id => fetch(`/api/admin/cms-messages/${id}`, { method: "DELETE" })));
     setSelected(new Set());
     load();
   }
 
   function toggleSelect(id: string) {
-    setSelected(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+    setSelected(prev => { const s = new Set(prev); if (s.has(id)) { s.delete(id); } else { s.add(id); } return s; });
   }
 
   function toggleAll() {

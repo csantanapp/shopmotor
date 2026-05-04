@@ -146,7 +146,7 @@ export default function AdminFaq() {
       ) : Object.keys(grouped).length === 0 ? (
         <div className="text-center py-20 text-neutral-600">
           <Icon name="quiz" className="text-5xl mb-3 block mx-auto" />
-          <p>Nenhuma pergunta cadastrada. Clique em "Nova pergunta" para começar.</p>
+          <p>Nenhuma pergunta cadastrada. Clique em &quot;Nova pergunta&quot; para começar.</p>
         </div>
       ) : (
         <div className="space-y-6">

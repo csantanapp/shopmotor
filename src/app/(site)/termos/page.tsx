@@ -126,7 +126,7 @@ export default async function TermosPage() {
 
           <Section title="9. Encerramento de Conta">
             <p>
-              Você pode encerrar sua conta a qualquer momento pela seção "Minha Conta". A ShopMotor também pode suspender
+              Você pode encerrar sua conta a qualquer momento pela seção &quot;Minha Conta&quot;. A ShopMotor também pode suspender
               ou encerrar contas que violem estes Termos de Uso, sem aviso prévio.
             </p>
           </Section>

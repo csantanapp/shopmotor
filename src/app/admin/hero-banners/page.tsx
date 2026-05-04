@@ -50,7 +50,7 @@ export default function HeroBannersPage() {
   useEffect(() => {
     fetch("/api/admin/hero-banners")
       .then(r => r.json())
-      .then((data: Banner[]) => setBanners(data.map(b => ({ active: false, ...b }))))
+      .then((data: Banner[]) => setBanners(data.map(b => ({ ...b, active: b.active ?? false }))))
       .catch(() => {});
   }, []);
 

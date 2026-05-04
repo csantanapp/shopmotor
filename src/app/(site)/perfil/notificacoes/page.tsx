@@ -80,7 +80,7 @@ export default function NotificacoesPage() {
 
       {!loading && items.length > 0 && (
         <div className="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
-          {items.map((n, i) => (
+          {items.map((n) => (
             <div
               key={n.id}
               className={`flex items-start gap-4 px-6 py-4 border-b border-neutral-100 last:border-0 ${!n.readAt ? "bg-primary-container/5" : ""}`}

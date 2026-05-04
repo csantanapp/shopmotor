@@ -151,7 +151,7 @@ export default function AdminUsuarios() {
                 <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4">
                     <p className="text-sm text-white font-semibold">{u.name}</p>
-                    {u.nickname && <p className="text-xs text-neutral-500">"{u.nickname}"</p>}
+                    {u.nickname && <p className="text-xs text-neutral-500">&quot;{u.nickname}&quot;</p>}
                     {u.role === "ADMIN" && (
                       <span className="text-[10px] font-black text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">ADMIN</span>
                     )}

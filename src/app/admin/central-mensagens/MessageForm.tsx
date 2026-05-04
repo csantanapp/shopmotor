@@ -118,8 +118,7 @@ export default function MessageForm({ messageId }: { messageId?: string }) {
     };
     const url  = isEdit ? `/api/admin/cms-messages/${messageId}` : "/api/admin/cms-messages";
     const method = isEdit ? "PUT" : "POST";
-    const r = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-    const d = await r.json();
+    await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     setSaving(false);
 
     // Salvar como template

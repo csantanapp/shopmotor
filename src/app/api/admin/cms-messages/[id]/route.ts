@@ -92,7 +92,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     // Email
     if (channels.includes("email") && user.email && !(user as any).emailUnsubscribed) {
       await sendCmsEmail({
-        to: user.email, name: user.name, userId: user.id as string,
+        to: user.email, userId: user.id as string,
         title: msg.title, body: msg.body,
         ctaLabel: msg.ctaLabel, ctaUrl: msg.ctaUrl,
       });

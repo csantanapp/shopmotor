@@ -207,7 +207,7 @@ export default async function OGImage({ params }: { params: { id: string } }) {
   }
 }
 
-function fallback(baseUrl: string) {
+function fallback(_baseUrl: string) {
   return new ImageResponse(
     <div
       style={{

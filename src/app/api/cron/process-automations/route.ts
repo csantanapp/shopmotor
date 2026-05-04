@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       }
       if (channels.includes("email") && user.email && !user.emailUnsubscribed) {
         await sendCmsEmail({
-          to: user.email, name: user.name, userId: user.id,
+          to: user.email, userId: user.id,
           title: auto.title, body: auto.body,
           ctaLabel: auto.ctaLabel, ctaUrl: auto.ctaUrl,
         });

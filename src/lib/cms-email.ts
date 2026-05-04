@@ -11,9 +11,9 @@ function unsubscribeLink(userId: string) {
 }
 
 export async function sendCmsEmail({
-  to, name, userId, title, body, ctaLabel, ctaUrl,
+  to, userId, title, body, ctaLabel, ctaUrl,
 }: {
-  to: string; name?: string | null; userId: string;
+  to: string; userId: string;
   title: string; body: string;
   ctaLabel?: string | null; ctaUrl?: string | null;
 }) {

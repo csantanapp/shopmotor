@@ -28,7 +28,7 @@ export async function createNotification({
   actionUrl?: string;
 }) {
   try {
-    await (prisma as any).notification.create({
+    await (prisma as unknown as { notification: { create: (args: unknown) => Promise<unknown> } }).notification.create({
       data: { userId, type, title, body, vehicleId: vehicleId ?? null, actionUrl: actionUrl ?? null },
     });
   } catch (e) {

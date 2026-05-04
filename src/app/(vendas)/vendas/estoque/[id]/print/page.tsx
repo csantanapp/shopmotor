@@ -30,18 +30,11 @@ function fmt(n?: number | null) {
   return `R$ ${n.toLocaleString("pt-BR")}`;
 }
 
-const FEATURE_GROUPS = [
-  ["Ar condicionado","Direção hidráulica/elétrica","Vidros elétricos","Travas elétricas","Retrovisores elétricos","Bancos em couro","Piloto automático"],
-  ["Airbag","Freio ABS","Controle de tração"],
-  ["Carplay","Sensor de estacionamento","Faróis de LED/Xenon","Teto solar","Rodas liga leve","Tração 4x4"],
-  ["IPVA Pago","Licenciado","Único dono","Garantia de fábrica","Todas revisões feitas pela concessionária"],
-];
 
 export default function PrintFicha({ params }: { params: { id: string } }) {
   const { id } = params;
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [store, setStore]     = useState<Store | null>(null);
-  const [fipeAtual, setFipeAtual] = useState<number | null>(null);
   const printed = useRef(false);
 
   useEffect(() => {
@@ -57,17 +50,6 @@ export default function PrintFicha({ params }: { params: { id: string } }) {
       setVehicle(v);
       setStore(sd.user ?? sd);
 
-      if (v.fipeBrandCode && v.fipeModelCode && v.fipeYearCode) {
-        const type = v.vehicleType === "MOTO" ? "MOTO" : "CAR";
-        fetch(`/api/fipe/brands/${v.fipeBrandCode}/models/${v.fipeModelCode}/years/${v.fipeYearCode}?vehicleType=${type}`)
-          .then(r => r.json())
-          .then(fipe => {
-            if (fipe?.price) {
-              setFipeAtual(Math.round(Number(fipe.price.replace(/[^\d,]/g, "").replace(",", "."))));
-            }
-          })
-          .catch(() => {});
-      }
     });
   }, [id]);
 

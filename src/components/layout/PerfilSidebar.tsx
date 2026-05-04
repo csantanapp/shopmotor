@@ -19,7 +19,7 @@ export default function PerfilSidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  const isPJ = (user as any)?.accountType === "PJ";
+  const isPJ = (user as { accountType?: string } | null)?.accountType === "PJ";
   const planLabel = isPJ ? (user?.plan === "PREMIUM" ? "Vendedor Premium" : "Plano Grátis") : null;
 
   return (

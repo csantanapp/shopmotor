@@ -212,7 +212,7 @@ export default function LojaPage() {
             { label: `Destaques (${planConfig?.destaques ?? 0}/mês)`, value: String(planConfig?.destaques ?? 0), icon: "bolt", color: "text-yellow-600" },
             { label: "Visualizações (30d)", value: analytics ? analytics.last30Total.toLocaleString("pt-BR") : hasAnalytics ? "..." : "—", icon: "visibility", color: hasAnalytics ? "text-blue-600" : "text-on-surface-variant", locked: !hasAnalytics },
           ].map(stat => (
-            <VehicleCountCard key={stat.label} stat={stat} storeSlug={store.storeSlug} analytics={analytics} hasAnalytics={hasAnalytics} />
+            <VehicleCountCard key={stat.label} stat={stat} storeSlug={store.storeSlug} />
           ))}
         </div>
       )}
@@ -478,9 +478,9 @@ export default function LojaPage() {
 }
 
 // Componente separado para buscar contagem de veículos
-function VehicleCountCard({ stat, storeSlug, analytics, hasAnalytics }: {
+function VehicleCountCard({ stat, storeSlug }: {
   stat: { label: string; value: string; icon: string; color: string; locked?: boolean; load?: boolean };
-  storeSlug: string; analytics: AnalyticsData | null; hasAnalytics: boolean;
+  storeSlug: string;
 }) {
   const [count, setCount] = useState<number | null>(null);
   useEffect(() => {

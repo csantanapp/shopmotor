@@ -12,20 +12,15 @@ export default function ComunicadoVendaPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selected, setSelected] = useState<string>("");
   const [form, setForm] = useState({ comprador: "", cpfCnpj: "", data: "", valor: "", observacoes: "" });
-  const [loading, setLoading] = useState(true);
-  const [printed, setPrinted] = useState(false);
-
   useEffect(() => {
     fetch("/api/vehicles/mine").then(r => r.json()).then(d => {
       setVehicles(d.vehicles ?? []);
-      setLoading(false);
     });
   }, []);
 
   const vehicle = vehicles.find(v => v.id === selected);
 
   function handlePrint() {
-    setPrinted(true);
     setTimeout(() => window.print(), 200);
   }
 

@@ -51,6 +51,7 @@ export async function PATCH(req: NextRequest) {
     if (!body.currentPassword) {
       return NextResponse.json({ error: "Senha atual obrigatória." }, { status: 400 });
     }
+    if (!user.passwordHash) return NextResponse.json({ error: "Conta vinculada ao Google não possui senha local." }, { status: 400 });
     const valid = await bcrypt.compare(body.currentPassword, user.passwordHash);
     if (!valid) return NextResponse.json({ error: "Senha atual incorreta." }, { status: 400 });
     if (body.newPassword.length < 8) {
@@ -92,6 +93,7 @@ export async function DELETE(req: NextRequest) {
   const { password } = await req.json();
   if (!password) return NextResponse.json({ error: "Senha obrigatória para excluir a conta." }, { status: 400 });
 
+  if (!user.passwordHash) return NextResponse.json({ error: "Conta vinculada ao Google não possui senha local." }, { status: 400 });
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return NextResponse.json({ error: "Senha incorreta." }, { status: 400 });
 

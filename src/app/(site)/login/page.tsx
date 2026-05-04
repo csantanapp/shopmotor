@@ -3,13 +3,12 @@
 import { Suspense } from "react";
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
 
 function LoginForm() {
   const { login } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const rawRedirect = searchParams.get("redirect") ?? "/perfil";
   // Bloqueia open redirect: aceita apenas paths internos (começa com / mas não com //)

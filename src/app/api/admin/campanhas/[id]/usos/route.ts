@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   });
 
   // Buscar dados dos usuários
-  const userIds = [...new Set(uses.map((u: any) => u.userId))];
+  const userIds = Array.from(new Set(uses.map((u: any) => u.userId as string)));
   const users = await prisma.user.findMany({
     where: { id: { in: userIds as string[] } },
     select: { id: true, name: true, email: true, accountType: true },

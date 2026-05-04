@@ -75,7 +75,6 @@ const COLUMNS: { key: ColKey; title: string; dot: string; end?: boolean }[] = [
   { key: "perdido",     title: "Perdido",          dot: "bg-red-400",   end: true },
 ];
 
-const ACTIVE_COLS: ColKey[] = ["novo", "atendimento", "proposta"];
 
 const INTERESSE_OPTS = ["Muito interessado", "Interessado", "Pouco interessado", "Só pesquisando"];
 
@@ -134,7 +133,7 @@ export default function LeadsPage() {
   const [activeFin, setActiveFin] = useState<FinLead | null>(null);
   const [finNotaText, setFinNotaText] = useState("");
   const [addingFinNota, setAddingFinNota] = useState(false);
-  const [finUpdating, setFinUpdating] = useState(false);
+  const finUpdating = false;
 
   // Encerrar flow
   const [showEncerrar, setShowEncerrar] = useState(false);

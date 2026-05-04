@@ -43,9 +43,7 @@ export default function MonetizacaoPage() {
   const [data, setData]       = useState<MonData | null>(null);
   const [sub, setSub]         = useState<{ plan: string; amount: number; endsAt: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast]     = useState("");
 
-  const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   useEffect(() => {
     Promise.all([
@@ -62,9 +60,6 @@ export default function MonetizacaoPage() {
 
   return (
     <ErpLayout title="Monetização" subtitle="Visão comercial — receita por canal e planos">
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
-      )}
 
       {/* KPIs */}
       <div className="grid gap-4 md:grid-cols-4 mb-6">
