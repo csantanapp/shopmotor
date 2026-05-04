@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const COOKIE_NAME = "shopmotor_token";
-const JWT_SECRET  = new TextEncoder().encode(process.env.JWT_SECRET ?? "shopmotor_secret_2024_xK9mP2qR");
+
+function resolveJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("[shopmotor] JWT_SECRET environment variable is not set. Define it before starting the server.");
+  return new TextEncoder().encode(secret);
+}
+const JWT_SECRET = resolveJwtSecret();
 
 // ── Rate limiting em memória (sliding window) ─────────────────────────────────
 // Limites por rota sensível (requests por janela de tempo)

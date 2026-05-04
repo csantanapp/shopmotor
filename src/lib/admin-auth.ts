@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? "shopmotor_secret_2024_xK9mP2qR");
+function resolveJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("[shopmotor] JWT_SECRET environment variable is not set. Define it before starting the server.");
+  return new TextEncoder().encode(secret);
+}
+const JWT_SECRET = resolveJwtSecret();
 
 export async function requireAdmin(_req?: Request) {
   try {
