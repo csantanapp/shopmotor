@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/ui/Icon";
@@ -46,6 +46,7 @@ export default function CadastroPage() {
   const [accountType, setAccountType] = useState<"PF" | "PJ">("PF");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const submitting = useRef(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
@@ -61,6 +62,7 @@ export default function CadastroPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitting.current) return;
     setError("");
 
     if (form.password !== form.confirmPassword) { setError("As senhas não coincidem."); return; }
@@ -68,6 +70,7 @@ export default function CadastroPage() {
     if (accountType === "PJ" && !form.cnpj) { setError("Informe o CNPJ."); return; }
     if (accountType === "PJ" && !form.companyName) { setError("Informe a Razão Social."); return; }
 
+    submitting.current = true;
     setLoading(true);
 
     const res = await fetch("/api/auth/register", {
@@ -77,6 +80,7 @@ export default function CadastroPage() {
     });
 
     const data = await res.json();
+    submitting.current = false;
     setLoading(false);
 
     if (!res.ok) { setError(data.error ?? "Erro ao criar conta."); return; }

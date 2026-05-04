@@ -24,10 +24,13 @@ function LoginForm() {
 
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const submitting = useRef(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitting.current) return;
     setError("");
+    submitting.current = true;
     setLoading(true);
 
     const result = await login(
@@ -35,6 +38,7 @@ function LoginForm() {
       passwordRef.current!.value
     );
 
+    submitting.current = false;
     setLoading(false);
 
     if (result.error) {
