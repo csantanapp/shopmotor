@@ -71,21 +71,79 @@ const suggMap: Record<string, { label: string; icon: string }> = {
   preco:       { label: "Ajustar preço", icon: "sell" },
 };
 
+const BOOST_PLANS = [
+  {
+    key: "TURBO",
+    name: "Turbo",
+    tagline: "Mais visibilidade no feed por 7 dias",
+    price: "R$ 49",
+    period: "7 dias",
+    features: ["3× mais visualizações", "Selo Turbo no anúncio", "Aparece no topo da categoria"],
+    highlight: false,
+    color: "border-yellow-300 bg-yellow-50",
+    badge: "bg-yellow-100 text-yellow-700",
+  },
+  {
+    key: "DESTAQUE",
+    name: "Destaque",
+    tagline: "Posição premium por 15 dias",
+    price: "R$ 129",
+    period: "15 dias",
+    features: ["5× mais visualizações", "Posição fixa no topo", "Inclusão em e-mail marketing"],
+    highlight: true,
+    color: "border-primary-container bg-primary-container/10",
+    badge: "bg-primary-container text-black",
+  },
+  {
+    key: "SUPER_DESTAQUE",
+    name: "Super Destaque",
+    tagline: "Máxima exposição por 30 dias",
+    price: "R$ 289",
+    period: "30 dias",
+    features: ["10× mais visualizações", "Banner na home do ShopMotor", "Prioridade em buscas"],
+    highlight: false,
+    color: "border-purple-200 bg-purple-50",
+    badge: "bg-purple-100 text-purple-700",
+  },
+];
+
 export default function VeiculosPage() {
   const [vehicles, setVehicles] = useState<ApiVehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [toast, setToast] = useState("");
+  const [boostVehicleId, setBoostVehicleId] = useState<string | null>(null);
+  const [boosting, setBoosting] = useState(false);
 
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
-  useEffect(() => {
-    fetch("/api/vehicles/mine")
-      .then(r => r.json())
-      .then(d => setVehicles(d.vehicles ?? []))
-      .finally(() => setLoading(false));
-  }, []);
+  const load = () => fetch("/api/vehicles/mine")
+    .then(r => r.json())
+    .then(d => setVehicles(d.vehicles ?? []))
+    .finally(() => setLoading(false));
+
+  useEffect(() => { load(); }, []);
+
+  async function applyBoost(plan: string) {
+    if (!boostVehicleId) return;
+    setBoosting(true);
+    const res = await fetch(`/api/vehicles/${boostVehicleId}/boost`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    setBoosting(false);
+    setBoostVehicleId(null);
+    if (res.ok) {
+      fire(`Impulsionamento ${plan.replace("_", " ")} ativado!`);
+      load();
+    } else {
+      fire("Erro ao ativar impulsionamento.");
+    }
+  }
+
+  const boostVehicle = vehicles.find(v => v.id === boostVehicleId);
 
   const filtered = vehicles.filter(v => {
     const q = search.toLowerCase();
@@ -106,6 +164,60 @@ export default function VeiculosPage() {
     >
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
+      )}
+
+      {/* Modal impulsionamento */}
+      {boostVehicleId && boostVehicle && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4" onClick={() => setBoostVehicleId(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-black/10">
+              <div>
+                <p className="font-black text-gray-900">Impulsionar veículo</p>
+                <p className="text-sm text-gray-400 mt-0.5">{boostVehicle.brand} {boostVehicle.model}{boostVehicle.version ? ` ${boostVehicle.version}` : ""}</p>
+              </div>
+              <button onClick={() => setBoostVehicleId(null)} className="p-1 rounded-lg hover:bg-gray-100">
+                <Icon name="close" className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-500 mb-6 text-center">Escolha o plano de impulsionamento para aumentar a visibilidade deste veículo:</p>
+              <div className="grid gap-4 md:grid-cols-3">
+                {BOOST_PLANS.map(plan => (
+                  <div key={plan.key}
+                    className={`relative rounded-2xl border-2 p-5 flex flex-col gap-3 transition ${plan.color} ${plan.highlight ? "ring-2 ring-primary-container ring-offset-2" : ""}`}>
+                    {plan.highlight && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <span className="bg-primary-container text-black text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow">
+                          Mais popular
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-black uppercase tracking-wider rounded-full px-2.5 py-0.5 ${plan.badge}`}>{plan.name}</span>
+                      <span className="text-xs text-gray-400">{plan.period}</span>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-gray-900">{plan.price}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{plan.tagline}</p>
+                    </div>
+                    <ul className="space-y-1.5 flex-1">
+                      {plan.features.map(f => (
+                        <li key={f} className="flex items-center gap-2 text-xs text-gray-700">
+                          <Icon name="check_circle" className="text-green-500 text-sm shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    <button onClick={() => applyBoost(plan.key)} disabled={boosting}
+                      className={`w-full py-2.5 rounded-xl text-sm font-black transition disabled:opacity-50 ${plan.highlight ? "bg-primary-container text-black hover:opacity-90" : "bg-gray-900 text-white hover:bg-gray-800"}`}>
+                      {boosting ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />Ativando…</span> : `Ativar ${plan.name}`}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Filtros */}
@@ -265,6 +377,12 @@ export default function VeiculosPage() {
                   >
                     <Icon name="edit" className="text-xs" /> Editar
                   </Link>
+                  <button
+                    onClick={() => setBoostVehicleId(v.id)}
+                    className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-primary-container py-2 text-xs font-black text-black hover:opacity-90 transition"
+                  >
+                    <Icon name="rocket_launch" className="text-xs" /> Impulsionar
+                  </button>
                 </div>
 
                 {/* Sugestões */}
@@ -275,7 +393,9 @@ export default function VeiculosPage() {
                       {suggestions.map(s => {
                         const sg = suggMap[s];
                         return (
-                          <button key={s} onClick={() => fire(`Ação: ${sg.label}`)} className="inline-flex items-center gap-1 rounded-md bg-primary-container px-2.5 py-1 text-[11px] font-black text-black hover:opacity-90">
+                          <button key={s}
+                            onClick={() => s === "impulsionar" ? setBoostVehicleId(v.id) : fire(`Ação: ${sg.label}`)}
+                            className="inline-flex items-center gap-1 rounded-md bg-primary-container px-2.5 py-1 text-[11px] font-black text-black hover:opacity-90">
                             <Icon name={sg.icon} className="text-xs" /> {sg.label}
                           </button>
                         );
