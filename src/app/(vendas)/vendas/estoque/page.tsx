@@ -16,6 +16,28 @@ export default function EstoquePage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("ALL");
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [selling, setSelling] = useState(false);
+  const [toast, setToast] = useState("");
+
+  function fire(msg: string) { setToast(msg); setTimeout(() => setToast(""), 3000); }
+
+  async function handleVender(id: string) {
+    setSelling(true);
+    const res = await fetch(`/api/vehicles/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "SOLD" }),
+    });
+    setSelling(false);
+    setConfirmId(null);
+    if (res.ok) {
+      setVehicles(vs => vs.map(v => v.id === id ? { ...v, status: "SOLD" } : v));
+      fire("Veículo marcado como vendido!");
+    } else {
+      fire("Erro ao registrar venda.");
+    }
+  }
 
   useEffect(() => {
     fetch("/api/vehicles/mine").then(r => r.json()).then(d => {
@@ -29,8 +51,42 @@ export default function EstoquePage() {
   const draft    = vehicles.filter(v => v.status === "DRAFT").length;
   const pausados = vehicles.filter(v => v.status === "PAUSED").length;
 
+  const confirmVehicle = vehicles.find(v => v.id === confirmId);
+
   return (
     <ErpLayout title="Estoque" subtitle="Todos os veículos cadastrados na sua loja">
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
+      )}
+
+      {/* Confirm modal */}
+      {confirmId && confirmVehicle && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmId(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                <Icon name="sell" className="text-green-600 text-lg" />
+              </div>
+              <div>
+                <p className="font-black text-gray-900">Registrar venda</p>
+                <p className="text-sm text-gray-500 mt-0.5">{confirmVehicle.brand} {confirmVehicle.model}</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">O veículo será removido do estoque e movido para <strong>Vendidos</strong>. Confirma?</p>
+            <div className="flex gap-3">
+              <button onClick={() => handleVender(confirmId)} disabled={selling}
+                className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white py-2.5 rounded-xl font-black text-sm hover:bg-green-600 transition disabled:opacity-50">
+                {selling && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                Confirmar venda
+              </button>
+              <button onClick={() => setConfirmId(null)}
+                className="px-5 py-2.5 rounded-xl border border-black/10 text-sm text-gray-500 hover:bg-gray-50">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="grid gap-4 md:grid-cols-4 mb-6">
         <ErpKpiCard label="Total" value={String(vehicles.length)} icon="inventory" />
         <ErpKpiCard label="Ativos" value={String(ativos)} icon="check_circle" accent={ativos > 0} />
@@ -99,6 +155,12 @@ export default function EstoquePage() {
                         className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-black text-gray-600 hover:bg-gray-50 transition">
                         Editar
                       </Link>
+                      {v.status !== "SOLD" && (
+                        <button onClick={() => setConfirmId(v.id)}
+                          className="rounded-lg bg-green-500 px-3 py-1.5 text-xs font-black text-white hover:bg-green-600 transition whitespace-nowrap">
+                          Vender
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
