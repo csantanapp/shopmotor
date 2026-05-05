@@ -5,6 +5,8 @@ import { sendExpirationWarningEmail } from "@/lib/vehicle-emails";
 // Roda 1x por dia — avisa anunciantes cujo anúncio expira em ~3 dias
 export async function POST(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
+  if (!secret && process.env.NODE_ENV === "production")
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
   if (secret) {
     const auth = req.headers.get("authorization");
     if (auth !== `Bearer ${secret}`)
