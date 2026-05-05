@@ -17,7 +17,6 @@ const items = [
   { href: "/vendas/anuncios",      label: "Impulsionamento",          icon: "rocket_launch"   },
   { href: "/vendas/comunicado-venda",  label: "Comunicado de Venda",  icon: "description"     },
   { href: "/vendas/monetizacao",   label: "Financeiro",               icon: "payments"        },
-  { href: "/vendas/relatorios",    label: "Relatórios",               icon: "bar_chart"       },
   { href: "/vendas/configuracoes", label: "Configurações",            icon: "settings"        },
   { href: "/vendas/ajuda",        label: "Ajuda",                    icon: "help"            },
 ];

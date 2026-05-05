@@ -30,7 +30,6 @@ const MODULES = [
   { key: "anuncios",      label: "Impulsionamento",         icon: "rocket_launch" },
   { key: "comunicado",    label: "Comunicado de Venda",     icon: "description" },
   { key: "financeiro",    label: "Financeiro",              icon: "payments" },
-  { key: "relatorios",    label: "Relatórios",              icon: "bar_chart" },
 ];
 
 interface Vendedor { id: string; nome: string; loja: string }
