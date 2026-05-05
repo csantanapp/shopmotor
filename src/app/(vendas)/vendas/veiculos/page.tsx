@@ -118,7 +118,9 @@ export default function VeiculosPage() {
   const [toast, setToast] = useState("");
   const [boostVehicleId, setBoostVehicleId] = useState<string | null>(null);
   const [boosting, setBoosting] = useState(false);
-  const [olxLoading, setOlxLoading] = useState<string | null>(null); // vehicleId em progresso
+  const [olxLoading, setOlxLoading] = useState<string | null>(null);
+  const [pauseLoading, setPauseLoading] = useState<string | null>(null);
+  const olxEnabled = process.env.NEXT_PUBLIC_OLX_ENABLED === "true";
 
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -159,6 +161,23 @@ export default function VeiculosPage() {
     } else {
       const data = await res.json().catch(() => ({}));
       fire(data.error ?? "Erro ao integrar com a OLX.");
+    }
+  }
+
+  async function handlePause(vehicleId: string, currentStatus: string) {
+    setPauseLoading(vehicleId);
+    const newStatus = currentStatus === "PAUSED" ? "ACTIVE" : "PAUSED";
+    const res = await fetch(`/api/vehicles/${vehicleId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    setPauseLoading(null);
+    if (res.ok) {
+      fire(newStatus === "PAUSED" ? "Anúncio pausado." : "Anúncio reativado!");
+      load();
+    } else {
+      fire("Erro ao alterar status do anúncio.");
     }
   }
 
@@ -404,24 +423,46 @@ export default function VeiculosPage() {
                   </button>
                 </div>
 
-                {/* OLX */}
-                <button
-                  onClick={() => handleOlx(v.id, !!v.olxAdId)}
-                  disabled={olxLoading === v.id || v.status !== "ACTIVE"}
-                  title={v.status !== "ACTIVE" ? "Apenas veículos ativos podem ser publicados na OLX" : v.olxAdId ? "Remover da OLX" : "Publicar na OLX"}
-                  className={`mt-2 w-full flex items-center justify-center gap-2 rounded-lg border py-2 text-xs font-black transition disabled:opacity-40 disabled:cursor-not-allowed
-                    ${v.olxAdId
-                      ? "border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100"
-                      : "border-black/10 bg-white text-gray-600 hover:bg-gray-50"
-                    }`}
-                >
-                  {olxLoading === v.id ? (
-                    <span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-                  ) : (
-                    <Icon name={v.olxAdId ? "link_off" : "share"} className="text-xs" />
-                  )}
-                  {v.olxAdId ? `OLX: publicado${v.olxStatus === "published" ? " ✓" : ""}` : "Publicar na OLX"}
-                </button>
+                {/* Pausar / Reativar */}
+                {(v.status === "ACTIVE" || v.status === "PAUSED") && (
+                  <button
+                    onClick={() => handlePause(v.id, v.status)}
+                    disabled={pauseLoading === v.id}
+                    className={`mt-2 w-full flex items-center justify-center gap-2 rounded-lg border py-2 text-xs font-black transition disabled:opacity-40
+                      ${v.status === "PAUSED"
+                        ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
+                        : "border-black/10 bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                  >
+                    {pauseLoading === v.id ? (
+                      <span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    ) : (
+                      <Icon name={v.status === "PAUSED" ? "play_arrow" : "pause"} className="text-xs" />
+                    )}
+                    {v.status === "PAUSED" ? "Reativar anúncio" : "Pausar anúncio"}
+                  </button>
+                )}
+
+                {/* OLX — só exibe se integração estiver ativa */}
+                {olxEnabled && (
+                  <button
+                    onClick={() => handleOlx(v.id, !!v.olxAdId)}
+                    disabled={olxLoading === v.id || v.status !== "ACTIVE"}
+                    title={v.status !== "ACTIVE" ? "Apenas veículos ativos podem ser publicados na OLX" : v.olxAdId ? "Remover da OLX" : "Publicar na OLX"}
+                    className={`mt-2 w-full flex items-center justify-center gap-2 rounded-lg border py-2 text-xs font-black transition disabled:opacity-40 disabled:cursor-not-allowed
+                      ${v.olxAdId
+                        ? "border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100"
+                        : "border-black/10 bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                  >
+                    {olxLoading === v.id ? (
+                      <span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    ) : (
+                      <Icon name={v.olxAdId ? "link_off" : "share"} className="text-xs" />
+                    )}
+                    {v.olxAdId ? `OLX: publicado${v.olxStatus === "published" ? " ✓" : ""}` : "Publicar na OLX"}
+                  </button>
+                )}
 
                 {/* Sugestões */}
                 {suggestions.length > 0 && (
