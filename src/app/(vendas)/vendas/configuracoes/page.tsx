@@ -512,6 +512,41 @@ export default function ConfiguracoesPage() {
           )}
         </div>
 
+      {/* Integrações */}
+      <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm space-y-4">
+        <h2 className="font-black text-gray-900 border-b border-black/5 pb-4">Integrações</h2>
+
+        {/* OLX */}
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-black/10 bg-gray-50 p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#6E0AD6] flex items-center justify-center shrink-0">
+              <span className="text-white font-black text-sm">OLX</span>
+            </div>
+            <div>
+              <p className="font-black text-gray-900 text-sm">OLX Autos</p>
+              <p className="text-xs text-gray-500 mt-0.5">Publique seus veículos diretamente no marketplace da OLX</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-300 bg-yellow-50 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-yellow-700">
+              <Icon name="schedule" className="text-xs" /> Pendente
+            </span>
+            <a
+              href="https://developer.olx.com.br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs font-black text-gray-700 hover:bg-gray-100 transition"
+            >
+              <Icon name="open_in_new" className="text-xs" /> Solicitar acesso
+            </a>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-400">
+          Para ativar a integração OLX, solicite as credenciais de API e informe ao suporte ShopMotor.
+        </p>
+      </div>
+
       </div>
     </ErpLayout>
   );
