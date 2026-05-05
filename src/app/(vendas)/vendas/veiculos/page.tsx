@@ -195,7 +195,7 @@ export default function VeiculosPage() {
       title="Gestão de Veículos"
       subtitle={`${vehicles.length} veículo${vehicles.length !== 1 ? "s" : ""} no seu estoque`}
       action={
-        <Link href="/perfil/cadastrar" className="flex items-center gap-2 rounded-xl bg-primary-container px-4 py-2 text-sm font-black text-black hover:opacity-90 transition">
+        <Link href="/vendas/veiculos/novo" className="flex items-center gap-2 rounded-xl bg-primary-container px-4 py-2 text-sm font-black text-black hover:opacity-90 transition">
           <Icon name="add" className="text-base" /> Cadastrar veículo
         </Link>
       }
@@ -302,7 +302,7 @@ export default function VeiculosPage() {
             {vehicles.length === 0 ? "Cadastre seu primeiro veículo para começar a vender." : "Tente ajustar os filtros."}
           </p>
           {vehicles.length === 0 && (
-            <Link href="/perfil/cadastrar" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary-container px-5 py-2.5 text-sm font-black text-black hover:opacity-90">
+            <Link href="/vendas/veiculos/novo" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary-container px-5 py-2.5 text-sm font-black text-black hover:opacity-90">
               <Icon name="add" className="text-base" /> Cadastrar agora
             </Link>
           )}
