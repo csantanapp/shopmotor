@@ -370,12 +370,6 @@ export default function ConfiguracoesPage() {
                   <span className="flex items-center gap-2 text-gray-700"><Icon name="chat" className="text-green-500 text-sm" /> WhatsApp Business</span>
                   <span className="rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-[11px] font-black">Conectado</span>
                 </li>
-                {["Mercado Pago", "Webmotors API", "iCarros API"].map(s => (
-                  <li key={s} className="flex items-center justify-between">
-                    <span className="text-gray-500">{s}</span>
-                    <button onClick={() => fire(`Conectando ${s}…`)} className="text-xs font-black text-yellow-700 hover:underline">Conectar</button>
-                  </li>
-                ))}
               </ul>
             </div>
           </div>
@@ -513,8 +507,8 @@ export default function ConfiguracoesPage() {
         </div>
 
       {/* Integrações */}
-      <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm space-y-4">
-        <h2 className="font-black text-gray-900 border-b border-black/5 pb-4">Integrações</h2>
+      <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm space-y-3">
+        <h2 className="font-black text-gray-900 border-b border-black/5 pb-4">Integrações de Marketplace</h2>
 
         {/* OLX */}
         <div className="flex items-center justify-between gap-4 rounded-xl border border-black/10 bg-gray-50 p-4">
@@ -542,7 +536,29 @@ export default function ConfiguracoesPage() {
           </div>
         </div>
 
-        <p className="text-xs text-gray-400">
+        {/* Em breve */}
+        {[
+          { label: "Mercado Livre Autos", icon: "storefront", color: "bg-yellow-400" },
+          { label: "Webmotors",           icon: "directions_car", color: "bg-red-500" },
+          { label: "iCarros",             icon: "directions_car", color: "bg-blue-600" },
+        ].map(({ label, icon, color }) => (
+          <div key={label} className="flex items-center justify-between gap-4 rounded-xl border border-black/10 bg-gray-50 p-4 opacity-60">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center shrink-0`}>
+                <Icon name={icon} className="text-white text-base" />
+              </div>
+              <div>
+                <p className="font-black text-gray-900 text-sm">{label}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Integração em desenvolvimento</p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-wider text-gray-400">
+              Em breve
+            </span>
+          </div>
+        ))}
+
+        <p className="text-xs text-gray-400 pt-1">
           Para ativar a integração OLX, solicite as credenciais de API e informe ao suporte ShopMotor.
         </p>
       </div>
