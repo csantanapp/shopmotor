@@ -28,7 +28,6 @@ const MODULES = [
   { key: "financiamento", label: "Financiamento",           icon: "account_balance" },
   { key: "seguros",       label: "Seguros",                 icon: "shield" },
   { key: "anuncios",      label: "Impulsionamento",         icon: "rocket_launch" },
-  { key: "comunicado",    label: "Comunicado de Venda",     icon: "description" },
   { key: "financeiro",    label: "Financeiro",              icon: "payments" },
 ];
 

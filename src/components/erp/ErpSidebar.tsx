@@ -15,7 +15,6 @@ const items = [
   { href: "/vendas/financiamento", label: "Financiamento",            icon: "account_balance" },
   { href: "/vendas/seguros",       label: "Seguro",                   icon: "shield"          },
   { href: "/vendas/anuncios",      label: "Impulsionamento",          icon: "rocket_launch"   },
-  { href: "/vendas/comunicado-venda",  label: "Comunicado de Venda",  icon: "description"     },
   { href: "/vendas/monetizacao",   label: "Financeiro",               icon: "payments"        },
   { href: "/vendas/configuracoes", label: "Configurações",            icon: "settings"        },
   { href: "/vendas/ajuda",        label: "Ajuda",                    icon: "help"            },
