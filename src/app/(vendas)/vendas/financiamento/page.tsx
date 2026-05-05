@@ -76,6 +76,57 @@ export default function FinanciamentoPage() {
   const [toast, setToast]       = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
 
+  function handlePrint() {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const filterLabel = filter === "todos" ? "Todos" : STATUS_OPTIONS.find(o => o.val === filter)?.label ?? filter;
+    const rows = leads.map(l => {
+      const ch = chanceCls(l.entrada, l.valorCarro);
+      const sl = statusLabel(l.status);
+      return `<tr>
+        <td><strong>${l.nome}</strong><br/><span style="color:#999;font-size:10px">${l.cidade}</span></td>
+        <td>${l.whatsapp}<br/><span style="color:#999;font-size:10px">${l.email}</span></td>
+        <td>${fmtBrl(l.valorCarro)}</td>
+        <td>${fmtBrl(l.entrada)}</td>
+        <td>${fmtBrl(l.financiado)}</td>
+        <td>${l.parcelas}×</td>
+        <td>${fmtBrl(l.pmt)}</td>
+        <td><span style="font-weight:700;color:${ch.label === "Alta" ? "#16a34a" : ch.label === "Média" ? "#ca8a04" : "#dc2626"}">${ch.label}</span></td>
+        <td><span style="font-weight:700">${sl}</span></td>
+        <td style="color:#999;font-size:10px">${new Date(l.createdAt).toLocaleDateString("pt-BR")}</td>
+      </tr>`;
+    }).join("");
+    w.document.write(`
+      <html><head><title>Leads de Financiamento — ShopMotor</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:Arial,sans-serif; font-size:11px; color:#111; padding:24px; }
+        h1 { font-size:16px; font-weight:900; text-transform:uppercase; margin-bottom:4px; }
+        p.sub { font-size:10px; color:#888; margin-bottom:18px; }
+        table { width:100%; border-collapse:collapse; }
+        th { background:#f5f5f5; text-align:left; padding:7px 8px; font-size:9px; text-transform:uppercase; letter-spacing:.5px; color:#555; border-bottom:2px solid #e0e0e0; }
+        td { padding:7px 8px; border-bottom:1px solid #eee; vertical-align:top; font-size:10px; }
+        tr:nth-child(even) td { background:#fafafa; }
+        footer { margin-top:20px; font-size:9px; color:#aaa; border-top:1px solid #eee; padding-top:8px; display:flex; justify-content:space-between; }
+        @media print { body { padding:0; } }
+      </style></head><body>
+      <h1>ShopMotor — Leads de Financiamento</h1>
+      <p class="sub">Gerado em ${new Date().toLocaleString("pt-BR")} &nbsp;·&nbsp; ${leads.length} lead(s) &nbsp;·&nbsp; Filtro: ${filterLabel}</p>
+      <table>
+        <thead><tr>
+          <th>Cliente</th><th>Contato</th><th>Valor carro</th><th>Entrada</th>
+          <th>Financiado</th><th>Parcelas</th><th>Parcela est.</th><th>Chance</th><th>Status</th><th>Recebido</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <footer><span>shopmotor.com.br</span><span>Total: ${leads.length} lead(s)</span></footer>
+      </body></html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { w.print(); w.close(); }, 400);
+  }
+
   // Drawer state
   const [selected, setSelected] = useState<Lead | null>(null);
   const [drawerLoading, setDrawerLoading] = useState(false);
@@ -143,7 +194,15 @@ export default function FinanciamentoPage() {
   const chance = selected ? chanceCls(selected.entrada, selected.valorCarro) : null;
 
   return (
-    <ErpLayout title="Financiamento" subtitle="Leads de financiamento recebidos no seu perfil">
+    <ErpLayout title="Financiamento" subtitle="Leads de financiamento recebidos no seu perfil"
+      action={
+        !error && leads.length > 0 ? (
+          <button onClick={handlePrint} className="flex items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-black text-gray-700 hover:bg-gray-50 transition">
+            <Icon name="print" className="text-base" /> Imprimir lista
+          </button>
+        ) : undefined
+      }
+    >
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
       )}
