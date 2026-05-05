@@ -23,7 +23,8 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 interface Vehicle {
-  id: string; brand: string; model: string; version?: string; ano: number;
+  id: string; brand: string; model: string; version?: string;
+  yearFab: number; yearModel: number;
   price: number; km: number; status: string; photos: { url: string }[];
   createdAt: string;
 }
@@ -56,7 +57,7 @@ export default function EstoquePage() {
       return `
         <tr>
           <td><strong>${v.brand} ${v.model}</strong>${v.version ? `<br/><span style="color:#999;font-size:10px">${v.version}</span>` : ""}</td>
-          <td>${v.ano}</td>
+          <td>${v.yearFab}/${v.yearModel}</td>
           <td>R$ ${v.price?.toLocaleString("pt-BR")}</td>
           <td>${v.km?.toLocaleString("pt-BR")} km</td>
           <td><span class="badge ${badgeClass}">${label}</span></td>
@@ -289,7 +290,7 @@ export default function EstoquePage() {
                       </div>
                     </Link>
                   </td>
-                  <td className="px-4 py-4 text-gray-700">{v.ano}</td>
+                  <td className="px-4 py-4 text-gray-700">{v.yearFab}/{v.yearModel}</td>
                   <td className="px-4 py-4 font-black text-gray-900">R$ {v.price?.toLocaleString("pt-BR")}</td>
                   <td className="px-4 py-4 text-gray-500">{v.km?.toLocaleString("pt-BR")} km</td>
                   <td className="px-4 py-4">
