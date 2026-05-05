@@ -151,6 +151,9 @@ model Vehicle {
   boostTopUntil     DateTime?
   expiresAt         DateTime?
   renewalCount      Int              @default(0)
+  olxAdId           String?          // ID do anúncio na OLX após publicação
+  olxStatus         String?          // "published" | "paused" | "removed" | null
+  olxPublishedAt    DateTime?        // data da última publicação
   conversations     Conversation[]
   favorites         Favorite[]
   payments          Payment[]

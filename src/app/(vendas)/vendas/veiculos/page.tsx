@@ -23,6 +23,8 @@ interface ApiVehicle {
   views: number;
   km: number;
   boostLevel: string;
+  olxAdId?: string | null;
+  olxStatus?: string | null;
   photos: { url: string; isCover: boolean }[];
   _count: { favorites: number };
 }
@@ -116,6 +118,7 @@ export default function VeiculosPage() {
   const [toast, setToast] = useState("");
   const [boostVehicleId, setBoostVehicleId] = useState<string | null>(null);
   const [boosting, setBoosting] = useState(false);
+  const [olxLoading, setOlxLoading] = useState<string | null>(null); // vehicleId em progresso
 
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -141,6 +144,21 @@ export default function VeiculosPage() {
       load();
     } else {
       fire("Erro ao ativar impulsionamento.");
+    }
+  }
+
+  async function handleOlx(vehicleId: string, isPublished: boolean) {
+    setOlxLoading(vehicleId);
+    const res = await fetch(`/api/vendas/olx/${vehicleId}`, {
+      method: isPublished ? "DELETE" : "POST",
+    });
+    setOlxLoading(null);
+    if (res.ok) {
+      fire(isPublished ? "Anúncio removido da OLX." : "Publicado na OLX com sucesso!");
+      load();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      fire(data.error ?? "Erro ao integrar com a OLX.");
     }
   }
 
@@ -385,6 +403,25 @@ export default function VeiculosPage() {
                     <Icon name="rocket_launch" className="text-xs" /> Impulsionar
                   </button>
                 </div>
+
+                {/* OLX */}
+                <button
+                  onClick={() => handleOlx(v.id, !!v.olxAdId)}
+                  disabled={olxLoading === v.id || v.status !== "ACTIVE"}
+                  title={v.status !== "ACTIVE" ? "Apenas veículos ativos podem ser publicados na OLX" : v.olxAdId ? "Remover da OLX" : "Publicar na OLX"}
+                  className={`mt-2 w-full flex items-center justify-center gap-2 rounded-lg border py-2 text-xs font-black transition disabled:opacity-40 disabled:cursor-not-allowed
+                    ${v.olxAdId
+                      ? "border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100"
+                      : "border-black/10 bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                >
+                  {olxLoading === v.id ? (
+                    <span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                  ) : (
+                    <Icon name={v.olxAdId ? "link_off" : "share"} className="text-xs" />
+                  )}
+                  {v.olxAdId ? `OLX: publicado${v.olxStatus === "published" ? " ✓" : ""}` : "Publicar na OLX"}
+                </button>
 
                 {/* Sugestões */}
                 {suggestions.length > 0 && (
