@@ -111,11 +111,12 @@ export async function POST(req: NextRequest) {
       await prisma.vehicle.update({
         where: { id: paymentRecord.vehicleId },
         data: {
-          status:        "ACTIVE",
-          boostLevel:    plan.boostLevel,
-          boostPlan:     paymentRecord.plan as BoostPlan,
+          status:             "ACTIVE",
+          boostLevel:         plan.boostLevel,
+          boostPlan:          paymentRecord.plan as BoostPlan,
           boostUntil,
-          boostTopUntil: boostUntil,
+          boostTopUntil:      boostUntil,
+          boostGalleryUntil:  boostUntil,
         },
       });
     }
