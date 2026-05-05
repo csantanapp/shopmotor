@@ -1,10 +1,26 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ErpLayout from "@/components/erp/ErpLayout";
 import ErpKpiCard from "@/components/erp/ErpKpiCard";
 import ErpStatusBadge from "@/components/erp/ErpStatusBadge";
 import Icon from "@/components/ui/Icon";
 import Link from "next/link";
+
+const STATUS_MAP: Record<string, string> = {
+  ACTIVE:  "ativo",
+  DRAFT:   "pausado",
+  PAUSED:  "pausado",
+  SOLD:    "vendido",
+  EXPIRED: "pausado",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  ACTIVE:  "Ativo",
+  DRAFT:   "Rascunho",
+  PAUSED:  "Pausado",
+  SOLD:    "Vendido",
+  EXPIRED: "Expirado",
+};
 
 interface Vehicle {
   id: string; brand: string; model: string; version?: string; ano: number;
@@ -28,6 +44,41 @@ export default function EstoquePage() {
   const [filter, setFilter]     = useState("ALL");
   const [selling, setSelling]   = useState(false);
   const [toast, setToast]       = useState("");
+  const printRef = useRef<HTMLDivElement>(null);
+
+  function handlePrint() {
+    const el = printRef.current;
+    if (!el) return;
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(`
+      <html><head><title>Estoque — ShopMotor</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: sans-serif; font-size: 12px; color: #111; padding: 24px; }
+        h1 { font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; margin-bottom: 4px; }
+        p.sub { font-size: 11px; color: #888; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f5f5f5; text-align: left; padding: 8px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; border-bottom: 2px solid #e5e5e5; }
+        td { padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; text-transform: uppercase; border: 1px solid #ddd; }
+        .badge-ativo    { background: #dcfce7; color: #16a34a; border-color: #86efac; }
+        .badge-pausado  { background: #f3f4f6; color: #6b7280; border-color: #d1d5db; }
+        .badge-vendido  { background: #fef9c3; color: #92400e; border-color: #fde68a; }
+        .badge-expirado { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+        footer { margin-top: 24px; font-size: 10px; color: #aaa; text-align: right; }
+      </style></head><body>
+      <h1>ShopMotor — Relatório de Estoque</h1>
+      <p class="sub">Gerado em ${new Date().toLocaleString("pt-BR")} · Total: ${filtered.length} veículo(s)</p>
+      ${el.innerHTML}
+      <footer>shopmotor.com.br</footer>
+      </body></html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { w.print(); w.close(); }, 400);
+  }
 
   /* vender modal */
   const [venderId, setVenderId]   = useState<string | null>(null);
@@ -70,7 +121,13 @@ export default function EstoquePage() {
   const venderVehicle = vehicles.find(v => v.id === venderId);
 
   return (
-    <ErpLayout title="Estoque" subtitle="Todos os veículos cadastrados na sua loja">
+    <ErpLayout title="Estoque" subtitle="Todos os veículos cadastrados na sua loja"
+      action={
+        <button onClick={handlePrint} className="flex items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-black text-gray-700 hover:bg-gray-50 transition">
+          <Icon name="print" className="text-base" /> Imprimir relatório
+        </button>
+      }
+    >
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
       )}
@@ -187,6 +244,7 @@ export default function EstoquePage() {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-black/10 bg-white shadow-sm">
+          <div ref={printRef}>
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-400 border-b border-black/10">
               <tr>
@@ -216,7 +274,9 @@ export default function EstoquePage() {
                   <td className="px-4 py-4 text-gray-700">{v.ano}</td>
                   <td className="px-4 py-4 font-black text-gray-900">R$ {v.price?.toLocaleString("pt-BR")}</td>
                   <td className="px-4 py-4 text-gray-500">{v.km?.toLocaleString("pt-BR")} km</td>
-                  <td className="px-4 py-4"><ErpStatusBadge status={v.status.toLowerCase()} /></td>
+                  <td className="px-4 py-4">
+                    <ErpStatusBadge status={STATUS_MAP[v.status] ?? "pausado"} label={STATUS_LABEL[v.status] ?? v.status} />
+                  </td>
                   <td className="px-4 py-4 text-xs text-gray-400">{new Date(v.createdAt).toLocaleDateString("pt-BR")}</td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
@@ -248,6 +308,7 @@ export default function EstoquePage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </ErpLayout>
