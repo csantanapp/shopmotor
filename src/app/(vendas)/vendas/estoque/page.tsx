@@ -47,32 +47,50 @@ export default function EstoquePage() {
   const printRef = useRef<HTMLDivElement>(null);
 
   function handlePrint() {
-    const el = printRef.current;
-    if (!el) return;
     const w = window.open("", "_blank");
     if (!w) return;
+
+    const rows = filtered.map(v => {
+      const badgeClass = v.status === "ACTIVE" ? "badge-ativo" : v.status === "SOLD" ? "badge-vendido" : "badge-pausado";
+      const label = STATUS_LABEL[v.status] ?? v.status;
+      return `
+        <tr>
+          <td><strong>${v.brand} ${v.model}</strong>${v.version ? `<br/><span style="color:#999;font-size:10px">${v.version}</span>` : ""}</td>
+          <td>${v.ano}</td>
+          <td>R$ ${v.price?.toLocaleString("pt-BR")}</td>
+          <td>${v.km?.toLocaleString("pt-BR")} km</td>
+          <td><span class="badge ${badgeClass}">${label}</span></td>
+          <td>${new Date(v.createdAt).toLocaleDateString("pt-BR")}</td>
+        </tr>`;
+    }).join("");
+
     w.document.write(`
       <html><head><title>Estoque — ShopMotor</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: sans-serif; font-size: 12px; color: #111; padding: 24px; }
-        h1 { font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; margin-bottom: 4px; }
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #111; padding: 24px; }
+        h1 { font-size: 18px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; }
         p.sub { font-size: 11px; color: #888; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f5f5f5; text-align: left; padding: 8px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; border-bottom: 2px solid #e5e5e5; }
+        th { background: #f5f5f5; text-align: left; padding: 8px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; border-bottom: 2px solid #e0e0e0; }
         td { padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: #fafafa; }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; text-transform: uppercase; border: 1px solid #ddd; }
-        .badge-ativo    { background: #dcfce7; color: #16a34a; border-color: #86efac; }
-        .badge-pausado  { background: #f3f4f6; color: #6b7280; border-color: #d1d5db; }
-        .badge-vendido  { background: #fef9c3; color: #92400e; border-color: #fde68a; }
-        .badge-expirado { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
-        footer { margin-top: 24px; font-size: 10px; color: #aaa; text-align: right; }
+        .badge-ativo   { background: #dcfce7; color: #16a34a; border-color: #86efac; }
+        .badge-pausado { background: #f3f4f6; color: #6b7280; border-color: #d1d5db; }
+        .badge-vendido { background: #fef9c3; color: #92400e; border-color: #fde68a; }
+        footer { margin-top: 24px; font-size: 10px; color: #aaa; border-top: 1px solid #eee; padding-top: 8px; display: flex; justify-content: space-between; }
+        @media print { body { padding: 0; } }
       </style></head><body>
       <h1>ShopMotor — Relatório de Estoque</h1>
-      <p class="sub">Gerado em ${new Date().toLocaleString("pt-BR")} · Total: ${filtered.length} veículo(s)</p>
-      ${el.innerHTML}
-      <footer>shopmotor.com.br</footer>
+      <p class="sub">Gerado em ${new Date().toLocaleString("pt-BR")} &nbsp;·&nbsp; ${filtered.length} veículo(s) ${filter !== "ALL" ? `· Filtro: ${STATUS_LABEL[filter] ?? filter}` : ""}</p>
+      <table>
+        <thead><tr>
+          <th>Veículo</th><th>Ano</th><th>Preço</th><th>KM</th><th>Status</th><th>Cadastrado</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <footer><span>shopmotor.com.br</span><span>Total em estoque: ${filtered.length} veículo(s)</span></footer>
       </body></html>
     `);
     w.document.close();
