@@ -16,7 +16,6 @@ const items = [
   { href: "/vendas/seguros",       label: "Seguro",                   icon: "shield"          },
   { href: "/vendas/anuncios",      label: "Impulsionamento",          icon: "rocket_launch"   },
   { href: "/vendas/comunicado-venda",  label: "Comunicado de Venda",  icon: "description"     },
-  { href: "/vendas/consulta-veicular", label: "Consulta Veicular",    icon: "manage_search"   },
   { href: "/vendas/monetizacao",   label: "Financeiro",               icon: "payments"        },
   { href: "/vendas/relatorios",    label: "Relatórios",               icon: "bar_chart"       },
   { href: "/vendas/configuracoes", label: "Configurações",            icon: "settings"        },

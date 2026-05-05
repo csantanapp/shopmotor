@@ -29,7 +29,6 @@ const MODULES = [
   { key: "seguros",       label: "Seguros",                 icon: "shield" },
   { key: "anuncios",      label: "Impulsionamento",         icon: "rocket_launch" },
   { key: "comunicado",    label: "Comunicado de Venda",     icon: "description" },
-  { key: "consulta",      label: "Consulta Veicular",       icon: "manage_search" },
   { key: "financeiro",    label: "Financeiro",              icon: "payments" },
   { key: "relatorios",    label: "Relatórios",              icon: "bar_chart" },
 ];
