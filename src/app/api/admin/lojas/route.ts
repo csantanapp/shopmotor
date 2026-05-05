@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { encrypt, safeDecrypt } from "@/lib/crypto";
+import { validateCNPJ } from "@/lib/cnpj";
 
 export async function GET(req: NextRequest) {
   const err = await requireAdmin(req);
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
           city, state, address, zipCode, subscriptionPlan, subscriptionMonths } = body;
 
   if (!name || !email || !password) return NextResponse.json({ error: "Nome, e-mail e senha são obrigatórios." }, { status: 400 });
+  if (cnpj && !validateCNPJ(cnpj)) return NextResponse.json({ error: "CNPJ inválido." }, { status: 400 });
 
   const existing = await db.user.findUnique({ where: { email } });
   if (existing) return NextResponse.json({ error: "E-mail já cadastrado." }, { status: 409 });

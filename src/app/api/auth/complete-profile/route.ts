@@ -2,24 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { encrypt } from "@/lib/crypto";
+import { validateCNPJ } from "@/lib/cnpj";
 
 function slugify(str: string) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 }
 
-function validateCNPJ(cnpj: string) {
-  const c = cnpj.replace(/\D/g, "");
-  if (c.length !== 14 || /^(\d)\1+$/.test(c)) return false;
-  const w1 = [5,4,3,2,9,8,7,6,5,4,3,2];
-  const w2 = [6,5,4,3,2,9,8,7,6,5,4,3,2];
-  const digit = (digits: string, weights: number[]) => {
-    const sum = weights.reduce((s, w, i) => s + Number(digits[i]) * w, 0);
-    const r = sum % 11;
-    return r < 2 ? 0 : 11 - r;
-  };
-  return digit(c, w1) === Number(c[12]) && digit(c, w2) === Number(c[13]);
-}
 
 export async function POST(req: NextRequest) {
   try {
