@@ -532,7 +532,7 @@ export default function ConfiguracoesPage() {
               <Icon name="schedule" className="text-xs" /> Pendente
             </span>
             <a
-              href="https://developer.olx.com.br"
+              href="https://developers.olx.com.br/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs font-black text-gray-700 hover:bg-gray-100 transition"
