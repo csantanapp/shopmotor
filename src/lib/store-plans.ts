@@ -1,18 +1,28 @@
 export type StorePlan = "STARTER" | "PRO" | "ELITE";
 
+// Planos ativos para venda (STARTER antigo foi descontinuado)
+export const ACTIVE_PLANS: StorePlan[] = ["PRO", "ELITE"];
+
 // Limite de anúncios gratuitos para PJ sem plano pago (Plano Grátis)
-export const PJ_FREE_LIMIT = 10;
+export const PJ_FREE_LIMIT = 30;
+
+// Após login, lojistas Pro (ELITE) vão para o ERP; Starter (PRO) ficam no perfil
+export const PLAN_REDIRECT: Record<string, string> = {
+  ELITE: "/vendas",
+  PRO:   "/perfil",
+};
 
 export const STORE_PLANS = {
+  // Mantido no tipo para compatibilidade com assinaturas antigas — não vendido mais
   STARTER: {
     key: "STARTER",
-    name: "Starter",
+    name: "Starter Legacy",
     emoji: "",
     price: 297,
     days: 30,
-    anunciosBase: 20,
-    anunciosExtras: 5,
-    anunciosTotal: 25,
+    anunciosBase: 30,
+    anunciosExtras: 0,
+    anunciosTotal: 30,
     destaques: 2,
     vitrine: true,
     vitrineLayout: "STARTER" as const,
@@ -24,32 +34,26 @@ export const STORE_PLANS = {
     analytics: false,
     financiamento: false,
     homeDestaque: false,
+    erpAccess: false,
     features: [
       "Perfil Loja com identidade visual",
-      "Vitrine Personalizada automática",
-      "Nome da Loja + URL exclusiva",
-      "20 anúncios gratuitos + 5 extras (25 no total)",
+      "30 anúncios no total",
       "2 Destaques mensais inclusos",
       "Selo de verificação",
       "Acesso ao WhatsApp",
     ],
-    notIncluded: [
-      "Links de redes sociais no perfil",
-      "Acesso ao e-mail e telefone do lead",
-      "Analytics de anúncios",
-      "Simulação de Financiamento",
-      "Destaque Lojas na Home",
-    ],
+    notIncluded: [],
   },
+  // Antes chamado "Pro" — agora é o Plano Starter
   PRO: {
     key: "PRO",
-    name: "Pro",
+    name: "Starter",
     emoji: "",
     price: 697,
     days: 30,
-    anunciosBase: 20,
-    anunciosExtras: 15,
-    anunciosTotal: 35,
+    anunciosBase: 50,
+    anunciosExtras: 0,
+    anunciosTotal: 50,
     destaques: 5,
     vitrine: true,
     vitrineLayout: "PRO" as const,
@@ -61,11 +65,12 @@ export const STORE_PLANS = {
     analytics: true,
     financiamento: false,
     homeDestaque: false,
+    erpAccess: false,
     features: [
       "Perfil Loja com identidade visual",
       "Vitrine Personalizada automática",
       "Nome da Loja + URL exclusiva",
-      "20 anúncios gratuitos + 15 extras (35 no total)",
+      "Até 50 anúncios",
       "5 Destaques/mês inclusos",
       "Selo de verificação",
       "Links de redes sociais no perfil",
@@ -74,19 +79,21 @@ export const STORE_PLANS = {
       "Analytics de anúncios",
     ],
     notIncluded: [
+      "Sistema ERP de gestão",
       "Simulação de Financiamento",
       "Destaque Lojas na Home",
     ],
   },
+  // Antes chamado "Elite" — agora é o Plano Pro
   ELITE: {
     key: "ELITE",
-    name: "Elite",
+    name: "Pro",
     emoji: "",
     price: 1197,
     days: 30,
-    anunciosBase: 20,
-    anunciosExtras: 30,
-    anunciosTotal: 50,
+    anunciosBase: 999999,
+    anunciosExtras: 0,
+    anunciosTotal: 999999,
     destaques: 10,
     vitrine: true,
     vitrineLayout: "ELITE" as const,
@@ -98,11 +105,12 @@ export const STORE_PLANS = {
     analytics: true,
     financiamento: true,
     homeDestaque: true,
+    erpAccess: true,
     features: [
       "Perfil Loja com identidade visual",
       "Vitrine Personalizada automática",
       "Nome da Loja + URL exclusiva",
-      "20 anúncios gratuitos + 30 extras (50 no total)",
+      "Anúncios ilimitados",
       "10 Destaques/mês inclusos",
       "Selo de verificação",
       "Links de redes sociais no perfil",
@@ -111,6 +119,7 @@ export const STORE_PLANS = {
       "Analytics de anúncios",
       "Simulação de Financiamento integrada",
       "Destaque Lojas na Home",
+      "Sistema ERP de gestão",
     ],
     notIncluded: [],
   },
@@ -128,4 +137,10 @@ export function getPlanLimits(plan: StorePlan | null) {
 export function planAllowsWhatsapp(plan: StorePlan | null): boolean {
   if (!plan) return false;
   return STORE_PLANS[plan].whatsapp;
+}
+
+/** Retorna true se o plano dá acesso ao ERP /vendas */
+export function planAllowsErp(plan: StorePlan | null): boolean {
+  if (!plan) return false;
+  return (STORE_PLANS[plan] as { erpAccess?: boolean }).erpAccess === true;
 }

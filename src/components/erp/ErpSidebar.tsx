@@ -70,7 +70,7 @@ export default function ErpSidebar() {
 
       {/* Plan card */}
       <div className="m-3 rounded-xl border border-white/10 bg-white/5 p-4">
-        <p className="text-xs font-black text-primary-container">Plano Elite</p>
+        <p className="text-xs font-black text-primary-container">Plano Pro</p>
         <p className="mt-1 text-[11px] text-white/50 leading-snug">
           Acesso completo ao sistema de vendas.
         </p>

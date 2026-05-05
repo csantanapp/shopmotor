@@ -5,6 +5,7 @@ import ErpLayout from "@/components/erp/ErpLayout";
 import ErpKpiCard from "@/components/erp/ErpKpiCard";
 import Icon from "@/components/ui/Icon";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
+import { STORE_PLANS, StorePlan } from "@/lib/store-plans";
 
 const GOLD   = "#ffd709";
 const BORDER = "rgba(0,0,0,0.08)";
@@ -141,7 +142,7 @@ export default function MonetizacaoPage() {
         <div className={`rounded-xl border p-5 mb-8 flex items-center gap-4 ${planColor(sub.plan)}`}>
           <Icon name="workspace_premium" className="text-2xl shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="font-black text-base">Plano {sub.plan} ativo</p>
+            <p className="font-black text-base">Plano {STORE_PLANS[sub.plan as StorePlan]?.name ?? sub.plan} ativo</p>
             <p className="text-sm mt-0.5 opacity-70">
               Válido até {new Date(sub.endsAt).toLocaleDateString("pt-BR")} · {left} dias restantes
             </p>

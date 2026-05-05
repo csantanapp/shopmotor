@@ -148,7 +148,7 @@ export default function LimiteAtingidoPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="font-black text-on-surface text-base">Contratar plano comercial</h2>
                   <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                    Starter / Pro / Elite
+                    Starter / Pro
                   </span>
                 </div>
                 <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">
@@ -158,9 +158,8 @@ export default function LimiteAtingidoPage() {
                 </p>
                 <ul className="mt-3 space-y-1.5">
                   {[
-                    { name: "Starter", desc: "+5 anúncios (25 no total), 2 destaques/mês" },
-                    { name: "Pro", desc: "+15 anúncios (35 no total), 5 destaques/mês, acesso ao lead" },
-                    { name: "Elite", desc: "+30 anúncios (50 no total), analytics, financiamento, home" },
+                    { name: "Starter", desc: "Até 50 anúncios, 5 destaques/mês, acesso ao lead e analytics" },
+                    { name: "Pro", desc: "Anúncios ilimitados, 10 destaques/mês, ERP de gestão, financiamento e home" },
                   ].map(p => (
                     <li key={p.name} className="flex items-start gap-2 text-xs text-on-surface-variant">
                       <Icon name="check_circle" className="text-purple-500 text-sm mt-0.5 flex-shrink-0" />

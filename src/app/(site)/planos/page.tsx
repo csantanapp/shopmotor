@@ -1,22 +1,24 @@
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
-import { STORE_PLANS } from "@/lib/store-plans";
+import { STORE_PLANS, PJ_FREE_LIMIT } from "@/lib/store-plans";
 
-const plans = [STORE_PLANS.STARTER, STORE_PLANS.PRO, STORE_PLANS.ELITE];
+// Apenas os planos ativos para venda
+const plans = [STORE_PLANS.PRO, STORE_PLANS.ELITE];
 
 const COMPARE_ROWS = [
-  { label: "Perfil Loja personalizado",     starter: true,  pro: true,  elite: true  },
-  { label: "URL exclusiva da loja",         starter: true,  pro: true,  elite: true  },
-  { label: "Vitrine de veículos",           starter: true,  pro: true,  elite: true  },
-  { label: "Selo verificado",               starter: true,  pro: true,  elite: true  },
-  { label: "Anúncios no total",             starter: "25",  pro: "35",  elite: "50"  },
-  { label: "Destaques mensais",             starter: "2",   pro: "5",   elite: "10"  },
-  { label: "Links redes sociais",           starter: false, pro: true,  elite: true  },
-  { label: "Acesso e-mail + telefone lead", starter: false, pro: true,  elite: true  },
-  { label: "Analytics de anúncios",        starter: false, pro: true,  elite: true  },
-  { label: "Simulação financiamento",       starter: false, pro: false, elite: true  },
-  { label: "Destaque na Home",             starter: false, pro: false, elite: true  },
-  { label: "Lead prioritário completo",    starter: false, pro: false, elite: true  },
+  { label: "Perfil Loja personalizado",     gratis: true,                    starter: true,        pro: true         },
+  { label: "URL exclusiva da loja",         gratis: true,                    starter: true,        pro: true         },
+  { label: "Vitrine de veículos",           gratis: true,                    starter: true,        pro: true         },
+  { label: "Selo verificado",               gratis: false,                   starter: true,        pro: true         },
+  { label: "Total de anúncios",            gratis: `${PJ_FREE_LIMIT}`,      starter: "50",        pro: "Ilimitado"  },
+  { label: "Destaques mensais",             gratis: "0",                     starter: "5",         pro: "10"         },
+  { label: "Acesso ao WhatsApp",            gratis: false,                   starter: true,        pro: true         },
+  { label: "Links redes sociais",           gratis: false,                   starter: true,        pro: true         },
+  { label: "Acesso e-mail + telefone lead", gratis: false,                   starter: true,        pro: true         },
+  { label: "Analytics de anúncios",        gratis: false,                   starter: true,        pro: true         },
+  { label: "Simulação financiamento",       gratis: false,                   starter: false,       pro: true         },
+  { label: "Destaque na Home",             gratis: false,                   starter: false,       pro: true         },
+  { label: "Sistema ERP de gestão",         gratis: false,                   starter: false,       pro: true         },
 ];
 
 function Check({ v }: { v: boolean | string }) {
@@ -25,12 +27,6 @@ function Check({ v }: { v: boolean | string }) {
     ? <Icon name="check_circle" className="text-green-500 text-xl" />
     : <Icon name="cancel" className="text-zinc-200 text-xl" />;
 }
-
-const CARD_STYLE: Record<string, string> = {
-  STARTER: "border-zinc-200 bg-white",
-  PRO:     "border-yellow-400 bg-white ring-4 ring-yellow-400/20 scale-[1.02]",
-  ELITE:   "border-zinc-900 bg-zinc-900 text-white",
-};
 
 export const metadata = {
   title: "Planos para Lojistas — ShopMotor",
@@ -58,43 +54,45 @@ export default function PlanosPage() {
       </div>
 
       {/* Planos */}
-      <div className="max-w-6xl mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      <div className="max-w-5xl mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start max-w-3xl mx-auto">
           {plans.map(plan => {
-            const isElite = plan.key === "ELITE";
-            const isPro = plan.key === "PRO";
+            const isPro = plan.key === "ELITE"; // ELITE agora é o Plano Pro
             return (
-              <div key={plan.key} className={`rounded-3xl border-2 p-8 relative transition-all ${CARD_STYLE[plan.key]}`}>
-                {isPro && (
+              <div key={plan.key} className={`rounded-3xl border-2 p-8 relative transition-all ${
+                isPro ? "border-zinc-900 bg-zinc-900 text-white" : "border-yellow-400 bg-white ring-4 ring-yellow-400/20 scale-[1.02]"
+              }`}>
+                {!isPro && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-500 text-black text-xs font-black uppercase tracking-widest px-5 py-1.5 rounded-full whitespace-nowrap shadow">
                     Mais popular
                   </div>
                 )}
-                {isElite && (
+                {isPro && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white text-zinc-900 text-xs font-black uppercase tracking-widest px-5 py-1.5 rounded-full whitespace-nowrap shadow">
                     Melhor custo-benefício
                   </div>
                 )}
 
-
-                <h2 className={`text-2xl font-black mb-1 ${isElite ? "text-white" : "text-zinc-900"}`}>{plan.name}</h2>
-                <p className={`text-xs uppercase tracking-widest mb-6 ${isElite ? "text-zinc-400" : "text-zinc-400"}`}>Plano mensal · {plan.days} dias</p>
+                <h2 className={`text-2xl font-black mb-1 ${isPro ? "text-white" : "text-zinc-900"}`}>
+                  Plano {plan.name}
+                </h2>
+                <p className={`text-xs uppercase tracking-widest mb-6 ${isPro ? "text-zinc-400" : "text-zinc-400"}`}>
+                  Plano mensal · {plan.days} dias
+                </p>
 
                 <div className="mb-6">
-                  <span className={`text-4xl font-black ${isElite ? "text-white" : "text-zinc-900"}`}>
+                  <span className={`text-4xl font-black ${isPro ? "text-white" : "text-zinc-900"}`}>
                     {plan.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 })}
                   </span>
-                  <span className={`text-sm ml-1 ${isElite ? "text-zinc-400" : "text-zinc-400"}`}>/mês</span>
+                  <span className={`text-sm ml-1 ${isPro ? "text-zinc-400" : "text-zinc-400"}`}>/mês</span>
                 </div>
 
                 <Link
                   href={`/perfil/plano?plan=${plan.key}`}
                   className={`block w-full text-center font-black py-3.5 rounded-full text-sm uppercase tracking-widest transition-all mb-8 hover:-translate-y-0.5 ${
-                    isElite
+                    isPro
                       ? "bg-yellow-500 text-black hover:bg-yellow-400"
-                      : isPro
-                      ? "bg-zinc-900 text-white hover:bg-zinc-700"
-                      : "border-2 border-zinc-900 text-zinc-900 hover:bg-zinc-900 hover:text-white"
+                      : "bg-zinc-900 text-white hover:bg-zinc-700"
                   }`}
                 >
                   Assinar {plan.name}
@@ -104,13 +102,13 @@ export default function PlanosPage() {
                   {plan.features.map(f => (
                     <div key={f} className="flex items-start gap-2.5">
                       <Icon name="check_circle" className="text-green-500 text-base flex-shrink-0 mt-0.5" />
-                      <span className={`text-sm ${isElite ? "text-zinc-300" : "text-zinc-600"}`}>{f}</span>
+                      <span className={`text-sm ${isPro ? "text-zinc-300" : "text-zinc-600"}`}>{f}</span>
                     </div>
                   ))}
                   {plan.notIncluded.map(f => (
                     <div key={f} className="flex items-start gap-2.5 opacity-40">
                       <Icon name="remove_circle" className="text-zinc-400 text-base flex-shrink-0 mt-0.5" />
-                      <span className={`text-sm line-through ${isElite ? "text-zinc-500" : "text-zinc-400"}`}>{f}</span>
+                      <span className={`text-sm line-through ${isPro ? "text-zinc-500" : "text-zinc-400"}`}>{f}</span>
                     </div>
                   ))}
                 </div>
@@ -123,25 +121,23 @@ export default function PlanosPage() {
       {/* Comparativo completo */}
       <div className="max-w-5xl mx-auto px-4 pb-16">
         <h2 className="text-2xl font-black text-zinc-900 text-center mb-8">Comparativo completo</h2>
-        <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm">
+        <div className="bg-white rounded-3xl border border-zinc-100 overflow-hidden shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-100">
                 <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-widest text-zinc-400">Recurso</th>
-                {plans.map(p => (
-                  <th key={p.key} className={`px-6 py-4 text-center text-sm font-black ${p.key === "PRO" ? "text-yellow-600" : p.key === "ELITE" ? "text-zinc-900" : "text-zinc-600"}`}>
-                    {p.name}
-                  </th>
-                ))}
+                <th className="px-6 py-4 text-center text-sm font-black text-zinc-500">Grátis</th>
+                <th className="px-6 py-4 text-center text-sm font-black text-yellow-600">Starter</th>
+                <th className="px-6 py-4 text-center text-sm font-black text-zinc-900">Pro</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
               {COMPARE_ROWS.map(row => (
                 <tr key={row.label} className="hover:bg-zinc-50 transition-colors">
                   <td className="px-6 py-4 text-zinc-700 font-medium">{row.label}</td>
+                  <td className="px-6 py-4 text-center"><Check v={row.gratis} /></td>
                   <td className="px-6 py-4 text-center"><Check v={row.starter} /></td>
                   <td className="px-6 py-4 text-center"><Check v={row.pro} /></td>
-                  <td className="px-6 py-4 text-center"><Check v={row.elite} /></td>
                 </tr>
               ))}
             </tbody>
@@ -173,15 +169,14 @@ export default function PlanosPage() {
         </div>
       </div>
 
-      {/* Anúncios base */}
+      {/* Info anúncios grátis */}
       <div className="bg-zinc-50 border-t border-zinc-100 py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <Icon name="info" className="text-zinc-400 text-3xl mb-4" />
-          <h3 className="text-xl font-black text-zinc-900 mb-3">Sobre os anúncios gratuitos</h3>
+          <h3 className="text-xl font-black text-zinc-900 mb-3">Plano Grátis incluso</h3>
           <p className="text-zinc-500 text-sm leading-relaxed max-w-xl mx-auto">
-            Todo lojista cadastrado na ShopMotor já possui <strong>20 anúncios gratuitos</strong> por padrão.
-            Os planos acima adicionam anúncios <strong>extras</strong> ao limite existente:
-            Starter (25 total), Pro (35 total), Elite (50 total).
+            Todo lojista cadastrado na ShopMotor já possui <strong>{PJ_FREE_LIMIT} anúncios gratuitos</strong> no Plano Grátis.
+            Os planos pagos ampliam seus limites e desbloqueiam ferramentas profissionais de gestão e vendas.
           </p>
         </div>
       </div>
@@ -191,7 +186,7 @@ export default function PlanosPage() {
         <h2 className="text-3xl font-black mb-3">Comece hoje mesmo</h2>
         <p className="text-zinc-400 mb-8 max-w-md mx-auto">Sem taxa de setup. Sem contrato longo. Cancele quando quiser.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/perfil/plano?plan=PRO"
+          <Link href="/perfil/plano?plan=ELITE"
             className="bg-yellow-500 text-black font-black px-10 py-4 rounded-full text-sm uppercase tracking-widest hover:bg-yellow-400 transition-colors">
             Assinar Plano Pro
           </Link>

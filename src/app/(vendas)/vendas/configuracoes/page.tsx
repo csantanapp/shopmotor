@@ -356,7 +356,7 @@ export default function ConfiguracoesPage() {
                 ))}
               </ul>
               <button onClick={() => fire("Fale com vendas para upgrade")} className="mt-5 w-full rounded-xl bg-primary-container py-2 text-sm font-black text-black hover:opacity-90 transition">
-                Fazer upgrade para Elite
+                Fazer upgrade para Pro
               </button>
             </div>
 
