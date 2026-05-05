@@ -134,18 +134,17 @@ export default function VeiculosPage() {
   async function applyBoost(plan: string) {
     if (!boostVehicleId) return;
     setBoosting(true);
-    const res = await fetch(`/api/vehicles/${boostVehicleId}/boost`, {
+    const res = await fetch("/api/payments/create-preference", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ vehicleId: boostVehicleId, plan, source: "erp" }),
     });
     setBoosting(false);
-    setBoostVehicleId(null);
-    if (res.ok) {
-      fire(`Impulsionamento ${plan.replace("_", " ")} ativado!`);
-      load();
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.initPoint) {
+      window.location.href = data.initPoint;
     } else {
-      fire("Erro ao ativar impulsionamento.");
+      fire(data.error ?? "Erro ao gerar pagamento.");
     }
   }
 

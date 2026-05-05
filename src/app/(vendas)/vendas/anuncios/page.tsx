@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import ErpLayout from "@/components/erp/ErpLayout";
 import ErpStatusBadge from "@/components/erp/ErpStatusBadge";
 import Icon from "@/components/ui/Icon";
@@ -68,15 +69,16 @@ function carLabel(v: Vehicle) {
   return `${v.brand} ${v.model}${v.version ? ` ${v.version}` : ""} ${v.yearFab}`;
 }
 
-export default function AnunciosPage() {
+function AnunciosContent() {
   const [vehicles, setVehicles]   = useState<Vehicle[]>([]);
   const [loading, setLoading]     = useState(true);
   const [toast, setToast]         = useState("");
   const [boosting, setBoosting]   = useState<string | null>(null);
   const [pickPlan, setPickPlan]   = useState<string | null>(null);
   const [expandedAd, setExpandedAd] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
-  const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+  const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 4000); };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,23 +88,31 @@ export default function AnunciosPage() {
     setLoading(false);
   }, []);
 
+  // Feedback pós-pagamento Mercado Pago
+  useEffect(() => {
+    const result = searchParams.get("boost");
+    if (result === "success") fire("Impulsionamento ativado com sucesso!");
+    if (result === "failed")  fire("Pagamento não aprovado. Tente novamente.");
+    if (result === "pending") fire("Pagamento em processamento. Aguarde a confirmação.");
+  }, [searchParams]);
+
   useEffect(() => { load(); }, [load]);
 
   async function applyBoost(vehicleId: string, plan: string) {
     setBoosting(vehicleId);
     setPickPlan(null);
-    const res = await fetch(`/api/vehicles/${vehicleId}/boost`, {
+    const res = await fetch("/api/payments/create-preference", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ vehicleId, plan, source: "erp" }),
     });
-    if (res.ok) {
-      fire(`Impulsionamento ${plan} ativado!`);
-      await load();
-    } else {
-      fire("Erro ao aplicar impulsionamento");
-    }
     setBoosting(null);
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.initPoint) {
+      window.location.href = data.initPoint;
+    } else {
+      fire(data.error ?? "Erro ao gerar pagamento.");
+    }
   }
 
   async function removeBoost(vehicleId: string) {
@@ -321,5 +331,13 @@ export default function AnunciosPage() {
         </div>
       )}
     </ErpLayout>
+  );
+}
+
+export default function AnunciosPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><span className="h-8 w-8 rounded-full border-2 border-primary-container/30 border-t-primary-container animate-spin" /></div>}>
+      <AnunciosContent />
+    </Suspense>
   );
 }

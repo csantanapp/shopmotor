@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const { vehicleId, plan: planKey, couponCode } = await req.json();
+  const { vehicleId, plan: planKey, couponCode, source } = await req.json();
+  const isErp = source === "erp";
 
   const plan = PLANS[planKey];
   if (!plan) return NextResponse.json({ error: "Plano inválido." }, { status: 400 });
@@ -83,9 +84,9 @@ export async function POST(req: NextRequest) {
       }],
       external_reference: payment.id,
       back_urls: {
-        success: `${baseUrl}/perfil/meus-anuncios?boost=success`,
-        failure: `${baseUrl}/perfil/impulsionar/${vehicleId}?boost=failed`,
-        pending: `${baseUrl}/perfil/meus-anuncios?boost=pending`,
+        success: isErp ? `${baseUrl}/vendas/anuncios?boost=success` : `${baseUrl}/perfil/meus-anuncios?boost=success`,
+        failure: isErp ? `${baseUrl}/vendas/anuncios?boost=failed`  : `${baseUrl}/perfil/impulsionar/${vehicleId}?boost=failed`,
+        pending: isErp ? `${baseUrl}/vendas/anuncios?boost=pending` : `${baseUrl}/perfil/meus-anuncios?boost=pending`,
       },
       ...(baseUrl.startsWith("https") && { auto_return: "approved" }),
       notification_url: `${baseUrl}/api/payments/webhook`,
