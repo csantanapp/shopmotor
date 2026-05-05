@@ -20,7 +20,7 @@ export default function HeroCarousel({ fallback }: { fallback: string }) {
   const list = banners.length > 0 ? banners : [{ url: fallback }];
 
   const next = useCallback(() => setCurrent(c => (c + 1) % list.length), [list.length]);
-  const prev = () => setCurrent(c => (c - 1 + list.length) % list.length);
+  const prev = useCallback(() => setCurrent(c => (c - 1 + list.length) % list.length), [list.length]);
 
   useEffect(() => {
     if (list.length <= 1) return;

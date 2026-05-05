@@ -30,7 +30,7 @@ export default function Navbar() {
     check();
     const interval = setInterval(check, 15000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user?.id]);
 
   return (
     <header className="bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 shadow-2xl">
