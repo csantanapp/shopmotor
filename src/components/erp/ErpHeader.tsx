@@ -85,15 +85,6 @@ export default function ErpHeader({
         {subtitle && <p className="text-xs text-gray-400 leading-none mt-0.5">{subtitle}</p>}
       </div>
 
-      {/* Search */}
-      <div className="hidden md:flex items-center gap-2 rounded-xl border border-black/10 bg-gray-100 px-3 py-2 w-64">
-        <Icon name="search" className="text-sm text-gray-400" />
-        <input
-          placeholder="Buscar veículos, leads…"
-          className="flex-1 bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
-        />
-      </div>
-
       {/* Bell */}
       <div className="relative" ref={ref}>
         <button
