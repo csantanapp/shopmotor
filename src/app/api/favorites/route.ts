@@ -22,7 +22,9 @@ export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const { vehicleId } = await req.json();
+  let body: { vehicleId?: string };
+  try { body = await req.json(); } catch { return Response.json({ error: "Body inválido." }, { status: 400 }); }
+  const { vehicleId } = body;
   if (!vehicleId) return NextResponse.json({ error: "vehicleId obrigatório." }, { status: 400 });
 
   await prisma.favorite.upsert({

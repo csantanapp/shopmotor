@@ -25,7 +25,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   });
   if (!lead) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const body = await req.json();
+  let body: Record<string, string>;
+  try { body = await req.json(); } catch { return Response.json({ error: "Body inválido." }, { status: 400 }); }
 
   // Add a nota
   if (body.addNota) {

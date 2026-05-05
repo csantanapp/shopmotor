@@ -10,7 +10,9 @@ export async function POST(req: NextRequest) {
   if ((user as any).accountType !== "PJ")
     return NextResponse.json({ error: "Apenas lojistas podem assinar planos." }, { status: 403 });
 
-  const { plan: planKey } = await req.json();
+  let body: { plan?: string };
+  try { body = await req.json(); } catch { return Response.json({ error: "Body inválido." }, { status: 400 }); }
+  const planKey = body.plan ?? "";
   const plan = STORE_PLANS[planKey as StorePlan];
   if (!plan) return NextResponse.json({ error: "Plano inválido." }, { status: 400 });
 

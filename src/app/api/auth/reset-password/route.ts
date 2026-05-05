@@ -3,7 +3,9 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-  const { token, password } = await req.json();
+  let body: { token?: string; password?: string };
+  try { body = await req.json(); } catch { return Response.json({ error: "Body inválido." }, { status: 400 }); }
+  const { token, password } = body;
 
   if (!token || !password)
     return NextResponse.json({ error: "Token e senha sao obrigatorios." }, { status: 400 });

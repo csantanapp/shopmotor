@@ -24,13 +24,17 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ item });
 }
 
+const ALLOWED_CF_FIELDS = new Set(["tipo", "categoria", "nome", "documento", "telefone", "email", "endereco", "cidade", "estado", "cep"]);
+
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
   if (!await getOwned(id, user.id)) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const body = await req.json();
-  const item = await prisma.clienteFornecedor.update({ where: { id }, data: body });
+  let body: Record<string, unknown>;
+  try { body = await req.json(); } catch { return NextResponse.json({ error: "Body inválido." }, { status: 400 }); }
+  const data = Object.fromEntries(Object.entries(body).filter(([k]) => ALLOWED_CF_FIELDS.has(k)));
+  const item = await prisma.clienteFornecedor.update({ where: { id }, data });
   return NextResponse.json({ item });
 }
 
