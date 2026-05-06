@@ -12,14 +12,14 @@ function ErpGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Página de login do colaborador — sem guard
-  if (pathname === "/vendas/login") return <>{children}</>;
   const [planLoading, setPlanLoading] = useState(true);
   const [hasErpAccess, setHasErpAccess] = useState(false);
 
   useAuthRedirect();
 
   useEffect(() => {
+    // Página de login do colaborador — sem guard
+    if (pathname === "/vendas/login") { setPlanLoading(false); return; }
     // Se há colaborador logado via erp_token — acesso direto
     if (!erpLoading && colaborador) {
       setHasErpAccess(true);
@@ -68,6 +68,8 @@ function ErpGuard({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+
+  if (pathname === "/vendas/login") return <>{children}</>;
 
   if (!hasErpAccess) return null;
 

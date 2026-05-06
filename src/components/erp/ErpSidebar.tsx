@@ -5,20 +5,6 @@ import { usePathname } from "next/navigation";
 import Icon from "@/components/ui/Icon";
 import { useErpAuth } from "@/context/ErpAuthContext";
 
-// Mapa módulo-chave → href (mesmo mapeamento do MODULES em configuracoes)
-const MODULE_HREF: Record<string, string> = {
-  dashboard:     "/vendas/direcao",
-  veiculos:      "/vendas/veiculos",
-  estoque:       "/vendas/estoque",
-  vendidos:      "/vendas/vendidos",
-  clientes:      "/vendas/clientes-fornecedores",
-  leads:         "/vendas/leads",
-  financiamento: "/vendas/financiamento",
-  seguros:       "/vendas/seguros",
-  anuncios:      "/vendas/anuncios",
-  financeiro:    "/vendas/monetizacao",
-};
-
 const items = [
   { href: "/vendas",                        label: "Central de Oportunidades", icon: "target",          moduleKey: null          },
   { href: "/vendas/direcao",                label: "Dashboard de Direção",     icon: "explore",         moduleKey: "dashboard"   },
