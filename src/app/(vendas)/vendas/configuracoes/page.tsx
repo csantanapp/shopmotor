@@ -33,7 +33,16 @@ const MODULES = [
 
 interface Vendedor { id: string; nome: string; loja: string }
 interface Grupo    { id: string; nome: string; modulos: Record<string, boolean> }
-interface Usuario  { id: string; nome: string; email: string; grupo: { id: string; nome: string } }
+interface Usuario  { id: string; nome: string; email: string; grupoId: string; grupo: { id: string; nome: string } }
+
+function nivelAcesso(modulos: Record<string, boolean>): { label: string; cls: string } {
+  const count = Object.values(modulos).filter(Boolean).length;
+  const total = MODULES.length;
+  if (count === 0)           return { label: "Sem acesso",     cls: "bg-gray-100 border-gray-200 text-gray-400" };
+  if (count >= total * 0.8)  return { label: "Administrador",  cls: "bg-purple-50 border-purple-200 text-purple-700" };
+  if (count >= total * 0.4)  return { label: "Operador",       cls: "bg-blue-50 border-blue-200 text-blue-700" };
+  return                            { label: "Visualizador",   cls: "bg-gray-50 border-gray-200 text-gray-600" };
+}
 
 const EMPTY_VEND = { nome: "", loja: "" };
 const EMPTY_GRUP = { nome: "", modulos: {} as Record<string, boolean> };
@@ -482,24 +491,53 @@ export default function ConfiguracoesPage() {
             <table className="w-full text-sm">
               <thead className="text-xs uppercase tracking-wider text-gray-400 border-b border-black/10">
                 <tr>
-                  {["Nome", "E-mail", "Grupo", ""].map(h => <th key={h} className="px-6 py-3 text-left font-black">{h}</th>)}
+                  {["Usuário", "Grupo", "Nível de Acesso", "Módulos permitidos", ""].map(h => (
+                    <th key={h} className="px-6 py-3 text-left font-black whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
-                {usuarios.map(u => (
-                  <tr key={u.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-black text-gray-900">{u.nome}</td>
-                    <td className="px-6 py-4 text-gray-600">{u.email}</td>
-                    <td className="px-6 py-4">
-                      <span className="rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-black px-2 py-0.5">
-                        {u.grupo?.nome ?? "—"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button onClick={() => removeUsuario(u.id)} className="text-xs text-red-500 hover:text-red-700 font-black">Remover</button>
-                    </td>
-                  </tr>
-                ))}
+                {usuarios.map(u => {
+                  const grupoCompleto = grupos.find(g => g.id === u.grupoId || g.id === u.grupo?.id);
+                  const modulos = grupoCompleto?.modulos ?? {};
+                  const nivel = nivelAcesso(modulos);
+                  const modulosAtivos = MODULES.filter(m => modulos[m.key]);
+                  return (
+                    <tr key={u.id} className="hover:bg-gray-50 align-top">
+                      <td className="px-6 py-4">
+                        <p className="font-black text-gray-900">{u.nome}</p>
+                        <p className="text-xs text-gray-400">{u.email}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-black px-2 py-0.5">
+                          {u.grupo?.nome ?? "—"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1 rounded-full border text-[10px] font-black px-2.5 py-0.5 ${nivel.cls}`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+                          {nivel.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {modulosAtivos.length === 0 ? (
+                          <span className="text-xs text-gray-300">Nenhum módulo</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {modulosAtivos.map(m => (
+                              <span key={m.key} className="inline-flex items-center gap-1 rounded-md bg-gray-100 text-gray-600 text-[10px] font-bold px-1.5 py-0.5">
+                                <Icon name={m.icon} className="text-[10px]" /> {m.label}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button onClick={() => removeUsuario(u.id)} className="text-xs text-red-500 hover:text-red-700 font-black">Remover</button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
