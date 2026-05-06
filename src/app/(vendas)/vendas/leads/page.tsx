@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import * as XLSX from "xlsx";
 import ErpLayout from "@/components/erp/ErpLayout";
 import Icon from "@/components/ui/Icon";
 import Image from "next/image";
@@ -394,25 +395,20 @@ export default function LeadsPage() {
     URL.revokeObjectURL(url);
   }
 
-  function exportXML() {
-    const items = historico.map(l => `  <lead>
-    <nome>${escXml(l.nome)}</nome>
-    <telefone>${escXml(l.telefone ?? "")}</telefone>
-    <email>${escXml(l.email ?? "")}</email>
-    <interesse>${escXml(l.interesse)}</interesse>
-    <veiculo>${escXml(l.veiculo ?? "")}</veiculo>
-    <status>${escXml(l.status)}</status>
-    <data>${new Date(l.criadoEm).toLocaleDateString("pt-BR")}</data>
-  </lead>`).join("\n");
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<leads>\n${items}\n</leads>`;
-    const blob = new Blob([xml], { type: "application/xml;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "leads-historico.xml"; a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function escXml(s: string) {
-    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  function exportXLSX() {
+    const rows = historico.map(l => ({
+      Nome: l.nome,
+      Telefone: l.telefone ?? "",
+      "E-mail": l.email ?? "",
+      Interesse: l.interesse,
+      Veículo: l.veiculo ?? "",
+      Status: l.status,
+      Data: new Date(l.criadoEm).toLocaleDateString("pt-BR"),
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Leads");
+    XLSX.writeFile(wb, "leads-historico.xlsx");
   }
 
   return (
@@ -1079,10 +1075,10 @@ export default function LeadsPage() {
                   <Icon name="download" className="text-sm" /> CSV
                 </button>
                 <button
-                  onClick={exportXML}
+                  onClick={exportXLSX}
                   className="flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs font-black text-gray-700 hover:bg-gray-50 transition"
                 >
-                  <Icon name="code" className="text-sm" /> XML
+                  <Icon name="table_view" className="text-sm" /> Excel
                 </button>
               </div>
             )}
