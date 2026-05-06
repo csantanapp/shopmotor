@@ -17,6 +17,7 @@ interface Conversation {
   seller: ConvUser;
   messages: Message[];
   updatedAt: string;
+  crm?: { stage: string } | null;
 }
 
 function Avatar({ user, size = 10 }: { user: ConvUser; size?: number }) {
@@ -281,27 +282,36 @@ export default function MensagensPage() {
           </div>
 
           {/* Input */}
-          <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container-lowest flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <input
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKey}
-                placeholder="Digite sua mensagem..."
-                className="flex-1 bg-surface-container rounded-full px-5 py-3 text-sm border-0 focus:ring-2 focus:ring-primary-container outline-none"
-              />
-              <button
-                onClick={sendMessage}
-                disabled={!input.trim() || sending}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${input.trim() ? "bg-primary-container text-on-primary-container" : "bg-surface-container text-outline"}`}
-              >
-                {sending
-                  ? <span className="w-4 h-4 border-2 border-on-primary-container/30 border-t-on-primary-container rounded-full animate-spin" />
-                  : <Icon name="send" className="text-lg" />
-                }
-              </button>
+          {activeConv?.crm?.stage === "vendido" || activeConv?.crm?.stage === "perdido" ? (
+            <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container-lowest flex-shrink-0 flex items-center gap-3">
+              <Icon name="lock" className="text-outline text-lg shrink-0" />
+              <p className="text-sm text-on-surface-variant">
+                Esta conversa foi encerrada e não aceita novas mensagens.
+              </p>
             </div>
-          </div>
+          ) : (
+            <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container-lowest flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <input
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={handleKey}
+                  placeholder="Digite sua mensagem..."
+                  className="flex-1 bg-surface-container rounded-full px-5 py-3 text-sm border-0 focus:ring-2 focus:ring-primary-container outline-none"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={!input.trim() || sending}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${input.trim() ? "bg-primary-container text-on-primary-container" : "bg-surface-container text-outline"}`}
+                >
+                  {sending
+                    ? <span className="w-4 h-4 border-2 border-on-primary-container/30 border-t-on-primary-container rounded-full animate-spin" />
+                    : <Icon name="send" className="text-lg" />
+                  }
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center text-center bg-surface">

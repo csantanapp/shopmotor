@@ -41,10 +41,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
-  const conversation = await prisma.conversation.findUnique({ where: { id } });
+  const conversation = await prisma.conversation.findUnique({
+    where: { id },
+    include: { crm: { select: { stage: true } } },
+  });
   if (!conversation) return NextResponse.json({ error: "Conversa não encontrada." }, { status: 404 });
   if (conversation.buyerId !== user.id && conversation.sellerId !== user.id) {
     return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
+  }
+
+  // Bloqueia envio se conversa encerrada (vendido ou perdido)
+  const stage = (conversation as any).crm?.stage;
+  if (stage === "vendido" || stage === "perdido") {
+    return NextResponse.json({ error: "Esta conversa foi encerrada e não aceita novas mensagens." }, { status: 403 });
   }
 
   try {

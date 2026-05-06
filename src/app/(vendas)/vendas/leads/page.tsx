@@ -669,22 +669,31 @@ export default function LeadsPage() {
                   })}
                   <div ref={bottomRef} />
                 </div>
-                <div className="p-3 border-t border-black/10 flex gap-2">
-                  <input
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                    placeholder="Escreva uma mensagem…"
-                    className="flex-1 rounded-xl border border-black/10 bg-gray-100 px-3 py-2.5 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-primary-container/50 focus:bg-white transition"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={!text.trim() || sending}
-                    className="rounded-xl bg-primary-container px-4 py-2.5 text-black hover:opacity-90 disabled:opacity-40 transition"
-                  >
-                    <Icon name="send" className="text-base" />
-                  </button>
-                </div>
+                {activeStage === "vendido" || activeStage === "perdido" ? (
+                  <div className="p-4 border-t border-black/10 flex items-center gap-3 bg-gray-50">
+                    <Icon name="lock" className="text-gray-300 text-lg shrink-0" />
+                    <p className="text-xs text-gray-400 leading-snug">
+                      Esta conversa foi <span className="font-black">{activeStage === "vendido" ? "encerrada como Vendido" : "encerrada como Perdido"}</span>. Nenhuma nova mensagem pode ser enviada.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3 border-t border-black/10 flex gap-2">
+                    <input
+                      value={text}
+                      onChange={e => setText(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
+                      placeholder="Escreva uma mensagem…"
+                      className="flex-1 rounded-xl border border-black/10 bg-gray-100 px-3 py-2.5 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-primary-container/50 focus:bg-white transition"
+                    />
+                    <button
+                      onClick={sendMessage}
+                      disabled={!text.trim() || sending}
+                      className="rounded-xl bg-primary-container px-4 py-2.5 text-black hover:opacity-90 disabled:opacity-40 transition"
+                    >
+                      <Icon name="send" className="text-base" />
+                    </button>
+                  </div>
+                )}
               </>
             )}
 

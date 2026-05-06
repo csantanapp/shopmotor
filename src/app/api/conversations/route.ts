@@ -31,6 +31,7 @@ export async function GET() {
         buyer:   { select: { id: true, name: true, avatarUrl: true, phone: true, sharePhone: true } },
         seller:  { select: { id: true, name: true, avatarUrl: true, phone: true, sharePhone: true } },
         messages: { orderBy: { createdAt: "desc" }, take: 1 },
+        crm: { select: { stage: true } },
       },
     });
 
