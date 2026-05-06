@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import ErpLayout from "@/components/erp/ErpLayout";
 import Icon from "@/components/ui/Icon";
 import { useErpAuth } from "@/context/ErpAuthContext";
 import { STORE_PLANS, StorePlan } from "@/lib/store-plans";
+
+const ACTIVE_PLANS = [STORE_PLANS.PRO, STORE_PLANS.ELITE];
 
 /* ── helpers ── */
 const iCls = "w-full rounded-xl border border-black/10 bg-gray-50 px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-primary-container/60 focus:bg-white transition";
@@ -59,6 +60,25 @@ export default function ConfiguracoesPage() {
   }, [colaborador, router]);
 
   const [toast, setToast] = useState("");
+  const [planoModal, setPlanoModal] = useState(false);
+  const [purchasing, setPurchasing] = useState<string | null>(null);
+
+  async function subscribe(planKey: StorePlan) {
+    setPurchasing(planKey);
+    try {
+      const res = await fetch("/api/payments/subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planKey }),
+      });
+      const data = await res.json();
+      if (data.initPoint) window.location.href = data.initPoint;
+      else fire(data.error ?? "Erro ao processar pagamento.");
+    } catch {
+      fire("Erro de conexão. Tente novamente.");
+    }
+    setPurchasing(null);
+  }
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3500); };
 
   /* ── Dados da loja ── */
@@ -227,6 +247,89 @@ export default function ConfiguracoesPage() {
     <ErpLayout title="Configurações" subtitle="Dados da loja, vendedores, grupos e usuários">
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
+      )}
+
+      {/* ── Modal Planos ── */}
+      {planoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setPlanoModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-black/10">
+              <div>
+                <p className="font-black text-gray-900 text-lg">Planos ShopMotor</p>
+                <p className="text-xs text-gray-400 mt-0.5">Escolha o plano ideal para sua loja</p>
+              </div>
+              <button onClick={() => setPlanoModal(false)} className="p-1.5 rounded-lg hover:bg-gray-100">
+                <Icon name="close" className="text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {subPlan && (
+                <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
+                  <Icon name="verified" className="text-green-600 text-lg shrink-0" />
+                  <p className="text-sm font-black text-green-800">
+                    Plano {STORE_PLANS[subPlan].name} ativo
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {ACTIVE_PLANS.map(plan => {
+                  const isActive = subPlan === plan.key;
+                  const isPro = plan.key === "ELITE";
+                  const isLoading = purchasing === plan.key;
+                  const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR")}`;
+
+                  return (
+                    <div key={plan.key} className={`rounded-2xl border-2 p-5 flex flex-col ${
+                      isActive ? "border-green-400 bg-green-50" :
+                      isPro ? "border-gray-900 bg-gray-900" :
+                      "border-primary-container bg-yellow-50"
+                    }`}>
+                      {!isPro && !isActive && (
+                        <span className="self-start mb-2 rounded-full bg-primary-container text-black text-[10px] font-black uppercase tracking-widest px-3 py-1">
+                          Mais popular
+                        </span>
+                      )}
+                      <p className={`text-lg font-black ${isPro && !isActive ? "text-white" : "text-gray-900"}`}>
+                        Plano {plan.name}
+                      </p>
+                      <p className={`text-xs mb-3 ${isPro && !isActive ? "text-gray-400" : "text-gray-400"}`}>30 dias · renovável</p>
+                      <p className={`text-3xl font-black mb-4 ${isPro && !isActive ? "text-primary-container" : "text-gray-900"}`}>
+                        {fmt(plan.price)}<span className={`text-xs font-normal ml-1 ${isPro && !isActive ? "text-gray-400" : "text-gray-400"}`}>/mês</span>
+                      </p>
+                      <ul className="space-y-1.5 mb-5 flex-1">
+                        {plan.features.map(f => (
+                          <li key={f} className={`flex items-start gap-2 text-xs ${isPro && !isActive ? "text-gray-300" : "text-gray-600"}`}>
+                            <Icon name="check" className={`text-xs shrink-0 mt-0.5 ${isPro && !isActive ? "text-primary-container" : "text-yellow-600"}`} />
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+
+                      {isActive ? (
+                        <span className="flex items-center justify-center gap-2 rounded-xl bg-green-600 text-white py-2.5 text-sm font-black">
+                          <Icon name="check_circle" className="text-sm" /> Plano atual
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => subscribe(plan.key as StorePlan)}
+                          disabled={!!isLoading}
+                          className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-black transition disabled:opacity-50 ${
+                            isPro ? "bg-primary-container text-black hover:opacity-90" : "bg-gray-900 text-white hover:opacity-90"
+                          }`}
+                        >
+                          {isLoading && <span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />}
+                          {isLoading ? "Processando…" : "Assinar agora"}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Modal Vendedor ── */}
@@ -414,16 +517,16 @@ export default function ConfiguracoesPage() {
                     <p className="text-sm text-gray-500 mt-2">Assine um plano para acessar todos os recursos do ERP.</p>
                   )}
                   {!isElite && (
-                    <Link href="/perfil/plano" className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-primary-container py-2 text-sm font-black text-black hover:opacity-90 transition">
+                    <button onClick={() => setPlanoModal(true)} className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-primary-container py-2 text-sm font-black text-black hover:opacity-90 transition w-full">
                       <Icon name="upgrade" className="text-base" />
                       {plan ? "Ver planos disponíveis" : "Assinar um plano"}
-                    </Link>
+                    </button>
                   )}
                   {isElite && (
-                    <Link href="/perfil/plano" className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-black/10 bg-white py-2 text-sm font-black text-gray-600 hover:bg-gray-50 transition">
+                    <button onClick={() => setPlanoModal(true)} className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-black/10 bg-white py-2 text-sm font-black text-gray-600 hover:bg-gray-50 transition w-full">
                       <Icon name="receipt_long" className="text-base" />
                       Gerenciar assinatura
-                    </Link>
+                    </button>
                   )}
                 </div>
               );
