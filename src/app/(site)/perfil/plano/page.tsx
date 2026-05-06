@@ -10,19 +10,24 @@ import { STORE_PLANS, StorePlan, PJ_FREE_LIMIT } from "@/lib/store-plans";
 const plans = [STORE_PLANS.PRO, STORE_PLANS.ELITE];
 
 const COMPARE_ROWS = [
-  { label: "Perfil Loja personalizado",     gratis: true,   starter: true,  pro: true  },
+  { label: "Perfil Loja",                   gratis: true,   starter: true,  pro: true  },
   { label: "URL exclusiva da loja",         gratis: true,   starter: true,  pro: true  },
   { label: "Vitrine Personalizada",         gratis: true,   starter: true,  pro: true  },
-  { label: "Selo verificado",               gratis: false,  starter: true,  pro: true  },
+  { label: "Anúncios livre Grátis",         gratis: true,   starter: true,  pro: true  },
   { label: "Total de anúncios",             gratis: `${PJ_FREE_LIMIT}`, starter: "50", pro: "Ilimitado" },
-  { label: "Destaques mensais inclusos",    gratis: "0",    starter: "5",   pro: "10"  },
+  { label: "Destaques mensais inclusos",    gratis: "0",    starter: "5",   pro: "15"  },
+  { label: "Selo de verificação",           gratis: false,  starter: true,  pro: true  },
+  { label: "Links redes sociais no perfil", gratis: false,  starter: true,  pro: true  },
   { label: "Acesso ao WhatsApp",            gratis: false,  starter: true,  pro: true  },
-  { label: "Links redes sociais",           gratis: false,  starter: true,  pro: true  },
   { label: "Acesso e-mail + telefone lead", gratis: false,  starter: true,  pro: true  },
-  { label: "Analytics de anúncios",        gratis: false,  starter: true,  pro: true  },
-  { label: "Simulação de financiamento",    gratis: false,  starter: false, pro: true  },
-  { label: "Destaque na Home",              gratis: false,  starter: false, pro: true  },
-  { label: "Sistema ERP de gestão",         gratis: false,  starter: false, pro: true  },
+  { label: "Analytics anúncios",            gratis: false,  starter: true,  pro: true  },
+  { label: "Simulação Financiamento",       gratis: false,  starter: false, pro: true  },
+  { label: "Destaque Lojas Home",           gratis: false,  starter: false, pro: true  },
+  { label: "CRM",                           gratis: false,  starter: false, pro: true  },
+  { label: "Gestão estoque",                gratis: false,  starter: false, pro: true  },
+  { label: "Central de oportunidades",      gratis: false,  starter: false, pro: true  },
+  { label: "Dashboard de direção",          gratis: false,  starter: false, pro: true  },
+  { label: "IA como suporte de decisão",    gratis: false,  starter: false, pro: true  },
 ];
 
 function Check({ v }: { v: boolean | string }) {
