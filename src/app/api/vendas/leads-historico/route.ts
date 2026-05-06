@@ -21,26 +21,32 @@ export async function GET(req: NextRequest) {
     criadoEm: string;
   }[] = [];
 
-  // Conversations (carro / moto) — fetch all seller convs, then filter by vehicle tipoVeiculo
+  // Conversations (carro / moto)
   if (tipo === "todos" || tipo === "carro" || tipo === "moto") {
-    const convs = await (prisma as any).conversation.findMany({
-      where: { sellerId: user.id },
+    // vehicleType in DB: "CAR" | "MOTO"
+    const vehicleTypeFilter = tipo === "carro" ? "CAR" : tipo === "moto" ? "MOTO" : undefined;
+
+    const convs = await prisma.conversation.findMany({
+      where: {
+        sellerId: user.id,
+        ...(vehicleTypeFilter && { vehicle: { vehicleType: vehicleTypeFilter } }),
+      },
       orderBy: { createdAt: "desc" },
       include: {
-        vehicle: { select: { brand: true, model: true, tipoVeiculo: true } },
+        vehicle: { select: { brand: true, model: true, vehicleType: true } },
         buyer:   { select: { name: true, phone: true, email: true } },
       },
     });
 
     for (const c of convs) {
-      const tv: string = c.vehicle?.tipoVeiculo ?? "carro";
-      if (tipo !== "todos" && tv !== tipo) continue;
+      const vt = c.vehicle?.vehicleType ?? "CAR";
+      const interesse = vt === "MOTO" ? "moto" : "carro";
       leads.push({
         id: c.id,
         nome: c.buyer?.name ?? "—",
-        telefone: c.buyer?.phone ?? null,
+        telefone: (c.buyer as any)?.phone ?? null,
         email: c.buyer?.email ?? null,
-        interesse: tv,
+        interesse,
         veiculo: c.vehicle ? `${c.vehicle.brand} ${c.vehicle.model}` : null,
         status: "conversa",
         criadoEm: c.createdAt.toISOString(),
