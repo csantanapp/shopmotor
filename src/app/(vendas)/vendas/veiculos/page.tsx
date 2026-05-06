@@ -120,6 +120,8 @@ export default function VeiculosPage() {
   const [boosting, setBoosting] = useState(false);
   const [olxLoading, setOlxLoading] = useState<string | null>(null);
   const [pauseLoading, setPauseLoading] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const olxEnabled = process.env.NEXT_PUBLIC_OLX_ENABLED === "true";
 
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
@@ -163,9 +165,8 @@ export default function VeiculosPage() {
     }
   }
 
-  async function handlePause(vehicleId: string, currentStatus: string) {
+  async function handleStatusChange(vehicleId: string, newStatus: string) {
     setPauseLoading(vehicleId);
-    const newStatus = currentStatus === "PAUSED" ? "ACTIVE" : "PAUSED";
     const res = await fetch(`/api/vehicles/${vehicleId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -173,11 +174,22 @@ export default function VeiculosPage() {
     });
     setPauseLoading(null);
     if (res.ok) {
-      fire(newStatus === "PAUSED" ? "Anúncio pausado." : "Anúncio reativado!");
+      const msgs: Record<string, string> = { ACTIVE: "Anúncio publicado!", PAUSED: "Anúncio pausado." };
+      fire(msgs[newStatus] ?? "Status atualizado.");
       load();
     } else {
-      fire("Erro ao alterar status do anúncio.");
+      const data = await res.json().catch(() => ({}));
+      fire(data.error ?? "Erro ao alterar status.");
     }
+  }
+
+  async function handleDelete(vehicleId: string) {
+    setDeleting(true);
+    const res = await fetch(`/api/vehicles/${vehicleId}`, { method: "DELETE" });
+    setDeleting(false);
+    setDeleteId(null);
+    if (res.ok) { fire("Veículo excluído."); load(); }
+    else fire("Erro ao excluir veículo.");
   }
 
   const boostVehicle = vehicles.find(v => v.id === boostVehicleId);
@@ -201,6 +213,37 @@ export default function VeiculosPage() {
     >
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-xl bg-gray-900 px-4 py-3 text-sm text-white shadow-2xl">{toast}</div>
+      )}
+
+      {/* Modal confirmação exclusão */}
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setDeleteId(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Icon name="delete" className="text-red-600" />
+              </div>
+              <div>
+                <p className="font-black text-gray-900">Excluir veículo</p>
+                <p className="text-xs text-gray-400 mt-0.5">Esta ação não pode ser desfeita.</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              O veículo e todas as suas fotos serão removidos permanentemente. Leads e conversas associados serão mantidos.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => handleDelete(deleteId)} disabled={deleting}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-red-600 py-2.5 text-sm font-black text-white hover:bg-red-700 transition disabled:opacity-50">
+                {deleting && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                Excluir
+              </button>
+              <button onClick={() => setDeleteId(null)}
+                className="flex-1 rounded-xl border border-black/10 py-2.5 text-sm font-black text-gray-600 hover:bg-gray-50 transition">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal impulsionamento */}
@@ -422,24 +465,56 @@ export default function VeiculosPage() {
                   </button>
                 </div>
 
-                {/* Pausar / Reativar */}
-                {(v.status === "ACTIVE" || v.status === "PAUSED") && (
+                {/* Status actions */}
+                {v.status === "DRAFT" && (
                   <button
-                    onClick={() => handlePause(v.id, v.status)}
+                    onClick={() => handleStatusChange(v.id, "ACTIVE")}
                     disabled={pauseLoading === v.id}
-                    className={`mt-2 w-full flex items-center justify-center gap-2 rounded-lg border py-2 text-xs font-black transition disabled:opacity-40
-                      ${v.status === "PAUSED"
-                        ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
-                        : "border-black/10 bg-white text-gray-600 hover:bg-gray-50"
-                      }`}
+                    className="mt-2 w-full flex items-center justify-center gap-2 rounded-lg border border-green-300 bg-green-50 py-2 text-xs font-black text-green-700 hover:bg-green-100 transition disabled:opacity-40"
                   >
                     {pauseLoading === v.id ? (
                       <span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                     ) : (
-                      <Icon name={v.status === "PAUSED" ? "play_arrow" : "pause"} className="text-xs" />
+                      <Icon name="publish" className="text-xs" />
                     )}
-                    {v.status === "PAUSED" ? "Reativar anúncio" : "Pausar anúncio"}
+                    Publicar anúncio
                   </button>
+                )}
+                {v.status === "ACTIVE" && (
+                  <button
+                    onClick={() => handleStatusChange(v.id, "PAUSED")}
+                    disabled={pauseLoading === v.id}
+                    className="mt-2 w-full flex items-center justify-center gap-2 rounded-lg border border-black/10 bg-white py-2 text-xs font-black text-gray-600 hover:bg-gray-50 transition disabled:opacity-40"
+                  >
+                    {pauseLoading === v.id ? (
+                      <span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    ) : (
+                      <Icon name="pause" className="text-xs" />
+                    )}
+                    Pausar anúncio
+                  </button>
+                )}
+                {v.status === "PAUSED" && (
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={() => handleStatusChange(v.id, "ACTIVE")}
+                      disabled={pauseLoading === v.id}
+                      className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-green-300 bg-green-50 py-2 text-xs font-black text-green-700 hover:bg-green-100 transition disabled:opacity-40"
+                    >
+                      {pauseLoading === v.id ? (
+                        <span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                      ) : (
+                        <Icon name="publish" className="text-xs" />
+                      )}
+                      Publicar
+                    </button>
+                    <button
+                      onClick={() => setDeleteId(v.id)}
+                      className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50 py-2 text-xs font-black text-red-600 hover:bg-red-100 transition"
+                    >
+                      <Icon name="delete" className="text-xs" /> Excluir
+                    </button>
+                  </div>
                 )}
 
                 {/* OLX — só exibe se integração estiver ativa */}
