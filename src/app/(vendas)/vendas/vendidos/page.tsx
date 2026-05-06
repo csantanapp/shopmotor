@@ -26,8 +26,59 @@ export default function VendidosPage() {
   const totalReceita = vehicles.reduce((s, v) => s + (v.price ?? 0), 0);
   const ticketMedio  = vehicles.length > 0 ? Math.round(totalReceita / vehicles.length) : 0;
 
+  function handlePrint() {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const rows = vehicles.map(v => `<tr>
+      <td><strong>${v.brand} ${v.model}</strong>${v.version ? `<br/><span style="color:#999;font-size:10px">${v.version}</span>` : ""}</td>
+      <td>${v.yearFab}</td>
+      <td style="font-weight:900">R$ ${v.price?.toLocaleString("pt-BR")}</td>
+      <td>${v.km?.toLocaleString("pt-BR")} km</td>
+      <td>${new Date(v.updatedAt).toLocaleDateString("pt-BR")}</td>
+    </tr>`).join("");
+    w.document.write(`
+      <html><head><title>Veículos Vendidos — ShopMotor</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:Arial,sans-serif; font-size:12px; color:#111; padding:24px; }
+        h1 { font-size:17px; font-weight:900; text-transform:uppercase; margin-bottom:4px; }
+        p.sub { font-size:11px; color:#888; margin-bottom:18px; }
+        table { width:100%; border-collapse:collapse; }
+        th { background:#f5f5f5; text-align:left; padding:8px 10px; font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:#555; border-bottom:2px solid #e0e0e0; }
+        td { padding:8px 10px; border-bottom:1px solid #eee; vertical-align:middle; }
+        tr:nth-child(even) td { background:#fafafa; }
+        .total { margin-top:16px; padding:10px 12px; background:#f5f5f5; border-radius:8px; display:flex; justify-content:space-between; font-size:12px; }
+        footer { margin-top:20px; font-size:10px; color:#aaa; border-top:1px solid #eee; padding-top:8px; display:flex; justify-content:space-between; }
+        @media print { body { padding:0; } }
+      </style></head><body>
+      <h1>ShopMotor — Veículos Vendidos</h1>
+      <p class="sub">Gerado em ${new Date().toLocaleString("pt-BR")} &nbsp;·&nbsp; ${vehicles.length} veículo(s) vendido(s)</p>
+      <table>
+        <thead><tr><th>Veículo</th><th>Ano</th><th>Preço de venda</th><th>KM</th><th>Vendido em</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="total">
+        <span>Receita total estimada</span>
+        <strong>R$ ${totalReceita.toLocaleString("pt-BR")}</strong>
+      </div>
+      <footer><span>shopmotor.com.br</span><span>Total: ${vehicles.length} veículo(s)</span></footer>
+      </body></html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { w.print(); w.close(); }, 400);
+  }
+
   return (
-    <ErpLayout title="Vendidos" subtitle="Veículos marcados como vendidos">
+    <ErpLayout title="Vendidos" subtitle="Veículos marcados como vendidos"
+      action={
+        vehicles.length > 0 ? (
+          <button onClick={handlePrint} className="flex items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-black text-gray-700 hover:bg-gray-50 transition">
+            <Icon name="print" className="text-base" /> Imprimir relatório
+          </button>
+        ) : undefined
+      }
+    >
       <div className="grid gap-4 md:grid-cols-3 mb-6">
         <ErpKpiCard label="Total vendido" value={String(vehicles.length)} icon="sell" accent={vehicles.length > 0} />
         <ErpKpiCard label="Receita estimada" value={`R$ ${totalReceita.toLocaleString("pt-BR")}`} icon="payments" />

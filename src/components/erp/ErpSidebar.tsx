@@ -13,7 +13,6 @@ const items = [
   { href: "/vendas/clientes-fornecedores", label: "Clientes / Fornecedores", icon: "contacts"        },
   { href: "/vendas/leads",                label: "CRM de Leads",            icon: "group"           },
   { href: "/vendas/financiamento", label: "Financiamento",            icon: "account_balance" },
-  { href: "/vendas/seguros",       label: "Seguro",                   icon: "shield"          },
   { href: "/vendas/anuncios",      label: "Impulsionamento",          icon: "rocket_launch"   },
   { href: "/vendas/monetizacao",   label: "Financeiro",               icon: "payments"        },
   { href: "/vendas/configuracoes", label: "Configurações",            icon: "settings"        },
