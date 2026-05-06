@@ -26,8 +26,9 @@ export default function ErpSidebar() {
 
   // Filtra itens por módulos do grupo quando for colaborador
   const visibleItems = items.filter(item => {
-    if (!colaborador) return true;           // dono vê tudo
-    if (!item.moduleKey) return true;        // sem restrição (central, config, ajuda)
+    if (!colaborador) return true;                              // dono vê tudo
+    if (item.href === "/vendas/configuracoes") return false;    // somente dono acessa configurações
+    if (!item.moduleKey) return true;                           // central e ajuda sem restrição
     return colaborador.modulos[item.moduleKey] === true;
   });
 

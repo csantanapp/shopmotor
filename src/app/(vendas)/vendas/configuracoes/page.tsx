@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import ErpLayout from "@/components/erp/ErpLayout";
 import Icon from "@/components/ui/Icon";
+import { useErpAuth } from "@/context/ErpAuthContext";
 
 /* ── helpers ── */
 const iCls = "w-full rounded-xl border border-black/10 bg-gray-50 px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-primary-container/60 focus:bg-white transition";
@@ -49,6 +51,13 @@ const EMPTY_GRUP = { nome: "", modulos: {} as Record<string, boolean> };
 const EMPTY_USER = { nome: "", email: "", senha: "", grupoId: "" };
 
 export default function ConfiguracoesPage() {
+  const { colaborador } = useErpAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (colaborador) router.replace("/vendas");
+  }, [colaborador, router]);
+
   const [toast, setToast] = useState("");
   const fire = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3500); };
 
