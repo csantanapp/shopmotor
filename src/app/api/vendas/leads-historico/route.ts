@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getErpUser } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
-  const user = await getCurrentUser() as any;
+  const user = await getErpUser(req) as any;
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (user.accountType !== "PJ") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
