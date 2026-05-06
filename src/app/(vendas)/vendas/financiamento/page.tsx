@@ -188,9 +188,10 @@ export default function FinanciamentoPage() {
     setAddingNota(false);
   }
 
-  const novos      = leads.filter(l => l.status === "novo").length;
-  const contatados = leads.filter(l => l.status === "contatado").length;
+  const novos       = leads.filter(l => l.status === "novo").length;
+  const contatados  = leads.filter(l => l.status === "contatado").length;
   const convertidos = leads.filter(l => l.status === "convertido").length;
+  const descartados = leads.filter(l => l.status === "descartado").length;
   const chance = selected ? chanceCls(selected.entrada, selected.valorCarro) : null;
 
   return (
@@ -345,10 +346,11 @@ export default function FinanciamentoPage() {
       )}
 
       {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-4 mb-6">
+      <div className="grid gap-4 md:grid-cols-5 mb-6">
         <ErpKpiCard label="Novos" value={String(novos)} icon="account_balance" accent={novos > 0} />
         <ErpKpiCard label="Contatados" value={String(contatados)} icon="phone" />
         <ErpKpiCard label="Convertidos" value={String(convertidos)} icon="check_circle" />
+        <ErpKpiCard label="Descartados" value={String(descartados)} icon="cancel" />
         <ErpKpiCard label="Total" value={String(leads.length)} icon="bar_chart" />
       </div>
 
