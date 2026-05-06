@@ -105,11 +105,28 @@ function fmt(n: number) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 }
 
+interface HistoricoLead {
+  id: string;
+  nome: string;
+  telefone: string | null;
+  email: string | null;
+  interesse: string;
+  veiculo: string | null;
+  status: string;
+  criadoEm: string;
+}
+
 export default function LeadsPage() {
   const [conversations, setConversations] = useState<ApiConversation[]>([]);
   const [stageMap, setStageMap] = useState<Record<string, ColKey>>({});
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Histórico state
+  const [mainView, setMainView] = useState<"crm" | "historico">("crm");
+  const [historico, setHistorico] = useState<HistoricoLead[]>([]);
+  const [histLoading, setHistLoading] = useState(false);
+  const [histTipo, setHistTipo] = useState<"todos" | "carro" | "moto" | "financiamento">("todos");
   const [active, setActive] = useState<ApiConversation | null>(null);
   const [panelTab, setPanelTab] = useState<PanelTab>("chat");
   const [messages, setMessages] = useState<ApiMessage[]>([]);
@@ -178,6 +195,16 @@ export default function LeadsPage() {
       }))))
       .catch(() => {});
   }, [load]);
+
+  useEffect(() => {
+    if (mainView !== "historico") return;
+    setHistLoading(true);
+    fetch(`/api/vendas/leads-historico?tipo=${histTipo}`)
+      .then(r => r.ok ? r.json() : { leads: [] })
+      .then(d => setHistorico(d.leads ?? []))
+      .catch(() => {})
+      .finally(() => setHistLoading(false));
+  }, [mainView, histTipo]);
 
   // Load messages when active changes
   useEffect(() => {
@@ -348,6 +375,45 @@ export default function LeadsPage() {
     return c.messages[0] && c.messages[0].senderId !== userId;
   }).length;
   const activeStage = active ? stageMap[active.id] : null;
+
+  function exportCSV() {
+    const rows = historico.map(l => [
+      l.nome,
+      l.telefone ?? "",
+      l.email ?? "",
+      l.interesse,
+      l.veiculo ?? "",
+      l.status,
+      new Date(l.criadoEm).toLocaleDateString("pt-BR"),
+    ]);
+    const header = ["Nome", "Telefone", "E-mail", "Interesse", "Veículo", "Status", "Data"];
+    const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "leads-historico.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportXML() {
+    const items = historico.map(l => `  <lead>
+    <nome>${escXml(l.nome)}</nome>
+    <telefone>${escXml(l.telefone ?? "")}</telefone>
+    <email>${escXml(l.email ?? "")}</email>
+    <interesse>${escXml(l.interesse)}</interesse>
+    <veiculo>${escXml(l.veiculo ?? "")}</veiculo>
+    <status>${escXml(l.status)}</status>
+    <data>${new Date(l.criadoEm).toLocaleDateString("pt-BR")}</data>
+  </lead>`).join("\n");
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<leads>\n${items}\n</leads>`;
+    const blob = new Blob([xml], { type: "application/xml;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "leads-historico.xml"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function escXml(s: string) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
 
   return (
     <ErpLayout
@@ -771,8 +837,28 @@ export default function LeadsPage() {
         </div>
       )}
 
+      {/* Main view tabs */}
+      <div className="flex gap-1 mb-6 border-b border-black/10">
+        {([
+          { key: "crm",       label: "CRM",       icon: "view_kanban" },
+          { key: "historico", label: "Histórico",  icon: "history"     },
+        ] as const).map(t => (
+          <button
+            key={t.key}
+            onClick={() => setMainView(t.key)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-black border-b-2 -mb-px transition ${
+              mainView === t.key
+                ? "border-primary-container text-gray-900"
+                : "border-transparent text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            <Icon name={t.icon} className="text-base" /> {t.label}
+          </button>
+        ))}
+      </div>
+
       {/* Alerta de não respondidos */}
-      {totalUnread > 0 && (
+      {mainView === "crm" && totalUnread > 0 && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 mb-6 flex items-start gap-3">
           <Icon name="local_fire_department" className="text-red-500 text-lg shrink-0 mt-0.5" />
           <div>
@@ -782,13 +868,13 @@ export default function LeadsPage() {
         </div>
       )}
 
-      {loading && (
+      {mainView === "crm" && loading && (
         <div className="flex items-center justify-center py-24">
           <span className="h-8 w-8 rounded-full border-2 border-primary-container/30 border-t-primary-container animate-spin" />
         </div>
       )}
 
-      {!loading && (
+      {mainView === "crm" && !loading && (
         <div className="overflow-x-auto pb-4">
           <div className="flex gap-4 min-w-max">
             {COLUMNS.map(col => {
@@ -951,11 +1037,120 @@ export default function LeadsPage() {
         </div>
       )}
 
-      {!loading && leads.length === 0 && (
+      {mainView === "crm" && !loading && leads.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <Icon name="forum" className="text-5xl text-gray-200 mb-4" />
           <p className="text-lg font-black text-gray-400">Nenhum lead ainda</p>
           <p className="text-sm text-gray-400 mt-1">Quando compradores enviarem mensagens para seus veículos, aparecerão aqui.</p>
+        </div>
+      )}
+
+      {/* ── Histórico view ── */}
+      {mainView === "historico" && (
+        <div>
+          {/* Filters + export */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div className="flex gap-1.5">
+              {([
+                { key: "todos",          label: "Todos"          },
+                { key: "carro",          label: "Carro"          },
+                { key: "moto",           label: "Moto"           },
+                { key: "financiamento",  label: "Financiamento"  },
+              ] as const).map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setHistTipo(f.key)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-black transition border ${
+                    histTipo === f.key
+                      ? "bg-primary-container border-primary-container text-black"
+                      : "border-black/10 bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            {historico.length > 0 && (
+              <div className="flex gap-2">
+                <button
+                  onClick={exportCSV}
+                  className="flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs font-black text-gray-700 hover:bg-gray-50 transition"
+                >
+                  <Icon name="download" className="text-sm" /> CSV
+                </button>
+                <button
+                  onClick={exportXML}
+                  className="flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs font-black text-gray-700 hover:bg-gray-50 transition"
+                >
+                  <Icon name="code" className="text-sm" /> XML
+                </button>
+              </div>
+            )}
+          </div>
+
+          {histLoading ? (
+            <div className="flex items-center justify-center py-24">
+              <span className="h-8 w-8 rounded-full border-2 border-primary-container/30 border-t-primary-container animate-spin" />
+            </div>
+          ) : historico.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <Icon name="history" className="text-5xl text-gray-200 mb-4" />
+              <p className="text-lg font-black text-gray-400">Nenhum lead encontrado</p>
+              <p className="text-sm text-gray-400 mt-1">Leads de conversas e financiamentos aparecerão aqui.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-black/10 bg-white shadow-sm">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-400 border-b border-black/10">
+                  <tr>
+                    {["Nome", "Telefone", "E-mail", "Interesse", "Veículo", "Status", "Data"].map(h => (
+                      <th key={h} className="px-4 py-3 text-left font-black whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-black/5">
+                  {historico.map(l => {
+                    const interesteBadge: Record<string, string> = {
+                      carro:         "bg-blue-50 border-blue-200 text-blue-700",
+                      moto:          "bg-orange-50 border-orange-200 text-orange-700",
+                      financiamento: "bg-purple-50 border-purple-200 text-purple-700",
+                    };
+                    return (
+                      <tr key={l.id} className="hover:bg-gray-50 transition">
+                        <td className="px-4 py-3 font-black text-gray-900 whitespace-nowrap">{l.nome}</td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                          {l.telefone ? (
+                            <a href={`https://wa.me/55${l.telefone.replace(/\D/g,"")}`} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-green-600 hover:underline font-bold">
+                              <Icon name="chat" className="text-xs" /> {l.telefone}
+                            </a>
+                          ) : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {l.email ? (
+                            <a href={`mailto:${l.email}`} className="hover:underline text-blue-600">{l.email}</a>
+                          ) : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${interesteBadge[l.interesse] ?? "bg-gray-50 border-black/10 text-gray-500"}`}>
+                            {l.interesse}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{l.veiculo ?? "—"}</td>
+                        <td className="px-4 py-3 text-xs text-gray-400 capitalize">{l.status}</td>
+                        <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                          {new Date(l.criadoEm).toLocaleDateString("pt-BR")}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="px-4 py-3 border-t border-black/10 text-xs text-gray-400">
+                {historico.length} lead{historico.length !== 1 ? "s" : ""} encontrado{historico.length !== 1 ? "s" : ""}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </ErpLayout>
