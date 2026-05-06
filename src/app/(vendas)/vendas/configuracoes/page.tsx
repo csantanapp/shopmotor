@@ -162,6 +162,7 @@ export default function ConfiguracoesPage() {
   const [userForm, setUserForm]     = useState({ ...EMPTY_USER });
   const [userModal, setUserModal]   = useState(false);
   const [userSaving, setUserSaving] = useState(false);
+  const [editUserId, setEditUserId] = useState<string | null>(null);
 
   const loadUsuarios = useCallback(async () => {
     const d = await fetch("/api/loja/usuarios").then(r => r.json());
@@ -170,17 +171,38 @@ export default function ConfiguracoesPage() {
   useEffect(() => { loadUsuarios(); }, [loadUsuarios]);
 
   async function saveUsuario() {
-    if (!userForm.nome || !userForm.email || !userForm.senha || !userForm.grupoId) {
-      fire("Preencha todos os campos."); return;
+    if (editUserId) {
+      if (!userForm.nome || !userForm.email || !userForm.grupoId) {
+        fire("Preencha nome, e-mail e grupo."); return;
+      }
+      setUserSaving(true);
+      const body: Record<string, string> = { nome: userForm.nome, email: userForm.email, grupoId: userForm.grupoId };
+      if (userForm.senha) body.senha = userForm.senha;
+      const res = await fetch(`/api/loja/usuarios/${editUserId}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+      setUserSaving(false);
+      if (res.ok) { fire("Usuário atualizado!"); setUserForm({ ...EMPTY_USER }); setEditUserId(null); setUserModal(false); await loadUsuarios(); }
+      else { const d = await res.json(); fire(d.error ?? "Erro ao salvar."); }
+    } else {
+      if (!userForm.nome || !userForm.email || !userForm.senha || !userForm.grupoId) {
+        fire("Preencha todos os campos."); return;
+      }
+      setUserSaving(true);
+      const res = await fetch("/api/loja/usuarios", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: userForm.nome, email: userForm.email, senha: userForm.senha, grupoId: userForm.grupoId }),
+      });
+      setUserSaving(false);
+      if (res.ok) { fire("Usuário cadastrado!"); setUserForm({ ...EMPTY_USER }); setUserModal(false); await loadUsuarios(); }
+      else { const d = await res.json(); fire(d.error ?? "Erro ao salvar."); }
     }
-    setUserSaving(true);
-    const res = await fetch("/api/loja/usuarios", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: userForm.nome, email: userForm.email, senha: userForm.senha, grupoId: userForm.grupoId }),
-    });
-    setUserSaving(false);
-    if (res.ok) { fire("Usuário cadastrado!"); setUserForm({ ...EMPTY_USER }); setUserModal(false); await loadUsuarios(); }
-    else { const d = await res.json(); fire(d.error ?? "Erro ao salvar."); }
+  }
+
+  function openEditUsuario(u: Usuario) {
+    setUserForm({ nome: u.nome, email: u.email, senha: "", grupoId: u.grupo?.id ?? u.grupoId });
+    setEditUserId(u.id);
+    setUserModal(true);
   }
 
   async function removeUsuario(id: string) {
@@ -261,11 +283,11 @@ export default function ConfiguracoesPage() {
 
       {/* ── Modal Usuário ── */}
       {userModal && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4" onClick={() => setUserModal(false)}>
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4" onClick={() => { setUserModal(false); setEditUserId(null); setUserForm({ ...EMPTY_USER }); }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-black/10">
-              <p className="font-black text-gray-900">Cadastro de Usuário</p>
-              <button onClick={() => setUserModal(false)} className="p-1 rounded-lg hover:bg-gray-100"><Icon name="close" className="text-gray-500" /></button>
+              <p className="font-black text-gray-900">{editUserId ? "Editar Usuário" : "Cadastro de Usuário"}</p>
+              <button onClick={() => { setUserModal(false); setEditUserId(null); setUserForm({ ...EMPTY_USER }); }} className="p-1 rounded-lg hover:bg-gray-100"><Icon name="close" className="text-gray-500" /></button>
             </div>
             <div className="p-6 space-y-4">
               <Field label="Nome *">
@@ -274,7 +296,7 @@ export default function ConfiguracoesPage() {
               <Field label="E-mail *">
                 <input type="email" value={userForm.email} onChange={e => setUserForm(u => ({ ...u, email: e.target.value }))} className={iCls} placeholder="email@exemplo.com" />
               </Field>
-              <Field label="Senha *">
+              <Field label={editUserId ? "Nova senha (deixe em branco para manter)" : "Senha *"}>
                 <input type="password" value={userForm.senha} onChange={e => setUserForm(u => ({ ...u, senha: e.target.value }))} className={iCls} placeholder="••••••••" />
               </Field>
               <Field label="Grupo de permissão *">
@@ -294,9 +316,9 @@ export default function ConfiguracoesPage() {
               <button onClick={saveUsuario} disabled={userSaving || grupos.length === 0}
                 className="flex-1 flex items-center justify-center gap-2 bg-primary-container text-black py-2.5 rounded-xl font-black text-sm hover:opacity-90 transition disabled:opacity-50">
                 {userSaving && <span className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />}
-                Salvar
+                {editUserId ? "Atualizar" : "Salvar"}
               </button>
-              <button onClick={() => setUserModal(false)} className="px-5 py-2.5 rounded-xl border border-black/10 text-sm text-gray-500 hover:bg-gray-50">Cancelar</button>
+              <button onClick={() => { setUserModal(false); setEditUserId(null); setUserForm({ ...EMPTY_USER }); }} className="px-5 py-2.5 rounded-xl border border-black/10 text-sm text-gray-500 hover:bg-gray-50">Cancelar</button>
             </div>
           </div>
         </div>
@@ -480,7 +502,7 @@ export default function ConfiguracoesPage() {
                 <p className="text-xs text-gray-400">Colaboradores com acesso ao painel</p>
               </div>
             </div>
-            <button onClick={() => { setUserForm({ ...EMPTY_USER }); setUserModal(true); }}
+            <button onClick={() => { setUserForm({ ...EMPTY_USER }); setEditUserId(null); setUserModal(true); }}
               className="flex items-center gap-2 bg-primary-container text-black px-4 py-2 rounded-xl font-black text-sm hover:opacity-90 transition">
               <Icon name="person_add" className="text-base" /> Novo usuário
             </button>
@@ -533,7 +555,10 @@ export default function ConfiguracoesPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button onClick={() => removeUsuario(u.id)} className="text-xs text-red-500 hover:text-red-700 font-black">Remover</button>
+                        <div className="flex items-center justify-end gap-3">
+                          <button onClick={() => openEditUsuario(u)} className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-black text-gray-600 hover:bg-gray-50 transition">Editar</button>
+                          <button onClick={() => removeUsuario(u.id)} className="text-xs text-red-500 hover:text-red-700 font-black">Remover</button>
+                        </div>
                       </td>
                     </tr>
                   );
