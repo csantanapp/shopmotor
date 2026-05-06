@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 import { sendSlotAvailableEmail } from "@/lib/vehicle-emails";
 
 /* ── GET /api/vehicles/[id] ── */
@@ -52,7 +52,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
 /* ── PATCH /api/vehicles/[id] ── */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
@@ -120,7 +120,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 /* ── DELETE /api/vehicles/[id] ── */
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;

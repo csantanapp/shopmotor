@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 import { uploadToR2, deleteFromR2 } from "@/lib/r2";
 import { validateImageUpload } from "@/lib/upload";
 
@@ -8,7 +8,7 @@ const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 /* ── POST /api/vehicles/[id]/photos ── */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
 /* ── PATCH /api/vehicles/[id]/photos — reordenar ── */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
@@ -85,7 +85,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 /* ── DELETE /api/vehicles/[id]/photos?photoId=xxx ── */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   await params;

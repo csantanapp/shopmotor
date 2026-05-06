@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 
 export async function GET() {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const items = await prisma.usuarioLoja.findMany({
     where: { userId: user.id },
@@ -15,7 +15,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { nome, email, senha, grupoId } = await req.json();
   if (!nome || !email || !senha || !grupoId) return NextResponse.json({ error: "Todos os campos são obrigatórios." }, { status: 400 });

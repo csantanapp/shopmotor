@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { nome, email, senha, grupoId } = await req.json();
   const data: Record<string, unknown> = {};
@@ -16,8 +16,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-  const user = await getCurrentUser();
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   await prisma.usuarioLoja.deleteMany({ where: { id: params.id, userId: user.id } });
   return NextResponse.json({ ok: true });

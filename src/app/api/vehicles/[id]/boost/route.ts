@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 
 /*
   Regras por plano:
@@ -34,7 +34,7 @@ function addDays(days: number) {
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;

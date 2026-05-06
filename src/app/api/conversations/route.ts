@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 
 // Retorna o plano ativo de um userId lojista (null se sem plano ativo)
 async function getActivePlan(userId: string): Promise<"STARTER" | "PRO" | "ELITE" | null> {
@@ -67,7 +67,7 @@ export async function GET() {
 
 /* POST — cria ou recupera conversa e envia primeira mensagem */
 export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { vehicleId, text } = await req.json();

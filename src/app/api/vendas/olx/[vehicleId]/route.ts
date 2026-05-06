@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 import { publishVehicle, removeVehicle, isOlxConfigured } from "@/lib/olx";
 
 type Params = { params: Promise<{ vehicleId: string }> };
 
 /* POST — publica ou atualiza veículo na OLX */
 export async function POST(_req: NextRequest, { params }: Params) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   if (!isOlxConfigured()) {
@@ -67,7 +67,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
 
 /* DELETE — remove anúncio da OLX */
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   if (!isOlxConfigured()) {

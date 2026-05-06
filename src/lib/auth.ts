@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import type { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
+import { NextRequest } from "next/server";
 
 const JWT_SECRET  = process.env.JWT_SECRET!;
 const JWT_EXPIRES = process.env.JWT_EXPIRES_IN ?? "24h";
@@ -74,3 +75,35 @@ export async function revokeSession(token: string) {
 }
 
 export { COOKIE_NAME };
+
+/**
+ * Resolve o usuário dono da loja a partir de qualquer contexto ERP.
+ * - Se houver erp_token válido → retorna o usuário cujo id é lojaUserId (dono da loja)
+ * - Caso contrário → delega para getCurrentUser() (dono logado normalmente)
+ *
+ * Use esta função em todos os endpoints do ERP para que colaboradores
+ * vejam os dados da loja do dono, não os seus próprios.
+ */
+export async function getErpUser(req?: NextRequest) {
+  // Tenta erp_token primeiro (via req.cookies em route handlers, ou next/headers)
+  let erpToken: string | undefined;
+  if (req) {
+    erpToken = req.cookies.get("erp_token")?.value;
+  } else {
+    const cookieStore = await cookies();
+    erpToken = cookieStore.get("erp_token")?.value;
+  }
+
+  if (erpToken) {
+    try {
+      const payload = jwt.verify(erpToken, JWT_SECRET) as { lojaUserId: string };
+      if (payload?.lojaUserId) {
+        return prisma.user.findUnique({ where: { id: payload.lojaUserId } });
+      }
+    } catch {
+      // token inválido — cai para o fluxo normal
+    }
+  }
+
+  return getCurrentUser();
+}

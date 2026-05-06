@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 
 /* ── GET /api/vehicles — listar com filtros ── */
 export async function GET(req: NextRequest) {
@@ -158,7 +158,7 @@ export async function GET(req: NextRequest) {
 
 /* ── POST /api/vehicles — criar anúncio ── */
 export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   // Limite por tipo de conta + assinatura de loja

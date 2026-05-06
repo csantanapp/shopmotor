@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const user = await getCurrentUser();
+    const user = await getErpUser(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const conv = await prisma.conversation.findFirst({
@@ -22,7 +22,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const user = await getCurrentUser();
+    const user = await getErpUser(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const conv = await prisma.conversation.findFirst({ where: { id: params.id, sellerId: user.id } });

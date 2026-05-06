@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 
 export async function GET() {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const items = await prisma.grupoPermissao.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" } });
   return NextResponse.json({ items: items.map(g => ({ ...g, modulos: JSON.parse(g.modulos) })) });
 }
 
 export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { nome, modulos } = await req.json();
   if (!nome) return NextResponse.json({ error: "Nome é obrigatório." }, { status: 400 });

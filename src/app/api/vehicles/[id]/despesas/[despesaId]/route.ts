@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getErpUser } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string; despesaId: string }> };
 
 export async function DELETE(_req: NextRequest, { params }: Ctx) {
-  const user = await getCurrentUser();
+  const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id, despesaId } = await params;
   const vehicle = await prisma.vehicle.findUnique({ where: { id }, select: { userId: true } });
