@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import ErpLayout from "@/components/erp/ErpLayout";
 import Icon from "@/components/ui/Icon";
 import { useErpAuth } from "@/context/ErpAuthContext";
+import { STORE_PLANS, StorePlan } from "@/lib/store-plans";
 
 /* ── helpers ── */
 const iCls = "w-full rounded-xl border border-black/10 bg-gray-50 px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-primary-container/60 focus:bg-white transition";
@@ -17,8 +19,6 @@ function Field({ label, children, className }: { label: string; children: React.
     </div>
   );
 }
-
-const PLAN_FEATURES = ["Anúncios ilimitados", "BI avançado", "CRM completo", "Suporte prioritário"];
 
 const MODULES = [
   { key: "dashboard",     label: "Dashboard de Direção",    icon: "explore" },
@@ -64,6 +64,7 @@ export default function ConfiguracoesPage() {
   /* ── Dados da loja ── */
   const [loja, setLoja] = useState({ razaoSocial: "", cnpj: "", email: "", telefone: "", cidade: "", responsavel: "" });
   const [savingLoja, setSavingLoja] = useState(false);
+  const [subPlan, setSubPlan] = useState<StorePlan | null>(null);
 
   useEffect(() => {
     fetch("/api/user/profile").then(r => r.json()).then(d => {
@@ -76,6 +77,9 @@ export default function ConfiguracoesPage() {
         cidade:      u.city ? `${u.city}${u.state ? `, ${u.state}` : ""}` : "",
         responsavel: u.tradeName ?? u.name ?? "",
       });
+    });
+    fetch("/api/vehicles/check-limit").then(r => r.json()).then(d => {
+      setSubPlan(d.subPlan ?? null);
     });
   }, []);
 
@@ -382,23 +386,48 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-xl border border-primary-container/40 bg-yellow-50 p-6">
-              <div className="flex items-center gap-2 text-yellow-700 mb-3">
-                <Icon name="workspace_premium" className="text-base" />
-                <span className="text-xs font-black uppercase tracking-wider">Plano Pro</span>
-              </div>
-              <p className="text-2xl font-black text-gray-900">R$ 499<span className="text-sm font-normal text-gray-400">/mês</span></p>
-              <ul className="mt-4 space-y-2">
-                {PLAN_FEATURES.map(f => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
-                    <Icon name="check" className="text-yellow-600 text-sm" /> {f}
-                  </li>
-                ))}
-              </ul>
-              <button onClick={() => fire("Fale com vendas para upgrade")} className="mt-5 w-full rounded-xl bg-primary-container py-2 text-sm font-black text-black hover:opacity-90 transition">
-                Fazer upgrade para Pro
-              </button>
-            </div>
+            {(() => {
+              const plan = subPlan ? STORE_PLANS[subPlan] : null;
+              const isElite = subPlan === "ELITE";
+              return (
+                <div className={`rounded-xl border p-6 ${plan ? "border-primary-container/40 bg-yellow-50" : "border-black/10 bg-gray-50"}`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Icon name="workspace_premium" className={`text-base ${plan ? "text-yellow-600" : "text-gray-400"}`} />
+                    <span className={`text-xs font-black uppercase tracking-wider ${plan ? "text-yellow-700" : "text-gray-500"}`}>
+                      {plan ? `Plano ${plan.name}` : "Sem plano ativo"}
+                    </span>
+                  </div>
+                  {plan ? (
+                    <>
+                      <p className="text-2xl font-black text-gray-900">
+                        R$ {plan.price.toLocaleString("pt-BR")}<span className="text-sm font-normal text-gray-400">/mês</span>
+                      </p>
+                      <ul className="mt-4 space-y-2">
+                        {plan.features.slice(0, 5).map(f => (
+                          <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                            <Icon name="check" className="text-yellow-600 text-sm shrink-0" /> {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500 mt-2">Assine um plano para acessar todos os recursos do ERP.</p>
+                  )}
+                  {!isElite && (
+                    <Link href="/perfil/plano" className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-primary-container py-2 text-sm font-black text-black hover:opacity-90 transition">
+                      <Icon name="upgrade" className="text-base" />
+                      {plan ? "Ver planos disponíveis" : "Assinar um plano"}
+                    </Link>
+                  )}
+                  {isElite && (
+                    <Link href="/perfil/plano" className="mt-5 flex items-center justify-center gap-2 rounded-xl border border-black/10 bg-white py-2 text-sm font-black text-gray-600 hover:bg-gray-50 transition">
+                      <Icon name="receipt_long" className="text-base" />
+                      Gerenciar assinatura
+                    </Link>
+                  )}
+                </div>
+              );
+            })()}
 
             <div className="rounded-xl border border-black/10 bg-white p-6 shadow-sm">
               <h3 className="font-black text-gray-900 flex items-center gap-2 mb-4">
