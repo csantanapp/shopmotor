@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 import { useAuth } from "@/context/AuthContext";
+import { useErpAuth } from "@/context/ErpAuthContext";
 
 interface Notif {
   id: string;
@@ -37,8 +38,11 @@ export default function ErpHeader({
   action?: React.ReactNode;
 }) {
   const { user } = useAuth();
-  const initials = user?.name?.split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase() ?? "??";
-  const store = (user as any)?.tradeName ?? user?.name ?? "Minha Loja";
+  const { colaborador } = useErpAuth();
+
+  const displayName = colaborador?.nome ?? user?.name ?? "Usuário";
+  const displaySub  = colaborador ? colaborador.grupoNome : ((user as any)?.tradeName ?? user?.name ?? "Minha Loja");
+  const initials    = displayName.split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase();
 
   const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState<Notif[]>([]);
@@ -168,8 +172,8 @@ export default function ErpHeader({
       {/* User */}
       <div className="flex items-center gap-3 pl-3 border-l border-black/10">
         <div className="hidden md:flex flex-col items-end leading-none gap-0.5">
-          <span className="text-sm font-black text-gray-900">{user?.name?.split(" ")[0] ?? "Usuário"}</span>
-          <span className="text-[11px] text-gray-400">{store}</span>
+          <span className="text-sm font-black text-gray-900">{displayName.split(" ")[0]}</span>
+          <span className="text-[11px] text-gray-400">{displaySub}</span>
         </div>
         <div className="h-9 w-9 rounded-full bg-primary-container flex items-center justify-center text-black font-black text-sm shadow-lg shadow-primary-container/30">
           {initials}
