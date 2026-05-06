@@ -62,18 +62,19 @@ const FIN_STATUS_TO_COL: Record<string, ColKey> = {
   novo: "novo", contatado: "atendimento", convertido: "vendido", descartado: "perdido",
 };
 const COL_TO_FIN_STATUS: Record<string, string> = {
-  novo: "novo", atendimento: "contatado", proposta: "contatado", vendido: "convertido", perdido: "descartado",
+  novo: "novo", atendimento: "contatado", proposta: "contatado", followup: "contatado", vendido: "convertido", perdido: "descartado",
 };
 
-type ColKey = "novo" | "atendimento" | "proposta" | "vendido" | "perdido";
+type ColKey = "novo" | "atendimento" | "proposta" | "followup" | "vendido" | "perdido";
 type PanelTab = "chat" | "crm" | "notas";
 
 const COLUMNS: { key: ColKey; title: string; dot: string; end?: boolean }[] = [
-  { key: "novo",        title: "Novo lead",        dot: "bg-blue-400"   },
-  { key: "atendimento", title: "Em Atendimento",   dot: "bg-orange-400" },
-  { key: "proposta",    title: "Proposta enviada", dot: "bg-purple-400" },
-  { key: "vendido",     title: "Vendido",          dot: "bg-green-500", end: true },
-  { key: "perdido",     title: "Perdido",          dot: "bg-red-400",   end: true },
+  { key: "novo",        title: "Novo lead",           dot: "bg-blue-400"   },
+  { key: "atendimento", title: "Em Atendimento",      dot: "bg-orange-400" },
+  { key: "proposta",    title: "Proposta enviada",    dot: "bg-purple-400" },
+  { key: "followup",    title: "Follow-up",           dot: "bg-cyan-400"   },
+  { key: "vendido",     title: "Vendido",             dot: "bg-green-500", end: true },
+  { key: "perdido",     title: "Perdido",             dot: "bg-red-400",   end: true },
 ];
 
 
@@ -294,7 +295,18 @@ export default function LeadsPage() {
       setConversations(prev => prev.map(c =>
         c.id === active.id ? { ...c, messages: [data.message], updatedAt: data.message.createdAt } : c
       ));
-      if (stageMap[active.id] === "novo") moveStage(active.id, "atendimento");
+      const curStage = stageMap[active.id];
+      if (curStage === "novo") moveStage(active.id, "atendimento");
+    } else if (res.status === 403 && data.movedToFollowup) {
+      // Backend moveu para follow-up — sincronizar frontend
+      setStageMap(prev => {
+        const updated = { ...prev, [active.id]: "followup" as ColKey };
+        try { localStorage.setItem("crm_stages", JSON.stringify(updated)); } catch { /* noop */ }
+        return updated;
+      });
+      setCrm(prev => ({ ...prev, stage: "followup" }));
+      // Agora permitir envio — recarregar e tentar de novo
+      load();
     }
     setSending(false);
   }
@@ -669,11 +681,11 @@ export default function LeadsPage() {
                   })}
                   <div ref={bottomRef} />
                 </div>
-                {activeStage === "vendido" || activeStage === "perdido" ? (
+                {activeStage === "vendido" ? (
                   <div className="p-4 border-t border-black/10 flex items-center gap-3 bg-gray-50">
                     <Icon name="lock" className="text-gray-300 text-lg shrink-0" />
                     <p className="text-xs text-gray-400 leading-snug">
-                      Esta conversa foi <span className="font-black">{activeStage === "vendido" ? "encerrada como Vendido" : "encerrada como Perdido"}</span>. Nenhuma nova mensagem pode ser enviada.
+                      Esta conversa foi <span className="font-black">encerrada como Vendido</span>. Nenhuma nova mensagem pode ser enviada.
                     </p>
                   </div>
                 ) : (
@@ -887,7 +899,7 @@ export default function LeadsPage() {
               const colFinLeads = finLeads.filter(fl => FIN_STATUS_TO_COL[fl.status] === col.key);
               const totalCount = colLeads.length + colFinLeads.length;
               const NEXT_STAGE: Record<ColKey, ColKey | null> = {
-                novo: "atendimento", atendimento: "proposta", proposta: null, vendido: null, perdido: null,
+                novo: "atendimento", atendimento: "proposta", proposta: "followup", followup: null, vendido: null, perdido: null,
               };
               const nextStage = NEXT_STAGE[col.key];
 
@@ -923,6 +935,11 @@ export default function LeadsPage() {
                           {isUnread && (
                             <div className="mb-2 flex items-center gap-1.5 rounded-md bg-red-50 border border-red-200 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-red-600">
                               <Icon name="mark_unread_chat_alt" className="text-xs" /> Aguardando resposta
+                            </div>
+                          )}
+                          {col.key === "followup" && (
+                            <div className="mb-2 flex items-center gap-1.5 rounded-md bg-cyan-50 border border-cyan-200 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-600">
+                              <Icon name="refresh" className="text-xs" /> Follow-up
                             </div>
                           )}
                           {col.key === "vendido" && (

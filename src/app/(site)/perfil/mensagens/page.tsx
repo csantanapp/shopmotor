@@ -193,6 +193,29 @@ export default function MensagensPage() {
       setConversations(prev => prev.map(c =>
         c.id === activeId ? { ...c, messages: [d.message], updatedAt: d.message.createdAt } : c
       ));
+    } else if (d.movedToFollowup) {
+      // Conversa estava como "perdido" — backend moveu para follow-up.
+      // Atualizar crm local e reenviar a mensagem automaticamente.
+      setConversations(prev => prev.map(c =>
+        c.id === activeId ? { ...c, crm: { stage: "followup" } } : c
+      ));
+      // Retentativa após atualizar o estado
+      const retry = await fetch(`/api/conversations/${activeId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const rd = await retry.json();
+      if (rd.message) {
+        setMessages(prev => [...prev, rd.message]);
+        setTimeout(() => {
+          const c = messagesContainerRef.current;
+          if (c) c.scrollTop = c.scrollHeight;
+        }, 50);
+        setConversations(prev => prev.map(c =>
+          c.id === activeId ? { ...c, messages: [rd.message], updatedAt: rd.message.createdAt } : c
+        ));
+      }
     }
     setSending(false);
   }
@@ -282,11 +305,11 @@ export default function MensagensPage() {
           </div>
 
           {/* Input */}
-          {activeConv?.crm?.stage === "vendido" || activeConv?.crm?.stage === "perdido" ? (
+          {activeConv?.crm?.stage === "vendido" ? (
             <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container-lowest flex-shrink-0 flex items-center gap-3">
               <Icon name="lock" className="text-outline text-lg shrink-0" />
               <p className="text-sm text-on-surface-variant">
-                Esta conversa foi encerrada e não aceita novas mensagens.
+                Esta conversa foi encerrada como Vendido e não aceita novas mensagens.
               </p>
             </div>
           ) : (

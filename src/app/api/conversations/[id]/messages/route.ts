@@ -43,17 +43,41 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params;
   const conversation = await prisma.conversation.findUnique({
     where: { id },
-    include: { crm: { select: { stage: true } } },
+    include: {
+      crm: { select: { stage: true } },
+      vehicle: { select: { id: true, status: true, brand: true, model: true } },
+    },
   });
   if (!conversation) return NextResponse.json({ error: "Conversa não encontrada." }, { status: 404 });
   if (conversation.buyerId !== user.id && conversation.sellerId !== user.id) {
     return NextResponse.json({ error: "Sem permissão." }, { status: 403 });
   }
 
-  // Bloqueia envio se conversa encerrada (vendido ou perdido)
-  const stage = (conversation as any).crm?.stage;
-  if (stage === "vendido" || stage === "perdido") {
-    return NextResponse.json({ error: "Esta conversa foi encerrada e não aceita novas mensagens." }, { status: 403 });
+  // Se o veículo não existe mais ou foi removido, bloqueia permanentemente
+  const vehicle = (conversation as any).vehicle;
+  if (!vehicle || vehicle.status === "SOLD" || vehicle.status === "DELETED") {
+    return NextResponse.json({
+      error: "Este anúncio não está mais disponível. A conversa foi encerrada.",
+    }, { status: 403 });
+  }
+
+  const stage = (conversation as any).crm?.stage as string | undefined;
+
+  // Se "perdido" e quem envia é o comprador → mover automaticamente para follow-up
+  if (stage === "perdido" && conversation.buyerId === user.id) {
+    await prisma.leadCrm.upsert({
+      where: { conversationId: id },
+      create: { conversationId: id, stage: "followup" },
+      update: { stage: "followup" },
+    });
+    // Retorna sinal para o frontend sincronizar, sem bloquear o envio
+    // O frontend vai recarregar e retentará o envio na próxima interação
+    return NextResponse.json({ movedToFollowup: true }, { status: 403 });
+  }
+
+  // Bloqueia apenas "vendido" (negócio fechado — definitivo)
+  if (stage === "vendido") {
+    return NextResponse.json({ error: "Esta conversa foi encerrada como Vendido e não aceita novas mensagens." }, { status: 403 });
   }
 
   try {
