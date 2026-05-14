@@ -43,7 +43,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   return NextResponse.json({ vehicle: updated });
 }
 
-export async function GET(_req: NextRequest, { params }: Ctx) {
+export async function GET(req: NextRequest, { params }: Ctx) {
   const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;

@@ -4,7 +4,7 @@ import { getErpUser } from "@/lib/auth";
 
 type Ctx = { params: Promise<{ id: string; despesaId: string }> };
 
-export async function DELETE(_req: NextRequest, { params }: Ctx) {
+export async function DELETE(req: NextRequest, { params }: Ctx) {
   const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id, despesaId } = await params;

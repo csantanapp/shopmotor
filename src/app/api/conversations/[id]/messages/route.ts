@@ -4,7 +4,7 @@ import { getErpUser } from "@/lib/auth";
 import { sendNewMessageEmail } from "@/lib/mailer";
 
 /* GET — mensagens de uma conversa */
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 

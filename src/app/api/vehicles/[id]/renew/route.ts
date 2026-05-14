@@ -6,7 +6,7 @@ import { sendRenewalConfirmationEmail } from "@/lib/vehicle-emails";
 // POST /api/vehicles/[id]/renew
 // Renova um anúncio EXPIRED por mais 30 dias (máximo 2 renovações)
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getErpUser(req);

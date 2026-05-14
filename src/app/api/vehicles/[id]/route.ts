@@ -4,7 +4,7 @@ import { getErpUser } from "@/lib/auth";
 import { sendSlotAvailableEmail } from "@/lib/vehicle-emails";
 
 /* ── GET /api/vehicles/[id] ── */
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   const vehicle = await prisma.vehicle.findUnique({
@@ -119,7 +119,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 /* ── DELETE /api/vehicles/[id] ── */
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 

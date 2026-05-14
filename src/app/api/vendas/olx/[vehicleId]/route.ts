@@ -6,7 +6,7 @@ import { publishVehicle, removeVehicle, isOlxConfigured } from "@/lib/olx";
 type Params = { params: Promise<{ vehicleId: string }> };
 
 /* POST — publica ou atualiza veículo na OLX */
-export async function POST(_req: NextRequest, { params }: Params) {
+export async function POST(req: NextRequest, { params }: Params) {
   const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -66,7 +66,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
 }
 
 /* DELETE — remove anúncio da OLX */
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(req: NextRequest, { params }: Params) {
   const user = await getErpUser(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
